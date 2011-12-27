@@ -1,0 +1,2 @@
+nasm -f elf64 hello64.asm
+objdump -D hello64.o
