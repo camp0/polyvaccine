@@ -45,5 +45,5 @@
 void NFPK_SetFlowResolution(ST_PolyProtector *popr,ST_Flow *f, int resolution);
 void NFPK_CloseNfq(ST_PolyProtector *popr);
 int NFPK_InitNfq(ST_PolyProtector *popr);
-
+ST_Flow *NFPK_GetFlowByHash(GHashTable *t,unsigned long hash1,unsigned long hash2);
 #endif

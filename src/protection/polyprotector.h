@@ -58,6 +58,7 @@ struct ST_PolyProtector {
 	uint64_t total_tcp_packets;
 	uint64_t total_inbound_packets;
 	uint64_t tcp_retransmition_drop_segments;
+	uint64_t tcp_drop_segments;
 };
 
 typedef struct ST_PolyProtector ST_PolyProtector;
@@ -74,12 +75,16 @@ static ST_Callback ST_StaticSignalCallbacks[ MAX_SIGNAL_CALLBACKS] = {
 void PRCA_Property_GetTotalInboundPackets(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetTotalTcpPackets(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetTotalTcpSegments(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetTcpRetransmitionDropSegments(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetTcpDropSegments(DBusConnection *conn,DBusMessage *msg, void *data);
 
-#define MAX_PROPERTY_CALLBACKS 3 
+#define MAX_PROPERTY_CALLBACKS 5 
 static ST_Callback ST_StaticPropertyCallbacks[MAX_PROPERTY_CALLBACKS] = {
 	{ "inbound packets",	NULL,"i",	PRCA_Property_GetTotalInboundPackets },
 	{ "tcp packets",	NULL,"i",	PRCA_Property_GetTotalTcpPackets },
-	{ "tcp segments",	NULL,"i",	PRCA_Property_GetTotalTcpSegments }
+	{ "tcp segments",	NULL,"i",	PRCA_Property_GetTotalTcpSegments },
+	{ "retransmition drop tcp segments",	NULL,"i",	PRCA_Property_GetTcpRetransmitionDropSegments },
+	{ "drop tcp segments",	NULL,"i",	PRCA_Property_GetTcpDropSegments }
 };
 
 static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {

@@ -40,31 +40,28 @@ void POPR_Init() {
         _polyProtector->total_tcp_packets = 0;
         _polyProtector->total_inbound_packets = 0;
         _polyProtector->tcp_retransmition_drop_segments = 0;
+        _polyProtector->tcp_drop_segments = 0;
 	_polyProtector->table = g_hash_table_new(g_direct_hash,g_direct_equal); 
 	_polyProtector->pool = NFPO_Init();
 
 	PODS_Init();
         _polyProtector->bus = PODS_Connect(POLYVACCINE_PROTECTOR_INTERFACE,(void*)_polyProtector);
 	
-	PODS_AddInterface(&ST_PublicInterfaces[0]);
         for ( i = 0; i<MAX_PUBLIC_INTERFACES;i++) {
                 PODS_AddInterface(&ST_PublicInterfaces[i]);
 
                 interface = &ST_PublicInterfaces[i];
                 /* Loads the methods first */
-                current = &interface->methods[0];
                 for (j = 0;j<interface->total_methods;j++){
                         current = &interface->methods[j];
                         DEBUG0("add method '%s' on interface '%s'\n",current[j].name,interface->name);
                         PODS_AddPublicCallback(current);
                 }
-                current = &interface->properties[0];
                 for (j = 0;j<interface->total_properties;j++){
                         current = &interface->properties[j];
                         DEBUG0("add properties '%s' on interface '%s'\n",current[j].name,interface->name);
                         PODS_AddPublicCallback(current);
                 }
-                current = &interface->signals[0];
                 for (j = 0;j<interface->total_signals;j++){
                         current = &interface->signals[j];
                         DEBUG0("add signal '%s' on interface '%s'\n",current[j].name,interface->name);
@@ -74,6 +71,12 @@ void POPR_Init() {
         return;
 }
 
+/**
+ * POPR_SetDevice - Sets the listen interface.
+ *
+ * @param dev the network interface 
+ *
+ */
 void POPR_SetDevice(char *dev){
         struct ifreq ireq;
         int sockfd,index;
@@ -97,6 +100,11 @@ void POPR_SetDevice(char *dev){
 	return;
 }
 
+
+/**
+ * POPR_Run - process packets and dbus messages..
+ *
+ */
 
 void POPR_Run() {
         register int i;
@@ -163,13 +171,20 @@ void POPR_Run() {
         return;
 }
 
+/**
+ * POPR_Exit - Show statistics and destroy allocated resources.
+ *
+ */
+
 void POPR_Exit() {
 	fprintf(stdout,"Protection engine statistics\n");
 	fprintf(stdout,"\ttotal inbound packets %ld\n",_polyProtector->total_inbound_packets);
 	fprintf(stdout,"\ttotal tcp packets %ld\n",_polyProtector->total_tcp_packets);
 	fprintf(stdout,"\ttotal tcp segments %ld\n",_polyProtector->total_tcp_segments);
-	fprintf(stdout,"\ttotal retransmition tcp segments droped%ld\n",_polyProtector->tcp_retransmition_drop_segments);
+	fprintf(stdout,"\ttotal retransmition tcp segments droped %ld\n",_polyProtector->tcp_retransmition_drop_segments);
+	fprintf(stdout,"\ttotal tcp segments droped %ld\n",_polyProtector->tcp_drop_segments);
 
+	NFPO_Stats(_polyProtector->pool);
 	NFPK_CloseNfq(_polyProtector);
 	NFPO_Destroy(_polyProtector->pool);
 	exit(0);

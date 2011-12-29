@@ -24,7 +24,7 @@
 #include "nfpacket.h"
 
 /**
- * PK_SetFlowResolution - Takes a resolution about a ST_Flow, drop or accept
+ * NFPK_SetFlowResolution - Takes a resolution about a ST_Flow, drop or accept
  *
  * @param popr The ST_PolyProtector
  * @param f The ST_Flow
@@ -37,6 +37,19 @@ void NFPK_SetFlowResolution(ST_PolyProtector *popr,ST_Flow *f, int resolution)
         return;
 }
 
+/**
+ * NFPK_GetFlow - Gets a flow from the cache 
+ *
+ * @param t the GHashCache
+ * @param saddr the source IP 
+ * @param sport the source TCP port 
+ * @param protocol the protocol 
+ * @param daddr the destination IP 
+ * @param dport the destination TCP port 
+ * 
+ * @return ST_Flow 
+ *
+ */
 ST_Flow *NFPK_GetFlow(GHashTable *t,u_int32_t saddr,u_int16_t sport,u_int16_t protocol,u_int32_t daddr,u_int16_t dport){
         gpointer object;
         struct in_addr a,b;
@@ -65,6 +78,39 @@ ST_Flow *NFPK_GetFlow(GHashTable *t,u_int32_t saddr,u_int16_t sport,u_int16_t pr
         return NULL;
 }
 
+/**
+ * NFPK_GetFlowByHash - Gets a flow from the cache by using the hash
+ *
+ * @param t the GHashCache
+ * @param hash1 the hash value
+ * @param hash2 the hash value
+ *
+ * @return ST_Flow
+ *
+ */
+ST_Flow *NFPK_GetFlowByHash(GHashTable *t,unsigned long hash1,unsigned long hash2) {
+        gpointer object;
+
+        object = g_hash_table_lookup(t,GINT_TO_POINTER(hash1));
+        if (object != NULL){
+                return (ST_Flow*)object;
+        }
+
+        object = g_hash_table_lookup(t,GINT_TO_POINTER(hash2));
+        if (object != NULL){
+                return (ST_Flow*)object;
+        }
+
+        return NULL;
+}
+
+/**
+ * NFPK_InsertFlow - Adds a flow to the cache 
+ *
+ * @param t the GHashCache
+ * @param flow the ST_Flow to store 
+ *
+ */
 void NFPK_InsertFlow(GHashTable *t,ST_Flow *flow){
         struct in_addr a,b;
 
@@ -87,7 +133,7 @@ void NFPK_InsertFlow(GHashTable *t,ST_Flow *flow){
  * @param qh main handerl of libnetfilter 
  * @param nfmsg the message
  * @param nfa the data
- * @param data user data for handler
+ * @param data user data for handler, in our case the ST_PolyProtector.
  *
  */
 int NFPK_HandlerPacket(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg, struct nfq_data *nfa, void *data)
@@ -168,6 +214,8 @@ int NFPK_HandlerPacket(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg, struct n
 /**
  * NFPK_CloseNfq - Close the Netfilter api
  *
+ * @param popr the ST_PolyProtector.
+ *
  */
 void NFPK_CloseNfq(ST_PolyProtector *popr)
 {
@@ -178,6 +226,10 @@ void NFPK_CloseNfq(ST_PolyProtector *popr)
 
 /**
  * NFPK_InitNfq - The main function thats gets the Network packets
+ *
+ * @param popr the ST_PolyProtector.
+ *
+ * @return fd the netfilter file descriptor asociated.
  *
  */
 int NFPK_InitNfq(ST_PolyProtector *popr){
@@ -213,11 +265,6 @@ int NFPK_InitNfq(ST_PolyProtector *popr){
         nh = nfq_nfnlh(popr->h);
         fd = nfnl_fd(nh);
 
-        /*while ((rv = recv(fd, buf, sizeof(buf), 0)) && rv >= 0) {
-                nfq_handle_packet(h, buf, rv);
-        }
-	*/
-        //PK_CloseNfq();
         return fd;
 }
 
