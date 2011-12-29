@@ -11,6 +11,7 @@ SUBDIRS = 	asm \
 		src/core \
 		src/utils \
 		src/detection \
+		src/protection \
 		pdf \
 		test \
 		test/pcapfiles \

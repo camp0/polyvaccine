@@ -108,7 +108,7 @@ void POEG_SetSourcePort(int port){
  */
 void POEG_Start() {
 	
-	DEBUG0("Trying to start the engine, status=%s\n",polyengine_states_str[i]);
+	DEBUG0("Trying to start the engine, status=%s\n",polyengine_states_str[_polyEngine->polyengine_status]);
 	if(_polyEngine->polyengine_status == POLYENGINE_STATE_STOP) {
 		char errbuf[PCAP_ERRBUF_SIZE];
 
