@@ -100,7 +100,7 @@ void PRCA_Property_GetTotalInboundPackets(DBusConnection *conn,DBusMessage *msg,
         dbus_int64_t value = 0;
 
         value = p->total_inbound_packets;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT64,(void*)value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT64,(void*)&value);
         return;
 }
 
@@ -109,7 +109,7 @@ void PRCA_Property_GetTotalTcpPackets(DBusConnection *conn,DBusMessage *msg, voi
         dbus_int64_t value = 0;
 
         value = p->total_tcp_packets;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT64,(void*)value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT64,(void*)&value);
         return;
 }
 
@@ -118,7 +118,7 @@ void PRCA_Property_GetTotalTcpSegments(DBusConnection *conn,DBusMessage *msg, vo
         dbus_int64_t value = 0;
 
         value = p->total_tcp_segments;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT64,(void*)value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT64,(void*)&value);
         return;
 }
 
@@ -127,7 +127,7 @@ void PRCA_Property_GetTcpRetransmitionDropSegments(DBusConnection *conn,DBusMess
         dbus_int64_t value = 0;
 
         value = p->tcp_retransmition_drop_segments;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT64,(void*)value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT64,(void*)&value);
         return;
 }
 
@@ -136,7 +136,7 @@ void PRCA_Property_GetTcpDropSegments(DBusConnection *conn,DBusMessage *msg, voi
         dbus_int64_t value = 0;
 
         value = p->tcp_drop_segments;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT64,(void*)value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT64,(void*)&value);
         return;
 }
 

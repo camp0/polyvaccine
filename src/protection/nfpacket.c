@@ -143,7 +143,6 @@ int NFPK_HandlerPacket(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg, struct n
         int id = 0, status = 0;
         int ret;
         int sizepkt;
-        //long total;
         struct iphdr *ip;
         struct tcphdr *tcp;
         struct in_addr a,b;
@@ -173,9 +172,17 @@ int NFPK_HandlerPacket(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg, struct n
 					popr->total_tcp_segments++;
         				a.s_addr = ip->saddr;
         				b.s_addr = ip->daddr;
+					snprintf(ip_src,16,"%s",inet_ntoa(a));
+					snprintf(ip_dst,16,"%s",inet_ntoa(b));
         				DEBUG0("Segment(%u:%u):[%s:%d:%d:%s:%d]\n",
-						tcp->seq,tcp->ack_seq,inet_ntoa(a),htons(tcp->source),6,inet_ntoa(b),htons(tcp->dest));	
-				
+						tcp->seq,tcp->ack_seq,ip_src,htons(tcp->source),6,ip_dst,htons(tcp->dest));	
+					/* authorized host like dummies dont need to block their packets */	
+					ret = AUHT_IsAuthorized(popr->hosts,ip_src);
+					if(ret) {
+						DEBUG0("Host %s is authorized\n",ip_src);
+						nfq_set_verdict(popr->qh,id,NF_ACCEPT,0,NULL);
+						return 0;
+					}
 					/* check if the flow already exists */
 					f = NFPK_GetFlow(popr->table,ip->saddr,tcp->source,6,ip->daddr,tcp->dest);
 					if (f == NULL) { // there is no flow attached

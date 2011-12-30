@@ -32,7 +32,7 @@ static ST_PolyProtector *_polyProtector = NULL;
 void POPR_Init() {
         ST_Callback *current = NULL;
         ST_Interface *interface = NULL;
-        register int i,j;
+        int i,j;
 
         _polyProtector = g_new0(ST_PolyProtector,1);
 	_polyProtector->dev_index = 0;
@@ -43,9 +43,10 @@ void POPR_Init() {
         _polyProtector->tcp_drop_segments = 0;
 	_polyProtector->table = g_hash_table_new(g_direct_hash,g_direct_equal); 
 	_polyProtector->pool = NFPO_Init();
+	_polyProtector->hosts = AUHT_Init();
 
 	PODS_Init();
-        _polyProtector->bus = PODS_Connect(POLYVACCINE_PROTECTOR_INTERFACE,(void*)_polyProtector);
+        _polyProtector->bus = PODS_Connect(POLYVACCINE_PROTECTOR_INTERFACE,(void*)&_polyProtector);
 	
         for ( i = 0; i<MAX_PUBLIC_INTERFACES;i++) {
                 PODS_AddInterface(&ST_PublicInterfaces[i]);
@@ -119,7 +120,12 @@ void POPR_Run() {
 		fprintf(stderr,"Can not attach to netfilter\n");
 	}
 
-        /* Tells the kernel we only want forwarded packets */
+        /* Tells the kernel we only want forwarded packets
+         *
+         * Depending of the location of the pvpe the iptables
+	 * chain should change. 
+         *
+         */
         system("iptables -N DISTQUEUE");
         system("iptables -I OUTPUT -p all -j DISTQUEUE");
         //system("iptables -I FORWARD -p all -j DISTQUEUE");
@@ -187,5 +193,20 @@ void POPR_Exit() {
 	NFPO_Stats(_polyProtector->pool);
 	NFPK_CloseNfq(_polyProtector);
 	NFPO_Destroy(_polyProtector->pool);
+	AUHT_Destroy(_polyProtector->hosts);
+	g_hash_table_destroy(_polyProtector->table);
+	g_free(_polyProtector);
+	system("iptables -F");
 	exit(0);
+}
+
+/**
+ * POPR_AddAuthorizedHost - Adds a authorized host.
+ *
+ * @param ip the source ip of the authorized host(dummy) 
+ *
+ */
+
+void POPR_AddAuthorizedHost(char *ip){
+	AUHT_AddHost(_polyProtector->hosts,ip);
 }

@@ -24,10 +24,16 @@
 
 #include "nfpacketpool.h"
 
+/**
+ * NFPO_Init - Inits the ST_Flow pool structs.
+ *
+ * @return ST_NfFlowPool 
+ *
+ */
 ST_NfFlowPool *NFPO_Init() {
 	ST_NfFlowPool *pool = NULL;
 
-	pool = (ST_NfFlowPool*)g_new(ST_NfFlowPool,1);
+	pool = g_new(ST_NfFlowPool,1);
 	pool->flows = NULL;	
         pool->total_releases = 0;
         pool->total_acquires = 0;
@@ -37,22 +43,48 @@ ST_NfFlowPool *NFPO_Init() {
 	return pool;
 }
 
+/**
+ * NFPO_Stats - Show statistics of the pool.
+ *
+ * @param ST_NfFlowPool
+ *
+ */
 void NFPO_Stats(ST_NfFlowPool *p){
 	fprintf(stdout,"FlowPool statistics\n");
 	fprintf(stdout,"\tflows:%d\n\treleases:%d\n",g_slist_length(p->flows),p->total_releases);
 	fprintf(stdout,"\tacquires:%d\n\terrors:%d\n",p->total_acquires,p->total_errors);
 	return;
 }
+
+/**
+ * NFPO_Stats - Show statistics of the pool.
+ *
+ * @param ST_NfFlowPool
+ *
+ */
 void NFPO_Destroy(ST_NfFlowPool *p){
 	NFPO_DecrementFlowPool(p,g_slist_length(p->flows));
 	g_slist_free(p->flows);
 	g_free(p);
 }
 
+/**
+ * NFPO_GetNumberFlows - returns the number of flows on the pool
+ *
+ * @return a integer
+ *
+ */
 int NFPO_GetNumberFlows(ST_NfFlowPool *p){
 	return g_slist_length(p->flows);
 }
 
+/**
+ * NFPO_IncrementFlowPool 
+ *
+ * @param ST_NfFlowPool
+ * @param value 
+ *
+ */
 int NFPO_IncrementFlowPool(ST_NfFlowPool *p,int value){
 	int i;
 
@@ -66,6 +98,13 @@ int NFPO_IncrementFlowPool(ST_NfFlowPool *p,int value){
         return TRUE;
 }
 
+/**
+ * NFPO_DecrementFlowPool 
+ *
+ * @param ST_NfFlowPool
+ * @param value
+ *
+ */
 int NFPO_DecrementFlowPool(ST_NfFlowPool *p,int value) {
 	ST_Flow *f;
 	int i,r;
@@ -86,11 +125,24 @@ int NFPO_DecrementFlowPool(ST_NfFlowPool *p,int value) {
 	return TRUE;
 }
 
+/**
+ * NFPO_AddFlow
+ *
+ * @param ST_NfFlowPool
+ * @param ST_Flow
+ *
+ */
 void NFPO_AddFlow(ST_NfFlowPool *p,ST_Flow *flow){
         p->total_releases++;
         p->flows = g_slist_prepend(p->flows,flow);
 }
 
+/**
+ * NFPO_GetFlow 
+ *
+ * @return ST_Flow
+ *
+ */
 ST_Flow *NFPO_GetFlow(ST_NfFlowPool *p){
         GSList *item = NULL;
 

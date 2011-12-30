@@ -40,6 +40,7 @@
 #include <linux/if_ether.h>
 #include <linux/if.h>
 #include <sys/ioctl.h>
+#include "../core/authorized.h"
 
 #define POLYVACCINE_PROTECTOR_INTERFACE "polyvaccine.protector"
 
@@ -51,6 +52,8 @@ struct ST_PolyProtector {
 	struct nfq_q_handle *qh;
 	/** The main Handler of netfilter */
 	struct nfq_handle *h;
+	ST_AuthorizedHost *hosts;
+
 	int dev_index;
 
 	/** stats */
@@ -80,11 +83,11 @@ void PRCA_Property_GetTcpDropSegments(DBusConnection *conn,DBusMessage *msg, voi
 
 #define MAX_PROPERTY_CALLBACKS 5 
 static ST_Callback ST_StaticPropertyCallbacks[MAX_PROPERTY_CALLBACKS] = {
-	{ "inbound packets",	NULL,"i",	PRCA_Property_GetTotalInboundPackets },
-	{ "tcp packets",	NULL,"i",	PRCA_Property_GetTotalTcpPackets },
-	{ "tcp segments",	NULL,"i",	PRCA_Property_GetTotalTcpSegments },
-	{ "retransmition drop tcp segments",	NULL,"i",	PRCA_Property_GetTcpRetransmitionDropSegments },
-	{ "drop tcp segments",	NULL,"i",	PRCA_Property_GetTcpDropSegments }
+	{ "inbound packets",	NULL,"x",	PRCA_Property_GetTotalInboundPackets },
+	{ "tcp packets",	NULL,"x",	PRCA_Property_GetTotalTcpPackets },
+	{ "tcp segments",	NULL,"x",	PRCA_Property_GetTotalTcpSegments },
+	{ "retransmition drop tcp segments",	NULL,"x",	PRCA_Property_GetTcpRetransmitionDropSegments },
+	{ "drop tcp segments",	NULL,"x",	PRCA_Property_GetTcpDropSegments }
 };
 
 static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {
@@ -99,5 +102,6 @@ void POPR_Init(void);
 void POPR_Run(void);
 void POPR_SetDevice(char *dev);
 void POPR_Exit(void);
+void POPR_AddAuthorizedHost(char *ip);
 
 #endif

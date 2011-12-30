@@ -34,6 +34,7 @@ struct ST_Flow {
 	u_int16_t dport;
 	u_int32_t seq;
 	int id;
+	int veredict;
 };
 
 typedef struct ST_Flow ST_Flow;

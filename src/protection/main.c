@@ -63,7 +63,7 @@ void main(int argc, char **argv) {
 	POPR_Init();
 	signal(SIGINT,sigquit);
 	POPR_SetDevice(source);
-	
+	POPR_AddAuthorizedHost("192.168.1.1");	
 	POPR_Run();
 
 	POPR_Exit();
