@@ -204,16 +204,17 @@ void POEG_Run() {
 	ST_HttpFlow *flow;
 	ST_MemorySegment *memseg;
 	register int i;
-	int nfds,usepcap,ret;
+	int nfds,usepcap,ret,update_timers;
         DBusWatch *local_watches[MAX_WATCHES];
 	struct timeval currenttime;
 	struct pcap_pkthdr *header;
 	unsigned char *pkt_data;
 	struct pollfd local_fds[MAX_WATCHES];
 
-        fprintf(stdout,"Running on %s version %s machine %s\n",
+        fprintf(stdout,"%s running on %s version %s machine %s\n",POLYVACCINE_FILTER_ENGINE_NAME,
 		SYIN_GetOSName(),SYIN_GetVersionName(),SYIN_GetMachineName());
 
+	update_timers = 1;
 	while (TRUE) {
                 nfds = 0;
                 usepcap = 0;
@@ -310,7 +311,18 @@ void POEG_Run() {
                                 //break;
                         }
                 }
-		COMN_UpdateTimers(_polyEngine->conn,&currenttime);
+		/* updates the flow time every 10 seconds aproximately
+		 * in order to avoid sorting without non-sense the flow list timer
+		 */
+		if((currenttime.tv_sec % 10) == 0){
+			if(update_timers) {
+				COMN_UpdateTimers(_polyEngine->conn,&currenttime);
+				printf("*****************10 segundos\n*********************");
+				update_timers = 0;
+			}
+		}else 
+			update_timers = 1;
+//		COMN_UpdateTimers(_polyEngine->conn,&currenttime);
                	for (i = 0; i < nfds; i++) {
                         if (local_fds[i].revents) {
                                 PODS_Handler(_polyEngine->bus,local_fds[i].revents, local_watches[i]);

@@ -35,7 +35,8 @@ void sigquit(int signal) {
 }
 
 void usage(char *prog){
-	fprintf(stdout,"use %s -s <pcapfile/device> [options]\n",prog);
+	fprintf(stdout,"\n");
+	fprintf(stdout,"Use %s -s <pcapfile/device> [options]\n",prog);
 	fprintf(stdout,"\t-p <port>\n");
 
 }

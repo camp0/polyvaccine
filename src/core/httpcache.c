@@ -26,7 +26,8 @@
 #include "debug.h"
 
 /**
- * Initalize the http cache
+ * HTCC_Init - Initalize the http cache
+ *
  */
 ST_HttpCache *HTCC_Init(){
 	ST_HttpCache *c = NULL;
@@ -52,7 +53,7 @@ static gboolean HTCC_DestroyCallback(gpointer k , gpointer v, gpointer p ) {
 }
 
 /**
- * Destroy all the fields of the http cache
+ * HTCC_Destroy - Destroy all the fields of the http cache
  */
 void HTCC_Destroy(ST_HttpCache *c) {
         g_hash_table_foreach_remove(c->http_header_cache,HTCC_DestroyCallback,NULL);
@@ -63,7 +64,7 @@ void HTCC_Destroy(ST_HttpCache *c) {
 }
 
 /**
- * Adds a new header cacheable field to the http cache
+ * HTCC_AddHeaderToCache - Adds a new header cacheable field to the http cache
  * 
  * @param c The http cache
  * @param value The http header field
@@ -78,7 +79,7 @@ void HTCC_AddHeaderToCache(ST_HttpCache *c,char *value,int type) {
 }
 
 /**
- * Adds a new parameter cacheable field to the http cache
+ * HTCC_AddParameterToCache - Adds a new parameter cacheable field to the http cache
  * 
  * @param c The http cache
  * @param value The http header field
@@ -93,7 +94,7 @@ void HTCC_AddParameterToCache(ST_HttpCache *c,char *value,int type) {
 }
 
 /**
- * Gets a Header ST_HttpNode from the cache if exists
+ * HTCC_GetHeaderFromCache - Gets a Header ST_HttpNode from the cache if exists
  * 
  * @param c The http cache
  * @param value The http header field
@@ -113,7 +114,7 @@ ST_HttpNode *HTCC_GetHeaderFromCache(ST_HttpCache *c,char *value) {
 }
 
 /**
- * Gets a Parameter ST_HttpNode from the cache if exists
+ * HTCC_GetParameterFromCache - Gets a Parameter ST_HttpNode from the cache if exists
  * 
  * @param c The http cache
  * @param value The http header field
@@ -133,7 +134,7 @@ ST_HttpNode *HTCC_GetParameterFromCache(ST_HttpCache *c,char *value) {
 }
 
 /**
- * Shows the statistcis of a ST_HttpCache 
+ * HTCC_Stats - Shows the statistcis of a ST_HttpCache 
  * 
  * @param c The http cache
  * 
@@ -153,7 +154,7 @@ void HTCC_Stats(ST_HttpCache *c) {
 		ST_HttpNode *nod = (ST_HttpNode*)v;
 		fprintf(stdout,"\t\tHeader(%s)matchs(%d)\n",(gchar*)k,nod->matchs);	
 	}
-	fprintf(stdout,"HTTP Cache Parameters\n");
+	fprintf(stdout,"\tHTTP Cache Parameters\n");
 	g_hash_table_iter_init (&iter, c->http_parameter_cache);
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
 		ST_HttpNode *nod = (ST_HttpNode*)v;
