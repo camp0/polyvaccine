@@ -29,7 +29,7 @@
 static ST_PolyDbus polybus;
 
 /**
- * Initalize the dbus wrapper library. 
+ * PODS_Init- Initalize the dbus wrapper library. 
  *
  */
 void PODS_Init(){
@@ -40,6 +40,11 @@ void PODS_Init(){
 	DEBUG0("Dbus object(0x%x)\n",&polybus);
 	return;
 }
+
+/**
+ * PODS_AddInterface
+ *
+ */
 
 void PODS_AddInterface(ST_Interface *iface){
 	polybus.interfaces = g_list_append(polybus.interfaces,iface);
@@ -345,6 +350,18 @@ void PODS_Method_Instrospect(DBusConnection *conn,DBusMessage *msg, void *data) 
 
 }
 
+/**
+ * PODS_SendSuspiciousSegment - The filter engine sends the suspicious tcp segment to the detection engine process.
+ *
+ * @param conn the DBusConnection
+ * @param objectname 
+ * @param interfacename
+ * @param name
+ * @param ptr
+ * @param length
+ *
+ */
+
 void PODS_SendSuspiciousSegment(DBusConnection *conn,char *objectname,char *interfacename,char *name,unsigned char *ptr,int length) {
 	DBusMessage *msg;
 	DBusMessageIter args;
@@ -375,4 +392,60 @@ void PODS_SendSuspiciousSegment(DBusConnection *conn,char *objectname,char *inte
    	dbus_connection_flush(conn);
    	dbus_message_unref(msg);
 	return;
+}
+
+/**
+ * PODS_SendSegmentVeredict - The filter engine, or the detection engine
+ *  sends the final verification to the protection engine.
+ *
+ * @param conn the DBusConnection
+ * @param objectname 
+ * @param interfacename
+ * @param name
+ * @param seq  
+ * @param hash1
+ * @param veredict 
+ *
+ */
+
+void PODS_SendVerifiedSegment(DBusConnection *conn,char *objectname,char *interfacename, char *name,int32_t seq,unsigned long hash, int veredict) {
+        DBusMessage *msg;
+        DBusMessageIter args;
+	dbus_uint32_t dseq = seq;
+	dbus_uint32_t dhash = hash;
+	dbus_int32_t dveredict = veredict;
+
+        msg = dbus_message_new_signal(objectname,interfacename,name);
+        if (msg == NULL) {
+                fprintf(stderr, "Message Null\n");
+                exit(1);
+        }
+
+        dbus_message_iter_init_append(msg, &args);
+        if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_UINT32, &dseq)) {
+                fprintf(stderr, "Out Of Memory!\n");
+                exit(1);
+        }
+        if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_UINT32, &hash)) {
+                fprintf(stderr, "Out Of Memory!\n");
+                exit(1);
+        }
+        if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_INT32, &dveredict)) {
+                fprintf(stderr, "Out Of Memory!\n");
+                exit(1);
+        }
+
+
+        if (!dbus_connection_send(conn, msg, NULL)) {
+                fprintf(stderr, "Out Of Memory!\n");
+                exit(1);
+
+        }
+        dbus_connection_flush(conn);
+        dbus_message_unref(msg);
+        return;
+
+
+
+
 }

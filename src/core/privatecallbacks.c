@@ -166,7 +166,7 @@ void PRCA_Property_GetSource(DBusConnection *conn,DBusMessage *msg, void *data){
 	ST_PolyEngine *p = (ST_PolyEngine*)data;
         char *value = p->source->str; 
 
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_STRING,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_STRING,(void*)value);
         return;
 }
 
@@ -174,7 +174,7 @@ void PRCA_Property_GetNumberValidHTTPHeaders(DBusConnection *conn,DBusMessage *m
 	dbus_int32_t value = 0;
 
 	value = HTAZ_GetNumberValidHTTPHeaders();
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
 	return;
 }
 
@@ -182,35 +182,51 @@ void PRCA_Property_GetNumberUnknownHTTPHeaders(DBusConnection *conn,DBusMessage 
         dbus_int32_t value = 0;
 
         value = HTAZ_GetNumberUnknownHTTPHeaders();
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }  
 void PRCA_Property_GetNumberValidHTTPParameters(DBusConnection *conn,DBusMessage *msg, void *data){
         dbus_int32_t value = 0;
 
         value = HTAZ_GetNumberValidHTTPParameters();
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 void PRCA_Property_GetNumberUnknownHTTPParameters(DBusConnection *conn,DBusMessage *msg, void *data){
         dbus_int32_t value = 0;
 
         value = HTAZ_GetNumberUnknownHTTPParameters();
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 void PRCA_Property_GetNumberSuspiciousHTTPHeaders(DBusConnection *conn,DBusMessage *msg, void *data){
         dbus_int32_t value = 0;
 
         value = HTAZ_GetNumberSuspiciousHTTPHeaders();
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 void PRCA_Property_GetNumberSuspiciousHTTPParameters(DBusConnection *conn,DBusMessage *msg, void *data){
         dbus_int32_t value = 0;
 
         value = HTAZ_GetNumberSuspiciousHTTPParameters();
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+        return;
+}
+
+void PRCA_Property_GetNumberSuspiciousSegments(DBusConnection *conn,DBusMessage *msg, void *data){
+        dbus_int32_t value = 0;
+
+        value = HTAZ_GetNumberSuspiciousSegments();
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+        return;
+}
+
+void PRCA_Property_GetNumberValidSegments(DBusConnection *conn,DBusMessage *msg, void *data){
+        dbus_int32_t value = 0;
+
+        value = HTAZ_GetNumberValidSegments();
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
@@ -221,7 +237,7 @@ void PRCA_Property_GetTotalFlowsOnFlowPool(DBusConnection *conn,DBusMessage *msg
         dbus_int32_t value = 0;
 
 	value = FLPO_GetNumberFlows(p->flowpool);
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 void PRCA_Property_GetTotalSegmentOnMemoryPool(DBusConnection *conn,DBusMessage *msg, void *data){
@@ -229,7 +245,7 @@ void PRCA_Property_GetTotalSegmentOnMemoryPool(DBusConnection *conn,DBusMessage 
         dbus_int32_t value = 0;
 
 	value = MEPO_GetNumberMemorySegments(p->memorypool);
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
@@ -238,7 +254,7 @@ void PRCA_Property_GetFlowPoolTotalReleases(DBusConnection *conn,DBusMessage *ms
 	dbus_int32_t value = 0;
 
 	value = p->flowpool->total_releases;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
@@ -247,7 +263,7 @@ void PRCA_Property_GetFlowPoolTotalAcquires(DBusConnection *conn,DBusMessage *ms
         dbus_int32_t value = 0;
 
         value = p->flowpool->total_acquires;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
@@ -256,7 +272,7 @@ void PRCA_Property_GetFlowPoolTotalErrors(DBusConnection *conn,DBusMessage *msg,
         dbus_int32_t value = 0;
 
         value = p->flowpool->total_errors;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
@@ -265,7 +281,7 @@ void PRCA_Property_GetMemoryPoolTotalReleases(DBusConnection *conn,DBusMessage *
         dbus_int32_t value = 0;
 
         value = p->memorypool->total_releases;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
@@ -274,7 +290,7 @@ void PRCA_Property_GetMemoryPoolTotalAcquires(DBusConnection *conn,DBusMessage *
         dbus_int32_t value = 0;
 
         value = p->memorypool->total_acquires;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
@@ -283,7 +299,7 @@ void PRCA_Property_GetMemoryPoolTotalErrors(DBusConnection *conn,DBusMessage *ms
         dbus_int32_t value = 0;
 
         value = p->memorypool->total_errors;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
@@ -292,7 +308,7 @@ void PRCA_Property_GetMemoryPoolTotalReleaseBytes(DBusConnection *conn,DBusMessa
         dbus_int64_t value = 0;
 
         value = p->memorypool->total_release_bytes;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT64,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT64,(void*)value);
         return;
 }
 void PRCA_Property_GetMemoryPoolTotalAcquireBytes(DBusConnection *conn,DBusMessage *msg, void *data){
@@ -300,7 +316,7 @@ void PRCA_Property_GetMemoryPoolTotalAcquireBytes(DBusConnection *conn,DBusMessa
         dbus_int64_t value = 0;
 
         value = p->memorypool->total_acquire_bytes;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT64,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT64,(void*)value);
         return;
 }
 
@@ -324,7 +340,7 @@ void PRCA_Method_IncreaseMemoryPool(DBusConnection *conn,DBusMessage *msg, void 
 	value = MEPO_IncrementMemoryPool(p->memorypool,param);
 
 
-	__CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,&value);
+	__CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,value);
 	return;
 }
 
@@ -347,7 +363,7 @@ void PRCA_Method_DecreaseMemoryPool(DBusConnection *conn,DBusMessage *msg, void 
 
         value = MEPO_DecrementMemoryPool(p->memorypool,param);
 
-        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,&value);
+        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,value);
         return;
 }
 
@@ -370,7 +386,7 @@ void PRCA_Method_IncreaseFlowPool(DBusConnection *conn,DBusMessage *msg, void *d
 
         value = FLPO_IncrementFlowPool(p->flowpool,param);
 
-        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,&value);
+        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,value);
         return;
 }
 void PRCA_Method_DecreaseFlowPool(DBusConnection *conn,DBusMessage *msg, void *data){
@@ -394,7 +410,7 @@ void PRCA_Method_DecreaseFlowPool(DBusConnection *conn,DBusMessage *msg, void *d
 	printf("decrease pool %d\n",param);
         value = FLPO_DecrementFlowPool(p->flowpool,param);
 
-        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,&value);
+        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,value);
         return;
 
 }
@@ -405,7 +421,7 @@ void PRCA_Property_GetNumberHttpCacheHeaders(DBusConnection *conn,DBusMessage *m
         dbus_int32_t value = 0;
 
         value = HTCC_GetNumberHttpHeaders(p->httpcache); 
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
@@ -414,7 +430,7 @@ void PRCA_Property_GetNumberHttpCacheParameters (DBusConnection *conn,DBusMessag
         dbus_int32_t value = 0;
 
         value = HTCC_GetNumberHttpParameters(p->httpcache);
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
@@ -423,7 +439,7 @@ void PRCA_Property_GetNumberHttpHeaderHits(DBusConnection *conn,DBusMessage *msg
         dbus_int32_t value = 0;
 
         value = p->httpcache->header_hits;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
@@ -432,7 +448,7 @@ void PRCA_Property_GetNumberHttpHeaderFails(DBusConnection *conn,DBusMessage *ms
         dbus_int32_t value = 0;
 
         value = p->httpcache->header_fails;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 void PRCA_Property_GetNumberHttpParameterHits(DBusConnection *conn,DBusMessage *msg, void *data){
@@ -440,7 +456,7 @@ void PRCA_Property_GetNumberHttpParameterHits(DBusConnection *conn,DBusMessage *
         dbus_int32_t value = 0;
 
         value = p->httpcache->parameter_hits;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
@@ -449,7 +465,7 @@ void PRCA_Property_GetNumberHttpParameterFails(DBusConnection *conn,DBusMessage 
         dbus_int32_t value = 0;
 
         value = p->httpcache->parameter_fails;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
@@ -458,7 +474,7 @@ void PRCA_Method_AddAuthorizedHost(DBusConnection *conn,DBusMessage *msg, void *
         DBusMessageIter args;
         dbus_int32_t param;
         DBusMessage *reply = NULL;
-        char *value;;
+        char *value;
 
         reply = dbus_message_new_method_return(msg);
 
@@ -472,7 +488,7 @@ void PRCA_Method_AddAuthorizedHost(DBusConnection *conn,DBusMessage *msg, void *
 
 	AUHT_AddHost(p->hosts,param);
 
-        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,&value);
+        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,value);
         return;
 }
 

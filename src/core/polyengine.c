@@ -42,6 +42,7 @@ void POEG_Init() {
 
 	PODS_Init();
 	_polyEngine->polyengine_status = POLYENGINE_STATE_STOP;
+	_polyEngine->is_pcap_file = FALSE;
 	_polyEngine->pcapfd = 0;
 	_polyEngine->pcap = NULL;
 	_polyEngine->defaultport = 80;
@@ -119,6 +120,7 @@ void POEG_Start() {
 				fprintf(stderr, "Could not open device/file \"%s\": %s\n", _polyEngine->source->str, errbuf);
 				return;
 			}
+			_polyEngine->is_pcap_file = TRUE;
 		}
 
 		if(pcap_setnonblock(_polyEngine->pcap, 1, errbuf) == 1){
@@ -172,7 +174,7 @@ void POEG_Destroy() {
 	AUHT_Destroy(_polyEngine->hosts);
 	PKCX_Destroy();
 	g_free(_polyEngine);
-
+	return;
 }
 
 void POEG_Stats() {
@@ -196,6 +198,13 @@ void POEG_SendSuspiciousSegmentToExecute(ST_MemorySegment *seg) {
 
 	PODS_SendSuspiciousSegment(_polyEngine->bus,"/polyvaccine/detector","polyvaccine.detector.analyze","analyze",
 		seg->mem,seg->virtual_size);
+	return;
+}
+
+void POEG_SendVerifiedSegment(u_int32_t seq,unsigned long hash,int veredict) {
+
+	PODS_SendVerifiedSegment(_polyEngine->bus,"/polyvaccine/protector","polyvaccine.protector.veredict","veredict",
+		seq,hash,veredict);
 	return;
 }
 
@@ -248,18 +257,26 @@ void POEG_Run() {
 
                 if((local_fds[nfds].revents & POLLIN)&&(_polyEngine->polyengine_status == POLYENGINE_STATE_RUNNING)){
                         ret = pcap_next_ex(_polyEngine->pcap,(struct pcap_pkthdr*)&header,(unsigned char*)&pkt_data);
-                        if (ret >=0){
-				if(PKDE_Decode(header,pkt_data) == TRUE) {
+			if(ret < 0) {
+                                POEG_Stop();
+                                usepcap = 0;
+                                if(_polyEngine->is_pcap_file == TRUE){
+                                        break;
+                                }
+			}else {
+				if(PKDE_Decode(header,pkt_data) == TRUE){
 					if(PKCX_GetTCPDstPort() == _polyEngine->defaultport ) {
 						int tcpsegment_size;
-                                        	/* Find a ST_HttpFlow object in order to evaluate it */
+						unsigned long hash;
+						/* Find a ST_HttpFlow object in order to evaluate it */
 						flow = COMN_FindConnection(_polyEngine->conn,
 							PKCX_GetIPSrcAddr(),
 							PKCX_GetTCPSrcPort(),
 							PKCX_GetIPProtocol(),
 							PKCX_GetIPDstAddr(),
-							PKCX_GetTCPDstPort());	
-						
+							PKCX_GetTCPDstPort(),
+							&hash);	
+							
 						if (flow == NULL) {
 							flow = FLPO_GetFlow(_polyEngine->flowpool);
 							if (flow != NULL) {
@@ -268,8 +285,8 @@ void POEG_Run() {
 									PKCX_GetTCPSrcPort(),
 									PKCX_GetIPDstAddr(),
 									PKCX_GetTCPDstPort());	
-									
-								COMN_InsertConnection(_polyEngine->conn,flow);
+										
+								COMN_InsertConnection(_polyEngine->conn,flow,&hash);
 								DEBUG0("New Connection on Pool [%s:%d:%d:%s:%d]\n",
 									PKCX_GetSrcAddrDotNotation(),
 									PKCX_GetTCPSrcPort(),
@@ -296,20 +313,18 @@ void POEG_Run() {
 									ret = HTAZ_AnalyzeHttpRequest(_polyEngine->httpcache,flow);
 									if(ret) { // the segment is suspicious 
 										POEG_SendSuspiciousSegmentToExecute(flow->memhttp);
+									}else{ // the segment is correct 
+										POEG_SendVerifiedSegment(PKCX_GetTCPSequenceNumber(),hash,0);
 									}
 								}
 								/* Reset the virtual memory of the segment */
 								flow->memhttp->virtual_size = 0;
 							}	
 						}
-						HTFL_UpdateTime(flow,&currenttime);	
-					}
-                                } // end of decode;
-                        }else {
-				POEG_Stop();
-                                usepcap = 0;
-                                //break;
-                        }
+						HTFL_UpdateTime(flow,&currenttime);
+						}	
+					} // end of decode;
+				}
                 }
 		/* updates the flow time every 10 seconds aproximately
 		 * in order to avoid sorting without non-sense the flow list timer
@@ -317,12 +332,10 @@ void POEG_Run() {
 		if((currenttime.tv_sec % 10) == 0){
 			if(update_timers) {
 				COMN_UpdateTimers(_polyEngine->conn,&currenttime);
-				printf("*****************10 segundos\n*********************");
 				update_timers = 0;
 			}
 		}else 
 			update_timers = 1;
-//		COMN_UpdateTimers(_polyEngine->conn,&currenttime);
                	for (i = 0; i < nfds; i++) {
                         if (local_fds[i].revents) {
                                 PODS_Handler(_polyEngine->bus,local_fds[i].revents, local_watches[i]);

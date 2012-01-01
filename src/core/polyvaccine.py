@@ -470,6 +470,10 @@ PKCX_GetSrcAddrDotNotation = _polyvaccine.PKCX_GetSrcAddrDotNotation
 def PKCX_GetDstAddrDotNotation():
   return _polyvaccine.PKCX_GetDstAddrDotNotation()
 PKCX_GetDstAddrDotNotation = _polyvaccine.PKCX_GetDstAddrDotNotation
+
+def PKCX_GetTCPSequenceNumber():
+  return _polyvaccine.PKCX_GetTCPSequenceNumber()
+PKCX_GetTCPSequenceNumber = _polyvaccine.PKCX_GetTCPSequenceNumber
 class ST_HttpFlow(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, ST_HttpFlow, name, value)
@@ -536,6 +540,7 @@ HTFL_UpdateTime = _polyvaccine.HTFL_UpdateTime
 POLYENGINE_STATE_STOP = _polyvaccine.POLYENGINE_STATE_STOP
 POLYENGINE_STATE_RUNNING = _polyvaccine.POLYENGINE_STATE_RUNNING
 POLYVACCINE_AGENT_INTEFACE = _polyvaccine.POLYVACCINE_AGENT_INTEFACE
+POLYVACCINE_FILTER_ENGINE_NAME = _polyvaccine.POLYVACCINE_FILTER_ENGINE_NAME
 class ST_PolyEngine(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, ST_PolyEngine, name, value)
@@ -548,6 +553,9 @@ class ST_PolyEngine(_object):
     __swig_setmethods__["pcapfd"] = _polyvaccine.ST_PolyEngine_pcapfd_set
     __swig_getmethods__["pcapfd"] = _polyvaccine.ST_PolyEngine_pcapfd_get
     if _newclass:pcapfd = _swig_property(_polyvaccine.ST_PolyEngine_pcapfd_get, _polyvaccine.ST_PolyEngine_pcapfd_set)
+    __swig_setmethods__["is_pcap_file"] = _polyvaccine.ST_PolyEngine_is_pcap_file_set
+    __swig_getmethods__["is_pcap_file"] = _polyvaccine.ST_PolyEngine_is_pcap_file_get
+    if _newclass:is_pcap_file = _swig_property(_polyvaccine.ST_PolyEngine_is_pcap_file_get, _polyvaccine.ST_PolyEngine_is_pcap_file_set)
     __swig_setmethods__["defaultport"] = _polyvaccine.ST_PolyEngine_defaultport_set
     __swig_getmethods__["defaultport"] = _polyvaccine.ST_PolyEngine_defaultport_get
     if _newclass:defaultport = _swig_property(_polyvaccine.ST_PolyEngine_defaultport_get, _polyvaccine.ST_PolyEngine_defaultport_set)

@@ -78,6 +78,7 @@ static unsigned char *PKCX_GetPayload(void) { return _pktctx.payload;}
 static char* PKCX_GetSrcAddrDotNotation(void) { struct in_addr a; a.s_addr=_pktctx.ip->saddr; return inet_ntoa(a); }
 static char* PKCX_GetDstAddrDotNotation(void) { struct in_addr a; a.s_addr=_pktctx.ip->daddr; return inet_ntoa(a); }
 
+static u_int32_t PKCX_GetTCPSequenceNumber(void) { return ntohl(_pktctx.tcp->seq); }
 
 /*
 bool isFragment() const { return (ntohs(_ip->frag_off) & 0x3fff); }

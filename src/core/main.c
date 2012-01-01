@@ -35,8 +35,9 @@ void sigquit(int signal) {
 }
 
 void usage(char *prog){
-	fprintf(stdout,"\n");
-	fprintf(stdout,"Use %s -s <pcapfile/device> [options]\n",prog);
+	fprintf(stdout,"%s\n",POLYVACCINE_FILTER_ENGINE_NAME);
+	fprintf(stdout,"Usage %s -s <pcapfile/device> [options]\n",prog);
+	fprintf(stdout,"[OPTIONS]\n");
 	fprintf(stdout,"\t-p <port>\n");
 
 }

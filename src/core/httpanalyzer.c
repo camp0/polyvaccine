@@ -44,6 +44,8 @@ void HTAZ_Init() {
         _http.suspicious_parameters = 0;
         _http.total_http_bytes = 0;
         _http.total_http_segments = 0;
+	_http.total_suspicious_segments = 0;
+	_http.total_valid_segments = 0;
 	_http.on_suspicious_header_break = TRUE;
 	_http.on_suspicious_parameter_break = TRUE;
 
@@ -71,6 +73,8 @@ void HTAZ_PrintfStats() {
 	fprintf(stdout,"HTTP Analyzer Statistics\n");
 	fprintf(stdout,"\ttotal segments %ld\n",_http.total_http_segments);
 	fprintf(stdout,"\ttotal bytes %ld\n",_http.total_http_bytes);
+	fprintf(stdout,"\ttotal suspicious segments %ld\n",_http.total_suspicious_segments);
+	fprintf(stdout,"\ttotal valid segments %ld\n",_http.total_valid_segments);
 	fprintf(stdout,"\tHeaders:\n");
 	for (i = 0;i<HTTP_MAX_HEADER;i++) {
 		fprintf(stdout,"\t\t%s=%d\n",ST_HttpTypeHeaders[i].name,ST_HttpTypeHeaders[i].matchs);
@@ -153,8 +157,10 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 				 * 	GET \x00\xaa\xbb.......
 				 * So there is no need to continue parsing the rest of the http header
 				 */
-				if(_http.on_suspicious_header_break == TRUE)
+				if(_http.on_suspicious_header_break == TRUE) {
+					_http.total_suspicious_segments++;
 					return 1;
+				}
 			} 	
 		}
 		char *init = &seg->mem[urilen+2];
@@ -190,8 +196,10 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 								DEBUG1("flow(0x%x) parameter have %d suspicious bytes\n",f,suspicious_opcodes);
 								c->parameter_suspicious_opcodes ++;
 								_http.suspicious_parameters++;
-								if(_http.on_suspicious_parameter_break == TRUE)
+								if(_http.on_suspicious_parameter_break == TRUE){
+									_http.total_suspicious_segments++;
 									return 1;
+								}
 							}
                                         	}else{
 						//	DEBUG0("flow(0x%x) parameter(%s) on cache\n",f,parameter_value);
@@ -208,8 +216,10 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
                 WARNING("Unkown HTTP header\n");
 		printf("%s\n",seg->mem);
                 ST_HttpTypeHeaders[HTTP_HEADER_UNKNOWN].matchs++;
+		_http.total_suspicious_segments++;
 		return 1;
 	}
+	_http.total_valid_segments++;
 	return 0;
 }
 
@@ -322,3 +332,7 @@ int32_t HTAZ_GetNumberSuspiciousHTTPHeaders(){
 int32_t HTAZ_GetNumberSuspiciousHTTPParameters(){
 	return _http.suspicious_parameters;
 }
+
+int32_t HTAZ_GetNumberSuspiciousSegments() { return _http.total_suspicious_segments;}
+int32_t HTAZ_GetNumberValidSegments() { return _http.total_valid_segments;}
+

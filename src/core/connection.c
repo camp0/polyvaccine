@@ -43,13 +43,14 @@ gint flow_cmp(ST_HttpFlow *f1, ST_HttpFlow *f2) {
 }
 
 
-void COMN_InsertConnection(ST_Connection *conn,ST_HttpFlow *flow){
+void COMN_InsertConnection(ST_Connection *conn,ST_HttpFlow *flow,unsigned long *hash){
         struct in_addr a,b;
 
         a.s_addr = flow->saddr;
         b.s_addr = flow->daddr;
 
         unsigned long h = (flow->saddr^flow->sport^6^flow->daddr^flow->dport);
+	(*hash) = h;
 
         DEBUG2("insert flow(0x%x) hash(%lu) [%s:%d:%d:%s:%d]\n",flow,h,
                 inet_ntoa(a),flow->sport,6,inet_ntoa(b),flow->dport);
@@ -129,7 +130,7 @@ void COMN_Destroy(ST_Connection *conn) {
      	g_free(conn); 
 }
 
-ST_HttpFlow *COMN_FindConnection(ST_Connection *conn,u_int32_t saddr,u_int16_t sport,u_int16_t protocol,u_int32_t daddr,u_int16_t dport){
+ST_HttpFlow *COMN_FindConnection(ST_Connection *conn,u_int32_t saddr,u_int16_t sport,u_int16_t protocol,u_int32_t daddr,u_int16_t dport,unsigned long *hash){
         gpointer object;
         struct in_addr a,b;
 
@@ -138,19 +139,21 @@ ST_HttpFlow *COMN_FindConnection(ST_Connection *conn,u_int32_t saddr,u_int16_t s
 
         unsigned long h = (saddr^sport^protocol^daddr^dport);
 
-        DEBUG2("first lookup:[%s:%d:%d:%s:%d]\n",inet_ntoa(a),sport,protocol,inet_ntoa(b),dport);
+        DEBUG2("first lookup(%lu):[%s:%d:%d:%s:%d]\n",h,inet_ntoa(a),sport,protocol,inet_ntoa(b),dport);
 
         object = g_hash_table_lookup(conn->table,GINT_TO_POINTER(h));
         if (object != NULL){
+		(*hash) = h;
                 return (ST_HttpFlow*)object;
         }
 
         h = (daddr^dport^protocol^saddr^sport);
 
-        DEBUG2("second lookup:[%s:%d:%d:%s:%d]\n",inet_ntoa(b),dport,protocol,inet_ntoa(a),sport);
+        DEBUG2("second lookup(%lu):[%s:%d:%d:%s:%d]\n",h,inet_ntoa(b),dport,protocol,inet_ntoa(a),sport);
 
         object = g_hash_table_lookup(conn->table,GINT_TO_POINTER(h));
         if (object != NULL){
+		(*hash) = h;
                 return (ST_HttpFlow*)object;
         }
 

@@ -67,15 +67,19 @@ void PRCA_Property_GetNumberValidHTTPParameters(DBusConnection *conn,DBusMessage
 void PRCA_Property_GetNumberUnknownHTTPParameters(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetNumberSuspiciousHTTPHeaders(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetNumberSuspiciousHTTPParameters(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetNumberSuspiciousSegments(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetNumberValidSegments(DBusConnection *conn,DBusMessage *msg, void *data);
 
-#define MAX_HTTP_PUBLIC_PROPERTIES 6
+#define MAX_HTTP_PUBLIC_PROPERTIES 8
 static ST_Callback ST_StaticHTTPPropertiesCallbacks [MAX_HTTP_PUBLIC_PROPERTIES] = {
         { "valid headers",              NULL,"i",       PRCA_Property_GetNumberValidHTTPHeaders },
         { "unknown headers",            NULL,"i",       PRCA_Property_GetNumberUnknownHTTPHeaders },
         { "valid parameters",           NULL,"i",      	PRCA_Property_GetNumberValidHTTPParameters  },
         { "unknown parameters",         NULL,"i",       PRCA_Property_GetNumberUnknownHTTPParameters },
         { "suspicious headers",         NULL,"i",       PRCA_Property_GetNumberSuspiciousHTTPHeaders },
-        { "suspicious parameters",      NULL,"i",       PRCA_Property_GetNumberSuspiciousHTTPParameters }
+        { "suspicious parameters",      NULL,"i",       PRCA_Property_GetNumberSuspiciousHTTPParameters },
+        { "suspicious segments",      	NULL,"i",       PRCA_Property_GetNumberSuspiciousSegments },
+        { "valid segments",      	NULL,"i",       PRCA_Property_GetNumberValidSegments }
 };
 
 /* Functions related to the HTTP cache */

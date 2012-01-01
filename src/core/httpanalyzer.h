@@ -50,6 +50,8 @@ struct ST_HttpAnalyzer{
 	int on_suspicious_parameter_break;
 	int32_t suspicious_headers;
 	int32_t suspicious_parameters;
+	int32_t total_suspicious_segments;
+	int32_t total_valid_segments;
 	int64_t total_http_bytes;
 	int64_t total_http_segments;
 };
@@ -68,5 +70,6 @@ int32_t HTAZ_GetNumberValidHTTPParameters(void);
 int32_t HTAZ_GetNumberUnknownHTTPParameters(void);
 int32_t HTAZ_GetNumberSuspiciousHTTPHeaders(void);
 int32_t HTAZ_GetNumberSuspiciousHTTPParameters(void);
-
+int32_t HTAZ_GetNumberSuspiciousSegments(void);
+int32_t HTAZ_GetNumberValidSegments(void);
 #endif

@@ -1,0 +1,14 @@
+
+Polyvaccine consist on 3 main process:
+	- Filter engine(pvfe).
+	- Detection engine(pvde).
+	- Protection engine(pvpe).
+
+These engines could be placed at any part of the network, however our example puts 
+all the process on the same machine.
+
+
+--------------------------------------------------------------
+Basic configuration
+
+

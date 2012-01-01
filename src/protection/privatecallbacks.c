@@ -73,21 +73,21 @@ void PRCA_Signaling_AuthorizeSegment(DBusConnection *conn,DBusMessage *msg, void
         ST_PolyProtector *p = (ST_PolyProtector*)data;
 	ST_Flow *f;
         DBusMessageIter args;
-        dbus_int32_t hash1,hash2;
+        dbus_uint32_t hash,seq;
         dbus_int32_t veredict;
         DBusError error;
 
         dbus_error_init(&error);
 
         dbus_message_get_args(msg,&error,
-		DBUS_TYPE_INT32,&hash1,
-		DBUS_TYPE_INT32,&hash2,
+		DBUS_TYPE_UINT32,&seq,
+		DBUS_TYPE_UINT32,&hash,
 		DBUS_TYPE_INT32,&veredict,
 		DBUS_TYPE_INVALID);
 
-	DEBUG0("verdict %d for flow (%x,%x)\n",veredict,hash1,hash2);
+	DEBUG0("verdict %d for flow (%lu,%lu)\n",veredict,hash,seq);
 
-	f = NFPK_GetFlowByHash(p->table,hash1,hash2);
+	f = NFPK_GetFlowByHash(p->table,hash,hash);
 	if (f) {
 		NFPK_SetFlowResolution(p,f, veredict);	
 	}

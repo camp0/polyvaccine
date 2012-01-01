@@ -68,11 +68,11 @@ typedef struct ST_PolyProtector ST_PolyProtector;
 
 #define MAX_PUBLIC_INTERFACES 1
 
-void PRCA_Signaling_AnalyzeSegment(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Signaling_AuthorizeSegment(DBusConnection *conn,DBusMessage *msg, void *data);
 
-#define MAX_SIGNAL_CALLBACKS 0 
+#define MAX_SIGNAL_CALLBACKS 1 
 static ST_Callback ST_StaticSignalCallbacks[ MAX_SIGNAL_CALLBACKS] = {
-//	{ "analyze",		"a",NULL,	PRCA_Signaling_AnalyzeSegment }
+	{ "veredict",		"a",NULL,	PRCA_Signaling_AuthorizeSegment }
 };
 
 void PRCA_Property_GetTotalInboundPackets(DBusConnection *conn,DBusMessage *msg, void *data);

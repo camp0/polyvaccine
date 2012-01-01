@@ -47,8 +47,8 @@ typedef struct ST_Connection ST_Connection;
 ST_Connection *COMN_Init(void);
 void COMN_Destroy(ST_Connection *conn); 
 
-ST_HttpFlow *COMN_FindConnection(ST_Connection *conn,u_int32_t saddr,u_int16_t sport,u_int16_t protocol,u_int32_t daddr,u_int16_t dport);
-void COMN_InsertConnection(ST_Connection *conn,ST_HttpFlow *flow);
+ST_HttpFlow *COMN_FindConnection(ST_Connection *conn,u_int32_t saddr,u_int16_t sport,u_int16_t protocol,u_int32_t daddr,u_int16_t dport,unsigned long *hash);
+void COMN_InsertConnection(ST_Connection *conn,ST_HttpFlow *flow,unsigned long *hash);
 void COMN_UpdateTimers(ST_Connection *conn,struct timeval *currenttime);
 void COMN_SetFlowPool(ST_Connection *conn,ST_FlowPool *flowpool);
 void COMN_SetMemoryPool(ST_Connection *conn,ST_MemoryPool *mempool);

@@ -57,6 +57,7 @@ static const char *polyengine_states_str [] = { "stop","running"};
 struct ST_PolyEngine {
 	int polyengine_status;
 	int pcapfd;
+	int is_pcap_file;
 	int defaultport;
 	DBusConnection *bus;
 	ST_Connection *conn;
