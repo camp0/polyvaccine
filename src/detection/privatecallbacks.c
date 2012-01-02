@@ -76,23 +76,43 @@ void PRCA_Signaling_AnalyzeSegment(DBusConnection *conn,DBusMessage *msg, void *
 	DBusMessageIter args;
 	unsigned char *buffer;
 	int ret,i;
-	dbus_int32_t length; 
+	dbus_int32_t length,value; 
 	DBusError error;
 	unsigned char *array = p->buffer;
+	dbus_uint32_t hash;
+	dbus_uint32_t seq;
+	dbus_int32_t veredict;
 
 	dbus_error_init(&error);
 
 	memset(p->buffer,0,MAX_DBUS_SEGMENT_BUFFER);
+	/*
+	 * Receives a tcp suspicious segment with the following information send by the Filter engine.
+	 *
+	 * 1 - array byte (the suspicious buffer)
+	 * 2 - hash of the flow.
+	 * 3 - sequence number of the flow
+	 */
+	dbus_message_get_args(msg,&error,
+		DBUS_TYPE_ARRAY,DBUS_TYPE_BYTE,&array,&length,
+		DBUS_TYPE_UINT32,&hash,
+		DBUS_TYPE_UINT32,&seq,
+		DBUS_TYPE_INVALID);
 
-	dbus_message_get_args(msg,&error,DBUS_TYPE_ARRAY,DBUS_TYPE_BYTE,&array,&length,DBUS_TYPE_INVALID);
-
-	printf("buffer size = %d\n",length);
-	/*for(i = 0;i<length;i++){
+	DEBUG0("receive buffer lenght(%d)hash(%lu)seq(%lu)\n",
+		length,hash,seq);
+/*	printf("buffer size = %d value = %d\n",length,value);
+	for(i = 0;i<10;i++){
 		printf("0x%x ",array[i]);
 		if ((i %16) ==0)printf("\n");
-	} */	
+	} 	
 	printf("\n");
+	return;*/	
 	ret = SYSU_AnalyzeSegmentMemory(array,length,0);
+
+	PODS_SendVerifiedSegment(conn,
+		"/polyvaccine/protector","polyvaccine.protector.veredict","veredict",
+                seq,hash,ret);
 	p->executed_segments ++;
 	
 	return;

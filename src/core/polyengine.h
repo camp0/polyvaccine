@@ -51,7 +51,7 @@ enum {
 
 static const char *polyengine_states_str [] = { "stop","running"};
 
-#define POLYVACCINE_AGENT_INTEFACE "polyvaccine.engine"
+#define POLYVACCINE_AGENT_INTERFACE "polyvaccine.engine"
 #define POLYVACCINE_FILTER_ENGINE_NAME "Filter engine"
 
 struct ST_PolyEngine {
@@ -84,6 +84,7 @@ void POEG_StopAndExit(void);
 void POEG_Run(void);
 
 /* Service functions */
+void POEG_SetLearningMode(void);
 void POEG_AddToHttpCache(int type,char *value);
 
 int32_t POEG_GetHttpHeaderCacheHits(void);

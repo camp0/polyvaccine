@@ -27,6 +27,7 @@
 ST_AuthorizedHost *AUHT_Init(){
 	ST_AuthorizedHost *a = g_new(ST_AuthorizedHost,1);
 	a->hosts = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,g_free); 
+	a->all = FALSE;
 	
 	return a;
 }
@@ -46,6 +47,9 @@ void AUHT_AddHost(ST_AuthorizedHost *a,char *ip){
 
 int AUHT_IsAuthorized(ST_AuthorizedHost *a, char *ip) {
 
+	if(a->all == TRUE)
+		return 1;
+
 	if(g_hash_table_lookup(a->hosts,(gchar*)ip) == NULL) {
 		return 0;
 	}else{
@@ -54,3 +58,4 @@ int AUHT_IsAuthorized(ST_AuthorizedHost *a, char *ip) {
 	return 0;
 }
 
+void AUTH_SetAuthorizedAll(ST_AuthorizedHost *a) { a->all = TRUE; }

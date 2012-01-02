@@ -36,24 +36,30 @@ void sigquit(int signal) {
 
 void usage(char *prog){
 	fprintf(stdout,"%s\n",POLYVACCINE_FILTER_ENGINE_NAME);
-	fprintf(stdout,"Usage %s -s <pcapfile/device> [options]\n",prog);
+	fprintf(stdout,"Usage %s -s <pcapfile/device> [OPTIONS]\n",prog);
 	fprintf(stdout,"[OPTIONS]\n");
-	fprintf(stdout,"\t-p <port>\n");
-
+	fprintf(stdout,"\t-p --port <port>\n");
+	fprintf(stdout,"\t-l --learning\n");
+	fprintf(stdout,"\n");
+	return;
 }
 
 void main(int argc, char **argv) {
-	int c,port;
+	int c,port,learning;
 	char *source = NULL;
 
+	learning = FALSE;
 	port = 80;
-	while ((c = getopt (argc, argv, "s:p:")) != -1){
+	while ((c = getopt (argc, argv, "s:p:l")) != -1){
         	switch (c) {
            		case 's':
              			source = optarg;
              			break;
            		case 'p':
              			port = atoi(optarg);
+             			break;
+           		case 'l':
+             			learning = TRUE;
              			break;
            		default:
              			abort ();
@@ -68,6 +74,9 @@ void main(int argc, char **argv) {
 	POEG_Init();
 
 	signal(SIGINT,sigquit);
+
+	if(learning)
+		POEG_SetLearningMode();
 
 	POEG_SetSource(source);
 	POEG_SetSourcePort(port);

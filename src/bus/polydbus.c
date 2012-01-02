@@ -359,13 +359,17 @@ void PODS_Method_Instrospect(DBusConnection *conn,DBusMessage *msg, void *data) 
  * @param name
  * @param ptr
  * @param length
+ * @param hash
+ * @param seq
  *
  */
-
-void PODS_SendSuspiciousSegment(DBusConnection *conn,char *objectname,char *interfacename,char *name,unsigned char *ptr,int length) {
+void PODS_SendSuspiciousSegment(DBusConnection *conn,char *objectname,char *interfacename,char *name,unsigned char *ptr,int length,
+	unsigned long hash, u_int32_t seq) {
 	DBusMessage *msg;
-	DBusMessageIter args;
+	DBusMessageIter iter,dataIter;
 	dbus_int32_t len = length;
+	dbus_uint32_t dhash = hash;
+	dbus_uint32_t dseq = seq;
 
    	msg = dbus_message_new_signal(objectname,interfacename,name);
    	if (msg == NULL) {
@@ -373,16 +377,19 @@ void PODS_SendSuspiciousSegment(DBusConnection *conn,char *objectname,char *inte
       		exit(1);
    	}
 
-   	dbus_message_iter_init_append(msg, &args);
-   	if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &ptr)) {
-      		fprintf(stderr, "Out Of Memory!\n");
-      		exit(1);
-   	}
-   	if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_INT32, &len)) {
-      		fprintf(stderr, "Out Of Memory!\n");
-      		exit(1);
-   	}
+        /* Sends a full segment to the detector
+         * 
+         * 1 - arrray with the buffer and its lenght.
+         * 2 - the hash of the connection flow.
+         * 3 - the sequence number.
+         */
+        dbus_message_iter_init_append(msg,&iter);
+        dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, DBUS_TYPE_BYTE_AS_STRING, &dataIter);
+        dbus_message_iter_append_fixed_array(&dataIter, DBUS_TYPE_BYTE, &ptr, len);
+        dbus_message_iter_close_container(&iter, &dataIter);
 
+        dbus_message_iter_append_basic(&iter,DBUS_TYPE_UINT32,&dhash);
+        dbus_message_iter_append_basic(&iter,DBUS_TYPE_UINT32,&dseq);
 
    	if (!dbus_connection_send(conn, msg, NULL)) {
       		fprintf(stderr, "Out Of Memory!\n");
@@ -402,13 +409,14 @@ void PODS_SendSuspiciousSegment(DBusConnection *conn,char *objectname,char *inte
  * @param objectname 
  * @param interfacename
  * @param name
- * @param seq  
- * @param hash1
+ * @param hash  
+ * @param seq
  * @param veredict 
  *
  */
 
-void PODS_SendVerifiedSegment(DBusConnection *conn,char *objectname,char *interfacename, char *name,int32_t seq,unsigned long hash, int veredict) {
+void PODS_SendVerifiedSegment(DBusConnection *conn,char *objectname,char *interfacename, char *name,
+	unsigned long hash, u_int32_t seq,int veredict) {
         DBusMessage *msg;
         DBusMessageIter args;
 	dbus_uint32_t dseq = seq;
@@ -434,7 +442,6 @@ void PODS_SendVerifiedSegment(DBusConnection *conn,char *objectname,char *interf
                 fprintf(stderr, "Out Of Memory!\n");
                 exit(1);
         }
-
 
         if (!dbus_connection_send(conn, msg, NULL)) {
                 fprintf(stderr, "Out Of Memory!\n");

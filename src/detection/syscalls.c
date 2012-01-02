@@ -38,7 +38,6 @@ static ST_ProcessExitCode ST_ProcessExitCodes[IA32_LINUX_EXIT_CODES] = {
         { SIGILL,       "Illegal Instruction",                  0},
         { SIGTRAP,      "SigTrap",               0},
         { SIGABRT,      "Abort Signal",                         0},
-//        { SIGIOT,       "SigIot",               0},
         { SIGBUS,       "SigBus",               0},
         { SIGFPE,       "Floating point exception",             0},
         { SIGKILL,      "Kill Signal",                          0},
@@ -96,7 +95,7 @@ void printfhex(char *payload,int size) {
 }
 
 /**
- * Initialize the main structs for trace process.
+ * SYSU_Init - Initialize the main structs for trace process.
  *
  */
 void SYSU_Init(){
@@ -134,9 +133,11 @@ void SYSU_DestroySuspiciousSyscalls(){
 		if (item != NULL) {
 			l = g_slist_remove_link(l,item);
 			ST_SysCall *s = (ST_SysCall*)item->data;
+			DEBUG0("destroy suspicious syscall(0x%x) '%s'\n",s,s->name);
 			SUSY_Destroy(s);
 		}
 	}
+	tracer->flow = NULL;
 	return;
 }
 
@@ -328,11 +329,19 @@ void SYSU_SetSysGood(pid_t p) {
 void SYSU_AddSuspiciousSyscall(ST_Tracer *t,char *name,struct user_regs_struct *u,int status) {
 	ST_SysCall *sys = (ST_SysCall*)SUSY_New(name,u,status); 
 
+	DEBUG0("adding suspicious syscall(0x%x) '%s'\n",sys,sys->name);
 	t->flow = g_slist_append(t->flow,sys);
 	return;
 }
 
 int got_child_signal = 0;
+
+/**
+ * SYSU_NewExecutionProcess - Executes a segment memory zone by the child process.
+ *
+ * @param c a ST_SharedContext share with the parent 
+ *  
+ */
 
 void SYSU_NewExecutionProcess(ST_SharedContext *c) {
         char *pointer;
@@ -344,7 +353,7 @@ void SYSU_NewExecutionProcess(ST_SharedContext *c) {
         if (ctx->isptracechild == FALSE) {
 
                 if((ctx->virtualeip >= ctx->size)||(ctx->virtualeip < 0)) {
-                        printf("Child(%d) Overflow exit\n",getpid());
+                        DEBUG0("Child(%d) Overflow exit\n",getpid());
                         ctx->virtualeip = ctx->size;
                         return;
                 }
@@ -359,7 +368,13 @@ void SYSU_NewExecutionProcess(ST_SharedContext *c) {
         return;
 }
 
-
+/**
+ * SYSU_TraceProcess - Traces a child process and check if there is any syscall.
+ *
+ * @param t ST_Tracer
+ * @param child_pid 
+ *  
+ */
 
 int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
         int ret,syscall;
@@ -393,11 +408,8 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
                         if (syscall-1 >= 0 && syscall-1 < SIZE(linux_syscallnames) && (syscall_name=linux_syscallnames[syscall])) {
 				DEBUG0("Syscall '%s' detected on buffer\n",syscall_name);
 
-#if __WORDSIZE == 64 // 64 Bits machine
 				SYSU_AddSuspiciousSyscall(t,syscall_name,&u_in,0);
-#else
-				SYSU_AddSuspiciousSyscall(t,syscall_name,&u_in,0);
-#endif
+
 				sus = (ST_SysCallSuspicious*)g_hash_table_lookup(tracer->syscalls,GINT_TO_POINTER(syscall));
 				if(sus != NULL) {
 					if (sus->level == SYSCALL_LEVEL_HIGH) {

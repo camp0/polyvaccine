@@ -31,7 +31,7 @@
 static ST_PolyEngine *_polyEngine = NULL;
 
 /**
- * Initialize the main structures of the polyengine
+ * POEG_Init - Initialize the main structures of the polyengine
  */
 void POEG_Init() {
 	ST_Callback *current = NULL;
@@ -47,7 +47,7 @@ void POEG_Init() {
 	_polyEngine->pcap = NULL;
 	_polyEngine->defaultport = 80;
 	_polyEngine->source = g_string_new("");
-	_polyEngine->bus = PODS_Connect(POLYVACCINE_AGENT_INTEFACE,(void*)_polyEngine);
+	_polyEngine->bus = PODS_Connect(POLYVACCINE_AGENT_INTERFACE,(void*)_polyEngine);
 
         for ( i = 0; i<MAX_PUBLIC_INTERFACES;i++) {
 		PODS_AddInterface(&ST_PublicInterfaces[i]);
@@ -87,7 +87,7 @@ void POEG_Init() {
 }
 
 /**
- * Sets the source of the network packets
+ * POEG_SetSource - Sets the source of the network packets
  *
  * @param source a pcap file or a ethernet device
  */
@@ -96,7 +96,7 @@ void POEG_SetSource(char *source){
 }
 
 /**
- * Sets the source port of the webserver 
+ * POEG_SetSourcePort - Sets the source port of the webserver 
  *
  * @param port the new port to analyze 
  */
@@ -105,7 +105,7 @@ void POEG_SetSourcePort(int port){
 }
 
 /**
- * Starts the polyengine 
+ * POEG_Start - Starts the polyengine 
  */
 void POEG_Start() {
 	
@@ -136,7 +136,7 @@ void POEG_Start() {
 }
 
 /**
- * Stops the polyengine
+ * POEG_Stop - Stops the polyengine
  */
 void POEG_Stop() {
 	
@@ -153,7 +153,7 @@ void POEG_Stop() {
 }
 
 /**
- * Stops and exit the polyengine
+ * POEG_StopAndExit - Stops and exit the polyengine
  */
 void POEG_StopAndExit() {
 	POEG_Stop();
@@ -162,7 +162,7 @@ void POEG_StopAndExit() {
 }
 
 /**
- * Destroy the ST_PolyEngine type
+ * POEG_Destroy - Destroy the ST_PolyEngine type
  */
 void POEG_Destroy() {
 	PODS_Destroy();
@@ -177,6 +177,10 @@ void POEG_Destroy() {
 	return;
 }
 
+/**
+ * POEG_Stats - Show statistics related to the ST_PolyEngine 
+ */
+
 void POEG_Stats() {
 	
 	MEPO_Stats(_polyEngine->memorypool);
@@ -185,6 +189,13 @@ void POEG_Stats() {
 	HTAZ_PrintfStats();
 }
 
+/**
+ * POEG_AddToHttpCache - Show statistics related to the ST_PolyEngine
+ *
+ * @param type the cache type (HTTP_NODE_TYPE_STATIC,HTTP_NODE_TYPE_DYNAMIC)
+ * @param value the parameter
+ * 
+ */
 void POEG_AddToHttpCache(int type,char *value){
 	if(_polyEngine->httpcache) {
 		if (type == HTTP_CACHE_HEADER )
@@ -194,10 +205,18 @@ void POEG_AddToHttpCache(int type,char *value){
 	}
 }
 
-void POEG_SendSuspiciousSegmentToExecute(ST_MemorySegment *seg) {
+/**
+ * POEG_SendSuspiciousSegmentToExecute - Sends a suspicious segment to the detection engine. 
+ *
+ * @param seg the ST_MemorySegment.
+ * @param hash
+ * @param seq
+ * 
+ */
+void POEG_SendSuspiciousSegmentToExecute(ST_MemorySegment *seg,unsigned long hash, uint32_t seq) {
 
 	PODS_SendSuspiciousSegment(_polyEngine->bus,"/polyvaccine/detector","polyvaccine.detector.analyze","analyze",
-		seg->mem,seg->virtual_size);
+		seg->mem,seg->virtual_size,hash,seq);
 	return;
 }
 
@@ -208,6 +227,10 @@ void POEG_SendVerifiedSegment(u_int32_t seq,unsigned long hash,int veredict) {
 	return;
 }
 
+void POEG_SetLearningMode() {
+	AUTH_SetAuthorizedAll(_polyEngine->hosts);
+	return;
+}
 
 void POEG_Run() {
 	ST_HttpFlow *flow;
@@ -222,6 +245,8 @@ void POEG_Run() {
 
         fprintf(stdout,"%s running on %s version %s machine %s\n",POLYVACCINE_FILTER_ENGINE_NAME,
 		SYIN_GetOSName(),SYIN_GetVersionName(),SYIN_GetMachineName());
+	if(_polyEngine->hosts->all)
+		fprintf(stdout,"\tLearning mode active\n");
 
 	update_timers = 1;
 	while (TRUE) {
@@ -312,9 +337,11 @@ void POEG_Run() {
 								}else{
 									ret = HTAZ_AnalyzeHttpRequest(_polyEngine->httpcache,flow);
 									if(ret) { // the segment is suspicious 
-										POEG_SendSuspiciousSegmentToExecute(flow->memhttp);
+										POEG_SendSuspiciousSegmentToExecute(flow->memhttp,
+											hash,PKCX_GetTCPSequenceNumber());
 									}else{ // the segment is correct 
-										POEG_SendVerifiedSegment(PKCX_GetTCPSequenceNumber(),hash,0);
+										POEG_SendVerifiedSegment(hash,
+											PKCX_GetTCPSequenceNumber(),1);
 									}
 								}
 								/* Reset the virtual memory of the segment */

@@ -396,10 +396,8 @@ void PRCA_Method_DecreaseFlowPool(DBusConnection *conn,DBusMessage *msg, void *d
         DBusMessage *reply = NULL;
         int value = 1;
 
-	printf("yea\n");
         reply = dbus_message_new_method_return(msg);
 
-        // read the arguments
         if (!dbus_message_iter_init(msg, &args))
                 fprintf(stderr, "Message has no arguments!\n");
         else if (DBUS_TYPE_INT32 != dbus_message_iter_get_arg_type(&args))
@@ -407,12 +405,115 @@ void PRCA_Method_DecreaseFlowPool(DBusConnection *conn,DBusMessage *msg, void *d
         else
                 dbus_message_iter_get_basic(&args, &param);
 	
-	printf("decrease pool %d\n",param);
         value = FLPO_DecrementFlowPool(p->flowpool,param);
 
         __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,value);
         return;
 
+}
+
+/* Methods of the http cache */
+
+void PRCA_Method_GetHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyEngine *p = (ST_PolyEngine*)data;
+	GList *l = NULL; 
+        DBusMessageIter iter;
+        DBusMessage *reply = NULL;
+
+        reply = dbus_message_new_method_return(msg);
+
+        dbus_message_iter_init(reply, &iter);
+        dbus_message_iter_init_append(reply, &iter);
+
+	l = g_hash_table_get_keys(p->httpcache->http_header_cache);
+
+	while(l != NULL) {
+		char *value = l->data;
+        	dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&value);
+		l = g_list_next(l);
+	}
+
+        if (!dbus_connection_send(conn, reply, NULL)) {
+                fprintf(stderr, "Out Of Memory!\n");
+                return;
+        }
+        dbus_connection_flush(conn);
+        dbus_message_unref(reply);
+	return;
+}
+
+void PRCA_Method_GetHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyEngine *p = (ST_PolyEngine*)data;
+	GList *l = NULL;
+        DBusMessageIter iter;
+        dbus_int32_t param;
+        DBusMessage *reply = NULL;
+        int value = 1;
+
+        reply = dbus_message_new_method_return(msg);
+
+        dbus_message_iter_init(reply, &iter);
+        dbus_message_iter_init_append(reply, &iter);
+
+        l = g_hash_table_get_keys(p->httpcache->http_parameter_cache);
+
+        while(l != NULL) {
+                char *value = l->data;
+                dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&value);
+                l = g_list_next(l);
+        }
+
+        if (!dbus_connection_send(conn, reply, NULL)) {
+                fprintf(stderr, "Out Of Memory!\n");
+                return;
+        }
+        dbus_connection_flush(conn);
+        dbus_message_unref(reply);
+        return;
+}
+
+void PRCA_Method_AddHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyEngine *p = (ST_PolyEngine*)data;
+        DBusMessageIter args;
+        dbus_int32_t ret = 1;
+        DBusMessage *reply = NULL;
+        char *value;
+
+        reply = dbus_message_new_method_return(msg);
+
+        if (!dbus_message_iter_init(msg, &args))
+                fprintf(stderr, "Message has no arguments!\n");
+        else if (DBUS_TYPE_STRING != dbus_message_iter_get_arg_type(&args))
+                fprintf(stderr, "Argument is not string!\n");
+        else
+                dbus_message_iter_get_basic(&args, &value);
+
+	HTCC_AddHeaderToCache(p->httpcache,value,HTTP_NODE_TYPE_DYNAMIC);
+
+        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,ret);
+	return;
+}
+
+void PRCA_Method_AddHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyEngine *p = (ST_PolyEngine*)data;
+        DBusMessageIter args;
+        dbus_int32_t ret = 1;
+        DBusMessage *reply = NULL;
+        char *value;
+
+        reply = dbus_message_new_method_return(msg);
+
+        if (!dbus_message_iter_init(msg, &args))
+                fprintf(stderr, "Message has no arguments!\n");
+        else if (DBUS_TYPE_STRING != dbus_message_iter_get_arg_type(&args))
+                fprintf(stderr, "Argument is not string!\n");
+        else
+                dbus_message_iter_get_basic(&args, &value);
+
+	HTCC_AddParameterToCache(p->httpcache,value,HTTP_NODE_TYPE_DYNAMIC);
+
+        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,ret);
+        return;
 }
 
 /* Properties of the http cache */

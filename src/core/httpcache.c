@@ -171,3 +171,4 @@ int32_t HTCC_GetNumberHttpHeaders(ST_HttpCache *c){
 int32_t HTCC_GetNumberHttpParameters(ST_HttpCache *c){
 	return g_hash_table_size(c->http_parameter_cache);
 }
+

@@ -27,7 +27,7 @@
 static ST_PolyDetector *_polyDetector = NULL;
 
 /**
- * Initialize the main structures of the polydetector
+ * PODT_Init - Initialize the main structures of the polydetector
  */
 void PODT_Init() {
         ST_Callback *current = NULL;

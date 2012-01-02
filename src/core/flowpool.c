@@ -24,6 +24,12 @@
 
 #include "flowpool.h"
 
+/**
+ * FLPO_Init - Initialize a flow pool 
+ *
+ * @return ST_FlowPool
+ */
+
 ST_FlowPool *FLPO_Init() {
 	ST_FlowPool *pool = NULL;
 
@@ -37,12 +43,23 @@ ST_FlowPool *FLPO_Init() {
 	return pool;
 }
 
+/**
+ * FLPO_Stats - Shows statistics of a ST_FlowPool
+ *
+ */
+
 void FLPO_Stats(ST_FlowPool *p){
 	fprintf(stdout,"FlowPool statistics\n");
 	fprintf(stdout,"\tflows:%d\n\treleases:%d\n",g_slist_length(p->flows),p->total_releases);
 	fprintf(stdout,"\tacquires:%d\n\terrors:%d\n",p->total_acquires,p->total_errors);
 	return;
 }
+
+/**
+ * FLPO_Destroy - free a ST_FlowPool
+ *
+ * @param p the ST_FlowPool to free
+ */
 void FLPO_Destroy(ST_FlowPool *p){
 	FLPO_DecrementFlowPool(p,g_slist_length(p->flows));
 	g_slist_free(p->flows);
@@ -52,6 +69,13 @@ void FLPO_Destroy(ST_FlowPool *p){
 int FLPO_GetNumberFlows(ST_FlowPool *p){
 	return g_slist_length(p->flows);
 }
+
+/**
+ * FLPO_IncrementFlowPool - Increments the items of a ST_FlowPool 
+ *
+ * @param p the ST_FlowPool
+ * @param value the number of new ST_HttpFlows to alloc
+ */
 
 int FLPO_IncrementFlowPool(ST_FlowPool *p,int value){
 	int i;
@@ -67,6 +91,13 @@ int FLPO_IncrementFlowPool(ST_FlowPool *p,int value){
 	}
         return TRUE;
 }
+
+/**
+ * FLPO_DecrementFlowPool - Decrements the items of a ST_FlowPool 
+ *
+ * @param p the ST_FlowPool
+ * @param value the number of new ST_HttpFlows to free 
+ */
 
 int FLPO_DecrementFlowPool(ST_FlowPool *p,int value) {
 	ST_HttpFlow *f;
@@ -88,11 +119,26 @@ int FLPO_DecrementFlowPool(ST_FlowPool *p,int value) {
 	return TRUE;
 }
 
+/**
+ * FLPO_AddFlow - Adds a ST_HttpFlow to a ST_FlowPool 
+ *
+ * @param p the ST_FlowPool
+ * @param flow e 
+ */
+
 void FLPO_AddFlow(ST_FlowPool *p,ST_HttpFlow *flow){
         HTFL_Reset(flow);
         p->total_releases++;
         p->flows = g_slist_prepend(p->flows,flow);
 }
+
+/**
+ * FLPO_GetFlow - Gets a ST_HttpFlow from a ST_FlowPool 
+ *
+ * @param p the ST_FlowPool
+ *
+ * @return ST_HttpFlow  
+ */
 
 ST_HttpFlow *FLPO_GetFlow(ST_FlowPool *p){
         GSList *item = NULL;

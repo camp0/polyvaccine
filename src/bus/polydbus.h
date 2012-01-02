@@ -58,7 +58,9 @@ int PODS_GetDescriptorByIndex(int i);
 DBusWatch *PODS_GetWatchByIndex(int i);
 int PODS_GetEventsByIndex(int i);
 void PODS_Handler(DBusConnection *conn,short events, DBusWatch *watch);
-void PODS_SendSuspiciousSegment(DBusConnection *conn,char *objectname,char *interfacename,char *name,unsigned char *ptr,int length);
-void PODS_SendVerifiedSegment(DBusConnection *conn,char *objectname,char *interfacename, char *name,int32_t seq,unsigned long hash, int veredict);
+void PODS_SendSuspiciousSegment(DBusConnection *conn,char *objectname,char *interfacename,char *name,unsigned char *ptr,int length,
+	unsigned long hash, u_int32_t seq);
+void PODS_SendVerifiedSegment(DBusConnection *conn,char *objectname,char *interfacename, char *name,
+	unsigned long hash, u_int32_t seq,int veredict);
 
 #endif

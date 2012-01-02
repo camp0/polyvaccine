@@ -24,7 +24,8 @@
 #include "suspicious.h"
 
 ST_SysCall *SUSY_New(char *name,struct user_regs_struct *u,int status) {
-	ST_SysCall *sys = (ST_SysCall*)malloc(sizeof(ST_SysCall));
+//	ST_SysCall *sys = (ST_SysCall*)malloc(sizeof(ST_SysCall));
+	ST_SysCall *sys = g_new0(ST_SysCall,1);
 
 	snprintf(sys->name,32,"%s",name);
 #if __WORDSIZE == 64
@@ -80,7 +81,8 @@ ST_SysCall *SUSY_New(char *name,struct user_regs_struct *u,int status) {
 }
 
 void SUSY_Destroy(ST_SysCall *c){
-	free(c);
+	g_free(c);
+	return;
 }
 
 void SUSY_Printf(ST_SysCall *c) {
