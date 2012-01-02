@@ -31,7 +31,7 @@ pvfe_LDADD = -lpolyvaccine $(DEPS_LIBS)
 
 EXTRA_DIST = polyvaccine.i setup.py
 
-CLEANFILES = $(srcdir)/polyvaccine_wrap.c $(srcdir)/_polyvaccine.so *.pyc *.py 
+CLEANFILES = $(srcdir)/polyvaccine_wrap.c $(srcdir)/_polyvaccine.so *.pyc polyvaccine.py 
 
 MAINTAINERCLEANFILES = \
 	$(srcdir)/polyvaccine_wrap.c \

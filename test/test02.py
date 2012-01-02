@@ -107,8 +107,8 @@ class Test_02(unittest.TestCase):
 
 	def test_02_2(self):
                 "Test the pvfe with the dbus service methods"
-                pp = subprocess.Popen(["../src/core/pvfe","-s","lo","-l","-p 80"])
-		time.sleep(5)
+                pp = subprocess.Popen(["../src/core/pvfe","-s","./pcapfiles/http_slashdot.pcap","-p 80"])
+		time.sleep(1)
 		bus = dbus.SessionBus()
                 s = bus.get_object('polyvaccine.engine', '/polyvaccine/engine')
                 d = dbus.Interface(s,dbus_interface='polyvaccine.engine.httpcache')
@@ -120,14 +120,15 @@ class Test_02(unittest.TestCase):
 		for p in param:
 			d.AddCacheParameter(p)
 
-#                d = dbus.Interface(s,dbus_interface='polyvaccine.engine')
-		d.SetSource("./pcapfiles/http_slashdot.pcap")
-		time.sleep(3)	
 		d.Start()
-		d.Run()	
+		print "------------------"	
 		d.Stop()	
 #		pp.kill()
-		time.sleep(2555)
+		# hay un header hit
+		# y 4 de parametros
+		#print " yehahhhh ", d.HeaderHits()
+		#print d.ParameterHits()
+		#time.sleep(2555)
 		print "done"
 		pp.kill()
 	

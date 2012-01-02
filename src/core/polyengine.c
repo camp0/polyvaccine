@@ -113,6 +113,7 @@ void POEG_Start() {
 	if(_polyEngine->polyengine_status == POLYENGINE_STATE_STOP) {
 		char errbuf[PCAP_ERRBUF_SIZE];
 
+		_polyEngine->is_pcap_file = FALSE;
 		_polyEngine->pcap = pcap_open_live(_polyEngine->source->str, PCAP_ERRBUF_SIZE, 1, -1, errbuf);
 		if(_polyEngine->pcap == NULL) {
 			_polyEngine->pcap = pcap_open_offline(_polyEngine->source->str,errbuf);
