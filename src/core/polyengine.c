@@ -54,16 +54,15 @@ void POEG_Init() {
 		
                 interface = &ST_PublicInterfaces[i];
 		/* Loads the methods first */
-		current = &interface->methods[0];
 		for (j = 0;j<interface->total_methods;j++){
-			current = &interface->methods[j];
-			DEBUG0("add method '%s' on interface '%s'\n",current[j].name,interface->name);
+			current = (ST_Callback*)&interface->methods[j];
+			DEBUG0("callback(0x%x) add method '%s' on interface '%s'\n",current,current[j].name,interface->name);
 			PODS_AddPublicCallback(current);
 		}
-		current = &interface->properties[0];
 		for (j = 0;j<interface->total_properties;j++){
-			current = &interface->properties[j];
-			DEBUG0("add properties '%s' on interface '%s'\n",current[j].name,interface->name);
+			current = (ST_Callback*)&interface->properties[j];
+			//current = &interface->properties[j];
+			DEBUG0("callback(0x%x) add properties '%s' on interface '%s'\n",current,current[j].name,interface->name);
 			PODS_AddPublicCallback(current);
 		}
 	}		
@@ -216,14 +215,22 @@ void POEG_AddToHttpCache(int type,char *value){
  */
 void POEG_SendSuspiciousSegmentToExecute(ST_MemorySegment *seg,unsigned long hash, uint32_t seq) {
 
-	PODS_SendSuspiciousSegment(_polyEngine->bus,"/polyvaccine/detector","polyvaccine.detector.analyze","analyze",
+	PODS_SendSuspiciousSegment(_polyEngine->bus,"/polyvaccine/detector","polyvaccine.detector.analyze","Analyze",
 		seg->mem,seg->virtual_size,hash,seq);
 	return;
 }
 
-void POEG_SendVerifiedSegment(u_int32_t seq,unsigned long hash,int veredict) {
+/**
+ * POEG_SendVerifiedSegment - Sends a verified segment to the protection engine. 
+ *
+ * @param hash
+ * @param seq
+ * @param veredict 
+ * 
+ */
+void POEG_SendVerifiedSegment(unsigned long hash, u_int32_t seq,int veredict) {
 
-	PODS_SendVerifiedSegment(_polyEngine->bus,"/polyvaccine/protector","polyvaccine.protector.veredict","veredict",
+	PODS_SendVerifiedSegment(_polyEngine->bus,"/polyvaccine/protector","polyvaccine.protector.veredict","Veredict",
 		seq,hash,veredict);
 	return;
 }
@@ -337,7 +344,7 @@ void POEG_Run() {
 									HTAZ_AnalyzeDummyHttpRequest(_polyEngine->httpcache,flow);	
 								}else{
 									ret = HTAZ_AnalyzeHttpRequest(_polyEngine->httpcache,flow);
-									if(ret) { // the segment is suspicious 
+									if(ret) { // the segment is suspicious
 										POEG_SendSuspiciousSegmentToExecute(flow->memhttp,
 											hash,PKCX_GetTCPSequenceNumber());
 									}else{ // the segment is correct 

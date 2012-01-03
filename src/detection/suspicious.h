@@ -67,7 +67,7 @@ static ST_SysCallSuspicious ST_SysCallSuspiciousTable [] = {
 #ifdef _ASM_X86_UNISTD_32_H
         { __NR_socketcall,      "socketcall",   SYSCALL_LEVEL_HIGH},
 #endif
-        { __NR_write,           "write",        SYSCALL_LEVEL_LOW },
+        { __NR_write,           "write",        SYSCALL_LEVEL_MEDIUM },
         { __NR_exit,            "exit",         SYSCALL_LEVEL_HIGH },
         { __NR_open,            "open",         SYSCALL_LEVEL_HIGH},
         { 0,			"none",		SYSCALL_LEVEL_INTERNAL}

@@ -93,21 +93,20 @@ class Test_02(unittest.TestCase):
 		pass
 
         def test_02_1(self):
-		return	
-                p = subprocess.Popen(["../src/core/pvfe","-s","lo","-l","-p 80"])
+		"Test the pvfe with the dbus service State property"
+                p = subprocess.Popen(["../src/core/pvfe","-s","lo","-p 80"])
 		bus = dbus.SessionBus()
                 "Test the pvfe with the dbus service propertie state"
-		s = self.bus.get_object('polyvaccine.engine', '/polyvaccine/engine')
+		s = bus.get_object('polyvaccine.engine', '/polyvaccine/engine')
 		d = dbus.Interface(s,dbus_interface='polyvaccine.engine')
 		state = d.State()
+		p.kill()	
 		self.assertTrue(state == "stop")
-		print dir(d)
-		self.p.kill()	
-		time.sleep(1)
 
 	def test_02_2(self):
                 "Test the pvfe with the dbus service methods"
-                pp = subprocess.Popen(["../src/core/pvfe","-s","./pcapfiles/http_slashdot.pcap","-p 80"])
+                pp = subprocess.Popen(["../src/core/pvfe","-s","lo","-p 80"])
+		
 		time.sleep(1)
 		bus = dbus.SessionBus()
                 s = bus.get_object('polyvaccine.engine', '/polyvaccine/engine')
@@ -119,18 +118,15 @@ class Test_02(unittest.TestCase):
               		d.AddCacheHeader(h)
 		for p in param:
 			d.AddCacheParameter(p)
-
+		d.Stop()
+		d.SetSource("./pcapfiles/http_slashdot.pcap")
 		d.Start()
-		print "------------------"	
-		d.Stop()	
-#		pp.kill()
-		# hay un header hit
-		# y 4 de parametros
-		#print " yehahhhh ", d.HeaderHits()
-		#print d.ParameterHits()
-		#time.sleep(2555)
-		print "done"
+		a = d.HeaderHits() 
+		b = d.ParameterHits()	
+		d.Stop()
 		pp.kill()
+		self.assertEqual(a,1)
+		self.assertEqual(b,2)
 	
 if __name__ == '__main__':
 	print "Testing polyvaccine interfaces"

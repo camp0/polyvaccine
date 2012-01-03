@@ -9,8 +9,8 @@
   1b:	00 00 00 
   1e:	0f 05                	syscall 
 */
-int size_exit_1 = 32; 
-char exit_1[] =
+int size_exit_1_64bits = 32; 
+char exit_1_64bits[] =
 	"\x48\xbb\x01\x00\x00\x00\x00"
 	"\x00\x00\x00"
 	"\x48\xb8\x3c\x00\x00\x00\x00"
@@ -19,8 +19,8 @@ char exit_1[] =
 	"\x00\x00\x00"
 	"\x0f\x05";
 
-int size_exit_9 = 32;
-char exit_9[] =
+int size_exit_9_64bits = 32;
+char exit_9_64bits[] =
         "\x48\xbb\x01\x00\x00\x00\x00"
         "\x00\x00\x00"
         "\x48\xb8\x3c\x00\x00\x00\x00"

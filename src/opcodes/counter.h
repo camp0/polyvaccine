@@ -18,7 +18,7 @@
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
  * Boston, MA  02110-1301, USA.
  *
- * Written by Luis Campo Giralte <camp0@gmail.com> 2009 
+ * Written by Luis Campo Giralte <luis.camp0.2009@gmail.com> 2009 
  *
  */
 
@@ -39,7 +39,7 @@
 
 #include "debug.h"
 
-int CO_CountSuspiciousOpcodes(char *data,int datasize);
+//int CO_CountSuspiciousOpcodes(char *data,int datasize);
 int CO_CountSuspiciousOpcodesNew(char *data,int datasize);
 
 #endif

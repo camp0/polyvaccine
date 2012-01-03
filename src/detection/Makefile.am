@@ -10,7 +10,7 @@ noinst_HEADERS =	syscalls.h examples.h context.h examples64.h linux_syscalls.h s
 
 bin_PROGRAMS = pvde sendexploit
 
-pvde_SOURCES =  main.c	polydetector.c privatecallbacks.c suspicious.c syscalls.c context.c 
+pvde_SOURCES =  main.c	polydetector.c privatecallbacks.c suspicious.c syscalls.c context.c ../core/system.c 
 pvde_LDADD = -lglib-2.0 -ldbus-1 ../bus/libpolybus.la 
 
 sendexploit_SOURCES = sendexploit.c
@@ -26,7 +26,7 @@ BUILT_SOURCES = $(srcdir)/polydetector_wrap.c
 
 EXTRA_DIST = polydetector.i setup.py
 
-CLEANFILES = $(srcdir)/polydetector_wrap.c $(srcdir)/_polydetector.so *.pyc
+CLEANFILES = $(srcdir)/polydetector_wrap.c $(srcdir)/_polydetector.so *.pyc polydetector.py
 
 MAINTAINERCLEANFILES = \
         $(srcdir)/polydetector_wrap.c \

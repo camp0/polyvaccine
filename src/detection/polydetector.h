@@ -36,10 +36,12 @@
 #include <dbus/dbus.h>
 
 #define POLYVACCINE_DETECTOR_INTERFACE "polyvaccine.detector"
+#define POLYVACCINE_DETECTOR_ENGINE_NAME "Detector engine"
 
 struct ST_PolyDetector {
         DBusConnection *bus;
-	int executed_segments;
+	int32_t executed_segments;
+	int32_t shellcodes_detected;
 	unsigned char buffer[MAX_DBUS_SEGMENT_BUFFER];
 };
 
@@ -51,14 +53,16 @@ void PRCA_Signaling_AnalyzeSegment(DBusConnection *conn,DBusMessage *msg, void *
 
 #define MAX_SIGNAL_CALLBACKS 1
 static ST_Callback ST_StaticSignalCallbacks[ MAX_SIGNAL_CALLBACKS] = {
-	{ "analyze",		"a",NULL,	PRCA_Signaling_AnalyzeSegment }
+	{ "Analyze",		"a",NULL,	PRCA_Signaling_AnalyzeSegment }
 };
 
 void PRCA_Property_GetNumberExecutedSegments(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetNumberShellcodesDetected(DBusConnection *conn,DBusMessage *msg, void *data);
 
-#define MAX_PROPERTY_CALLBACKS 1
+#define MAX_PROPERTY_CALLBACKS 2
 static ST_Callback ST_StaticPropertyCallbacks[MAX_PROPERTY_CALLBACKS] = {
-	{ "executed segments",	NULL,"i",	PRCA_Property_GetNumberExecutedSegments }
+	{ "ExecutedSegments",	NULL,"i",	PRCA_Property_GetNumberExecutedSegments },
+	{ "ShellcodesDetected",	NULL,"i",	PRCA_Property_GetNumberShellcodesDetected }
 };
 
 static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {

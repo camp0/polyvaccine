@@ -57,10 +57,7 @@ static ST_Callback ST_StaticPropertiesCallbacks [MAX_PUBLIC_PROPERTIES] = {
         { "Source",             "s","s",        PRCA_Property_GetSource }
 };
 
-
-
 /* Functions related to the HTTP analyzer */
-
 void PRCA_Property_GetNumberValidHTTPHeaders(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetNumberUnknownHTTPHeaders(DBusConnection *conn,DBusMessage *msg, void *data); 
 void PRCA_Property_GetNumberValidHTTPParameters(DBusConnection *conn,DBusMessage *msg, void *data);
@@ -135,11 +132,11 @@ static ST_Callback ST_StaticConnectionPropertiesCallbacks [MAX_CONNECTION_PUBLIC
         { "FlowAcquires",              NULL,"i",       PRCA_Property_GetFlowPoolTotalAcquires },
         { "FlowErrors",              	NULL,"i",       PRCA_Property_GetFlowPoolTotalErrors },
 	{ "SegmentsOnPool",		NULL,"i",	PRCA_Property_GetTotalSegmentOnMemoryPool },
-	{ "Segment releases",		NULL,"i",	PRCA_Property_GetMemoryPoolTotalReleases },
-	{ "Segment acquires",		NULL,"i",	PRCA_Property_GetMemoryPoolTotalAcquires },
-	{ "Segment errors",		NULL,"i",	PRCA_Property_GetMemoryPoolTotalErrors },
-	{ "Segment byte releases",	NULL,"x",	PRCA_Property_GetMemoryPoolTotalReleaseBytes },
-	{ "Segment byte acquires",	NULL,"x",	PRCA_Property_GetMemoryPoolTotalAcquireBytes }
+	{ "SegmentReleases",		NULL,"i",	PRCA_Property_GetMemoryPoolTotalReleases },
+	{ "SegmentAcquires",		NULL,"i",	PRCA_Property_GetMemoryPoolTotalAcquires },
+	{ "SegmentErrors",		NULL,"i",	PRCA_Property_GetMemoryPoolTotalErrors },
+	{ "SegmentByteReleases",	NULL,"x",	PRCA_Property_GetMemoryPoolTotalReleaseBytes },
+	{ "SegmentByteAcquires",	NULL,"x",	PRCA_Property_GetMemoryPoolTotalAcquireBytes }
 };
 
 void PRCA_Method_IncreaseMemoryPool(DBusConnection *conn,DBusMessage *msg, void *data);

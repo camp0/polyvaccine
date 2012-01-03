@@ -29,6 +29,7 @@
 #define HTTP_URI_END "HTTP/1.1"
 #define HTTP_HEADER_PARAM "^(GET|POST|OPTIONS|HEAD|CONNECT).*" HTTP_URI_END
 
+#define MAX_HTTP_LINE_LENGTH 2048
 #define MAX_URI_LENGTH 2048
 
 static ST_HttpAnalyzer _http;
@@ -145,12 +146,12 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 			urilen = MAX_URI_LENGTH;
 		}
 		snprintf(uri,urilen+1,"%s",&(seg->mem[offset]));
-		DEBUG0("flow(0x%x) HTTP uri(%s)offset(%d)\n",f,uri,offset);
+		DEBUG0("flow(0x%x) HTTP uri(%s)offset(%d)length(%d)\n",f,uri,offset,urilen);
 		nod = HTCC_GetHeaderFromCache(c,uri);
 		if (nod ==NULL ) { // The uri is not in the cache we should analyze
 			int suspicious_opcodes = CO_CountSuspiciousOpcodes(uri,urilen);
 			if(suspicious_opcodes>1) {
-				DEBUG0("flow(0x%x) header have %d suspicious bytes\n",f,suspicious_opcodes);
+				DEBUG0("flow(0x%x) uri(%s) have %d suspicious bytes\n",f,uri,suspicious_opcodes);
 				_http.suspicious_headers++;
 				c->header_suspicious_opcodes ++;
 				/* Most of the exploits have the next body
@@ -164,34 +165,35 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 			} 	
 		}
 		char *init = &seg->mem[urilen+2];
-		char parameter_value[1024];
-		int parameter_length;
+		char http_line[MAX_HTTP_LINE_LENGTH];
+		int http_line_length;
 		char *ptrend = NULL;
 		while(init != NULL) {
 			ptrend = strstr(init,CRLF);
 			if (ptrend != NULL) { // got it
-				parameter_length = (ptrend-init)+1;
+				http_line_length = (ptrend-init)+1;
 				ptrend = ptrend + 2; // from strlen(CRLF);
-				snprintf(parameter_value,parameter_length,"%s",init);
-				if(strlen(parameter_value)>0) {
-					/* retrieve the parameter name */
-					char p_value[1024];
+				snprintf(http_line,http_line_length,"%s",init);
+				if(strlen(http_line)>0) {
+					/* retrieve the parameter name of the http line */
+					char parameter[MAX_HTTP_LINE_LENGTH];
 					char *pend = strstr(init,":");
 					if(pend != NULL) {
-						snprintf(p_value,(pend-init)+1,"%s",init);
-						DEBUG1("flow(0x%x) HTTP parameter(%s)\n",f,parameter_value);
+						int parameter_length = (pend-init)+1;	
+						snprintf(parameter,parameter_length,"%s",init);
+						DEBUG1("flow(0x%x) HTTP parameter(%s)value(%s)length(%d)\n",f,
+							parameter,http_line,http_line_length);
 
-						if(g_hash_table_lookup_extended(_http.parameters,(gchar*)p_value,NULL,&pointer) == TRUE){
+						if(g_hash_table_lookup_extended(_http.parameters,(gchar*)parameter,NULL,&pointer) == TRUE){
 							p_field = (ST_HttpField*)pointer;
 							p_field->matchs++;
 						}else{
 							ST_HttpFields[HTTP_FIELD_UNKNOWN].matchs++;
-							WARNING("Unknown parameter (%s)\n",parameter_value);
+							WARNING("Unknown parameter(%s)offset(%d)\n",http_line,(pend-init));
 						}
-						nod = HTCC_GetParameterFromCache(c,parameter_value);
-						if(nod == NULL) { // The parameter is not in the cache
-					//		DEBUG0("flow(0x%x) parameter(%s) out cache\n",f,parameter_value);
-							int suspicious_opcodes = CO_CountSuspiciousOpcodes(parameter_value,parameter_length);
+						nod = HTCC_GetParameterFromCache(c,http_line);
+						if(nod == NULL) { // The parameter value is not in the cache
+							int suspicious_opcodes = CO_CountSuspiciousOpcodes(parameter,parameter_length);
 							if(suspicious_opcodes>1) {
 								DEBUG1("flow(0x%x) parameter have %d suspicious bytes\n",f,suspicious_opcodes);
 								c->parameter_suspicious_opcodes ++;
@@ -201,8 +203,6 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 									return 1;
 								}
 							}
-                                        	}else{
-						//	DEBUG0("flow(0x%x) parameter(%s) on cache\n",f,parameter_value);
 						}
 					}
 				}
@@ -213,8 +213,7 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 			init = ptrend;
 		}	
 	}else{
-                WARNING("Unkown HTTP header\n");
-		printf("%s\n",seg->mem);
+                WARNING("Unkown HTTP header(%s)\n",seg->mem);
                 ST_HttpTypeHeaders[HTTP_HEADER_UNKNOWN].matchs++;
 		_http.total_suspicious_segments++;
 		return 1;
@@ -266,24 +265,24 @@ void HTAZ_AnalyzeDummyHttpRequest(ST_HttpCache *c, ST_HttpFlow *f){
 		
 		/* analyze the parameters of the http request */
                 char *init = &seg->mem[urilen+2];
-                char parameter_value[1024];
-                int parameter_length;
+                char http_line[MAX_HTTP_LINE_LENGTH];
+                int http_line_length;
                 char *ptrend = NULL;
                 while(init != NULL) {
                         ptrend = strstr(init,CRLF);
                         if (ptrend != NULL) { // got it
-                                parameter_length = (ptrend-init)+1;
+                                http_line_length = (ptrend-init)+1;
                                 ptrend = ptrend + 2; // from strlen(CRLF);
-                                snprintf(parameter_value,parameter_length,"%s",init);
-                                if(strlen(parameter_value)>0) {
+                                snprintf(http_line,http_line_length,"%s",init);
+                                if(strlen(http_line)>0) {
                                         /* retrieve the parameter name */
-                                        char p_value[1024];
+                                        char parameter[MAX_HTTP_LINE_LENGTH];
                                         char *pend = strstr(init,":");
                                         if(pend != NULL) {
-                                                snprintf(p_value,(pend-init)+1,"%s",init);
-                                                DEBUG0("authorized flow(0x%x) HTTP parameter(%s)\n",f,parameter_value);
+                                                snprintf(parameter,(pend-init)+1,"%s",init);
+                                                DEBUG0("authorized flow(0x%x) HTTP parameter(%s)\n",f,http_line);
 						/* Adds the parameter to the httpcache */
-						HTCC_AddParameterToCache(c,parameter_value,HTTP_NODE_TYPE_DYNAMIC);
+						HTCC_AddParameterToCache(c,http_line,HTTP_NODE_TYPE_DYNAMIC);
                                         }
                                 }
                         }else{

@@ -26,6 +26,9 @@
 #include "syscalls.h"
 #include "linux_syscalls.h"
 
+#define DEBUG_TRACER(a...) 
+#define DEBUG_TRACER __DEBUG
+
 static ST_Tracer *tracer = NULL;
 static ST_SharedContext *ctx = NULL; 
 
@@ -348,16 +351,18 @@ void SYSU_NewExecutionProcess(ST_SharedContext *c) {
         void (*function)();
 	int i,status;
 
-        DEBUG0("Child(%d) preparing to execute %d bytes from offset %d\n",getpid(),ctx->size,ctx->virtualeip);
-        DEBUG0("Child(%d) istracedchild=%d,parent_pid=%d\n",getpid(),ctx->isptracechild,ctx->parent_pid);
-        if (ctx->isptracechild == FALSE) {
+        DEBUG_TRACER("Child(%d) preparing to execute %d bytes from offset %d\n",getpid(),ctx->size,ctx->virtualeip);
+        DEBUG_TRACER("Child(%d) istracedchild=%d,parent_pid=%d\n",getpid(),ctx->isptracechild,ctx->parent_pid);
+        DEBUG_TRACER("Child(%d) size=%d\n",getpid(),ctx->size);
+	if (ctx->isptracechild == FALSE) {
 
                 if((ctx->virtualeip >= ctx->size)||(ctx->virtualeip < 0)) {
-                        DEBUG0("Child(%d) Overflow exit\n",getpid());
+                        DEBUG_TRACER("Child(%d) Overflow exit\n",getpid());
                         ctx->virtualeip = ctx->size;
                         return;
                 }
-                SYSU_PTraceVoid(PTRACE_TRACEME, 0, NULL, NULL);
+                SYSU_PTraceVoid(PTRACE_TRACEME, 0, NULL, SIGUSR1);
+                //SYSU_PTraceVoid(PTRACE_TRACEME, 0, NULL, NULL);
                 SYSU_Kill(ctx->parent_pid, SIGUSR1);
                 ctx->isptracechild = TRUE;
                 while (!got_child_signal);
@@ -388,9 +393,10 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
         }
 
         SYSU_SetSysGood(child_pid);
-        SYSU_PTraceVoid(PTRACE_SYSCALL, child_pid, NULL, (void*)SIGUSR1);
+        SYSU_PTraceVoid(PTRACE_SYSCALL, child_pid, PTRACE_O_TRACEFORK, (void*)SIGUSR1);
+        //SYSU_PTraceVoid(PTRACE_SYSCALL, child_pid, NULL, (void*)SIGUSR1);
 	SYSU_DestroySuspiciousSyscalls();
-        alarm(2);
+        alarm(3);
         while(1) {
                 struct ST_SysCallFlow *scf;
 		ST_SysCallSuspicious *sus;
@@ -406,12 +412,11 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 			syscall = u_in.orig_eax;
 #endif			
                         if (syscall-1 >= 0 && syscall-1 < SIZE(linux_syscallnames) && (syscall_name=linux_syscallnames[syscall])) {
-				DEBUG0("Syscall '%s' detected on buffer\n",syscall_name);
-
-				SYSU_AddSuspiciousSyscall(t,syscall_name,&u_in,0);
+	//			DEBUG0("Syscall '%s' detected on buffer\n",syscall_name);
 
 				sus = (ST_SysCallSuspicious*)g_hash_table_lookup(tracer->syscalls,GINT_TO_POINTER(syscall));
 				if(sus != NULL) {
+					SYSU_AddSuspiciousSyscall(t,syscall_name,&u_in,0);		
 					if (sus->level == SYSCALL_LEVEL_HIGH) {
 						WARNING("High suspicious syscall %s on memory\n",syscall_name);
 #if __WORDSIZE == 64 // 64 Bits machine
@@ -444,11 +449,11 @@ void SYSU_HandlerAlarmNew (int sig) {
         int ret;
         int status;
 
-        DEBUG0("Process %d consume too much CPU on offset %d\n",tracer->child_pid);//,sc_floweip->child_pid,sc_floweip->virtualeip);
+        DEBUG0("Process %d consume too much CPU on offset %d\n",ctx->child_pid);//,sc_floweip->child_pid,sc_floweip->virtualeip);
 //        sc_floweip->cpu_execed ++;
  //       sc_floweip->virtualeip = sc_floweip->size;
-        kill(tracer->child_pid,SIGKILL);
-        ret = waitpid(tracer->child_pid,&status,WNOHANG|WUNTRACED);
+        kill(ctx->child_pid,SIGKILL);
+        ret = waitpid(ctx->child_pid,&status,WNOHANG|WUNTRACED);
         return;
 }
 
@@ -460,7 +465,7 @@ void sigusr(int signal) {
 
 void sigsegv_handler(int sig, siginfo_t *info, void *data) {
         //ST_ProcessExitCodes[sig].received ++;
-	//DEBUG0("Child receives signal %d on virtualeip %d\n",sig,ctx->virtualeip);
+	DEBUG_TRACER("Child receives signal %d on virtualeip %d\n",sig,ctx->virtualeip);
         //fprintf(stdout,"Signal %d on veip = %d\n",sig,sc_floweip->virtualeip);
         memcpy(tracer->executable_segment ,tracer->segment_with_opcodes,tracer->executable_segment_size);              /* Copy the Buffer */
         ctx->virtualeip ++;
@@ -572,7 +577,7 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, int offset) {
 
                         if((ctx->virtualeip > ctx->size)||(ctx->virtualeip < 0)) {
                                 ctx->virtualeip = ctx->size;
-				printf("Avoid overflow execution,virtualeip(%d)size(%d)\n",ctx->virtualeip,ctx->size);
+				DEBUG_TRACER("Avoid overflow execution,virtualeip(%d)size(%d)\n",ctx->virtualeip,ctx->size);
                                 exit(0);
                         }
                         SYSU_NewExecutionProcess(ctx);

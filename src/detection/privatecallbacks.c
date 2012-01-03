@@ -59,7 +59,6 @@ void __CMD_GenericMethodResponse(DBusConnection *conn,DBusMessage *reply,DBusMes
         dbus_message_iter_init_append(reply, args);
         dbus_message_iter_append_basic(args,type,&value);
 
-           // send the reply && flush the connection
         if (!dbus_connection_send(conn, reply, NULL)) {
                 fprintf(stderr, "Out Of Memory!\n");
                 return;
@@ -109,9 +108,10 @@ void PRCA_Signaling_AnalyzeSegment(DBusConnection *conn,DBusMessage *msg, void *
 	printf("\n");
 	return;*/	
 	ret = SYSU_AnalyzeSegmentMemory(array,length,0);
-
+	if(ret)
+		p->shellcodes_detected++;
 	PODS_SendVerifiedSegment(conn,
-		"/polyvaccine/protector","polyvaccine.protector.veredict","veredict",
+		"/polyvaccine/protector","polyvaccine.protector.veredict","Veredict",
                 seq,hash,ret);
 	p->executed_segments ++;
 	
@@ -125,4 +125,13 @@ void PRCA_Property_GetNumberExecutedSegments(DBusConnection *conn,DBusMessage *m
         value = p->executed_segments;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
+}
+
+void PRCA_Property_GetNumberShellcodesDetected(DBusConnection *conn,DBusMessage *msg, void *data){
+	ST_PolyDetector *p = (ST_PolyDetector*)data;
+        dbus_int32_t value = 0;
+
+        value = p->shellcodes_detected;
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+	return;
 }

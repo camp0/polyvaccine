@@ -47,6 +47,7 @@ void PODS_Init(){
  */
 
 void PODS_AddInterface(ST_Interface *iface){
+	DEBUG0("add interface(0x%x)name(%s)\n",iface,iface->name);
 	polybus.interfaces = g_list_append(polybus.interfaces,iface);
 }
 

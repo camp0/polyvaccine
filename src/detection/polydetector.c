@@ -36,32 +36,30 @@ void PODT_Init() {
 
         _polyDetector = (ST_PolyDetector*)g_new0(ST_PolyDetector,1);
 	_polyDetector->executed_segments = 0;
+	_polyDetector->shellcodes_detected = 0;
 
+	SYIN_Init();
 	PODS_Init();
         _polyDetector->bus = PODS_Connect(POLYVACCINE_DETECTOR_INTERFACE,(void*)_polyDetector);
 	
-	PODS_AddInterface(&ST_PublicInterfaces[0]);
         for ( i = 0; i<MAX_PUBLIC_INTERFACES;i++) {
-                PODS_AddInterface(&ST_PublicInterfaces[i]);
-
                 interface = &ST_PublicInterfaces[i];
+                PODS_AddInterface(interface);
+
                 /* Loads the methods first */
-                current = &interface->methods[0];
                 for (j = 0;j<interface->total_methods;j++){
                         current = &interface->methods[j];
-                        DEBUG0("add method '%s' on interface '%s'\n",current[j].name,interface->name);
+			DEBUG0("callback(0x%x) add method '%s' on interface '%s'\n",current,current[j].name,interface->name);
                         PODS_AddPublicCallback(current);
                 }
-                current = &interface->properties[0];
                 for (j = 0;j<interface->total_properties;j++){
                         current = &interface->properties[j];
-                        DEBUG0("add properties '%s' on interface '%s'\n",current[j].name,interface->name);
+			DEBUG0("callback(0x%x) add property '%s' on interface '%s'\n",current,current[j].name,interface->name);
                         PODS_AddPublicCallback(current);
                 }
-                current = &interface->signals[0];
                 for (j = 0;j<interface->total_signals;j++){
                         current = &interface->signals[j];
-                        DEBUG0("add signal '%s' on interface '%s'\n",current[j].name,interface->name);
+			DEBUG0("callback(0x%x) add signal '%s' on interface '%s'\n",current,current[j].name,interface->name);
                         PODS_AddPublicCallback(current);
 		}
         }
@@ -77,6 +75,9 @@ void PODT_Run() {
         DBusWatch *local_watches[MAX_WATCHES];
         //struct timeval currenttime;
         struct pollfd local_fds[MAX_WATCHES];
+
+        fprintf(stdout,"%s running on %s version %s machine %s\n",POLYVACCINE_DETECTOR_ENGINE_NAME,
+                SYIN_GetOSName(),SYIN_GetVersionName(),SYIN_GetMachineName());
 
         while (TRUE) {
                 nfds = 0;

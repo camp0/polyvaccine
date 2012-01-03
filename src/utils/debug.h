@@ -49,7 +49,9 @@
 #define INFOMSG __INFOMSG
 #define WARNING __WARNING
 #define DEBUG1(a...) 
+#define DEBUG1 __DEBUG
 #define DEBUG2(a...)
+#define DEBUG2 __DEBUG
 
 #ifdef DEBUG
 #define DEBUG0 __DEBUG

@@ -55,7 +55,6 @@ void __CMD_GenericMethodResponse(DBusConnection *conn,DBusMessage *reply,DBusMes
         dbus_message_iter_init_append(reply, args);
         dbus_message_iter_append_basic(args,type,&value);
 
-           // send the reply && flush the connection
         if (!dbus_connection_send(conn, reply, NULL)) {
                 fprintf(stderr, "Out Of Memory!\n");
                 return;
@@ -81,7 +80,6 @@ void PRCA_Method_StartEngine(DBusConnection *conn,DBusMessage *msg, void *data){
         dbus_message_iter_init_append(reply, &args);
         dbus_message_iter_append_basic(&args,DBUS_TYPE_BOOLEAN,&value);
 
-        // send the reply && flush the connection
         if (!dbus_connection_send(conn, reply, NULL)) {
                 fprintf(stderr, "Out Of Memory!\n");
                 return;
@@ -105,7 +103,6 @@ void PRCA_Method_StopEngine(DBusConnection *conn,DBusMessage *msg, void *data){
         dbus_message_iter_init_append(reply, &args);
         dbus_message_iter_append_basic(&args,DBUS_TYPE_BOOLEAN,&value);
 
-        // send the reply && flush the connection
         if (!dbus_connection_send(conn, reply, NULL)) {
                 fprintf(stderr, "Out Of Memory!\n");
                 return;
@@ -118,7 +115,6 @@ void PRCA_Method_StopEngine(DBusConnection *conn,DBusMessage *msg, void *data){
 
 
 void PRCA_Method_SetSource(DBusConnection *conn,DBusMessage *msg, void *data){
-//	ST_PolyEngine *p = (ST_PolyEngine*)data;
         DBusMessageIter args;
         char *param = "";
         DBusMessage *reply = NULL;
@@ -126,7 +122,6 @@ void PRCA_Method_SetSource(DBusConnection *conn,DBusMessage *msg, void *data){
 
         reply = dbus_message_new_method_return(msg);
 
-        // read the arguments
         if (!dbus_message_iter_init(msg, &args))
                 fprintf(stderr, "Message has no arguments!\n");
         else if (DBUS_TYPE_STRING != dbus_message_iter_get_arg_type(&args))
@@ -140,7 +135,6 @@ void PRCA_Method_SetSource(DBusConnection *conn,DBusMessage *msg, void *data){
         dbus_message_iter_init_append(reply, &args);
         dbus_message_iter_append_basic(&args,DBUS_TYPE_BOOLEAN,&value);
 
-           // send the reply && flush the connection
         if (!dbus_connection_send(conn, reply, NULL)) {
                 fprintf(stderr, "Out Of Memory!\n");
                 return;
@@ -329,7 +323,6 @@ void PRCA_Method_IncreaseMemoryPool(DBusConnection *conn,DBusMessage *msg, void 
 
         reply = dbus_message_new_method_return(msg);
 
-        // read the arguments
         if (!dbus_message_iter_init(msg, &args))
                 fprintf(stderr, "Message has no arguments!\n");
         else if (DBUS_TYPE_INT32 != dbus_message_iter_get_arg_type(&args))
@@ -353,7 +346,6 @@ void PRCA_Method_DecreaseMemoryPool(DBusConnection *conn,DBusMessage *msg, void 
 
         reply = dbus_message_new_method_return(msg);
 
-        // read the arguments
         if (!dbus_message_iter_init(msg, &args))
                 fprintf(stderr, "Message has no arguments!\n");
         else if (DBUS_TYPE_INT32 != dbus_message_iter_get_arg_type(&args))
@@ -376,7 +368,6 @@ void PRCA_Method_IncreaseFlowPool(DBusConnection *conn,DBusMessage *msg, void *d
 
         reply = dbus_message_new_method_return(msg);
 
-        // read the arguments
         if (!dbus_message_iter_init(msg, &args))
                 fprintf(stderr, "Message has no arguments!\n");
         else if (DBUS_TYPE_INT32 != dbus_message_iter_get_arg_type(&args))
