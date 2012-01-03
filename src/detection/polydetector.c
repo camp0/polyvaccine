@@ -73,7 +73,6 @@ void PODT_Run() {
         register int i;
         int nfds,ret;
         DBusWatch *local_watches[MAX_WATCHES];
-        //struct timeval currenttime;
         struct pollfd local_fds[MAX_WATCHES];
 
         fprintf(stdout,"%s running on %s version %s machine %s\n",POLYVACCINE_DETECTOR_ENGINE_NAME,

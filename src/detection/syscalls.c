@@ -420,10 +420,13 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 					if (sus->level == SYSCALL_LEVEL_HIGH) {
 						WARNING("High suspicious syscall %s on memory\n",syscall_name);
 #if __WORDSIZE == 64 // 64 Bits machine
-						WARNING("\trax=%x;rbx=%x;rcx=%x;rdx=%x\n",u_in.orig_rax, u_in.rbx,u_in.rcx, u_in.rdx);
-						WARNING("\trsi=%x;rdi=%x;cs=%x;rip=%x\n",u_in.rsi, u_in.rdi,u_in.cs, u_in.rip);
+						WARNING("\trax=%x;rbx=%x;rcx=%x;rdx=%x\n",
+							u_in.orig_rax, u_in.rbx,u_in.rcx, u_in.rdx);
+						WARNING("\trsi=%x;rdi=%x;cs=%x;rip=%x\n",
+							u_in.rsi, u_in.rdi,u_in.cs, u_in.rip);
 #else
-						WARNING("rax=%x;rbx=%x;rcx=%x;rdx=%x\n",u_in.orig_eax, u_in.ebx,u_in.ecx, u_in.edx);
+						WARNING("\trax=%x;rbx=%x;rcx=%x;rdx=%x\n",
+							u_in.orig_eax, u_in.ebx,u_in.ecx, u_in.edx);
 #endif
                                         	kill(child_pid,SIGKILL);
                                         	SYSU_PTraceVoid(PTRACE_KILL,child_pid,0, 0);

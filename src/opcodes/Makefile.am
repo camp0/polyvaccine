@@ -17,7 +17,7 @@ bin_PROGRAMS = test
 test_SOURCES = main.c 
 test_LDADD = -lopcodes
 
-CLEANFILES = $(srcdir)/counter_wrap.c *.pyc counter.py
+CLEANFILES = $(srcdir)/counter_wrap.c *.pyc counter.py _counter.so
 
 PYTHON_INCLUDES = -I/usr/include -I../utils/
 
