@@ -27,6 +27,17 @@
 #include "polyengine.h"
 #include <getopt.h>
 
+static struct option long_options[] = {
+        {"learning",	no_argument,       	0, 'l'},
+        {"interface",  	required_argument, 	0, 'i'},
+        {"port",  	required_argument, 	0, 'p'},
+        {"help",    	no_argument, 		0, 'h'},
+        {"version",    	no_argument, 		0, 'V'},
+        {0, 0, 0, 0}
+};
+
+static char *short_options = "li:p:hV";
+
 void sigquit(int signal) {
 	POEG_Stop();
 	POEG_Stats();
@@ -35,22 +46,28 @@ void sigquit(int signal) {
 }
 
 void usage(char *prog){
-	fprintf(stdout,"%s\n",POLYVACCINE_FILTER_ENGINE_NAME);
-	fprintf(stdout,"Usage %s -s <pcapfile/device> [OPTIONS]\n",prog);
-	fprintf(stdout,"[OPTIONS]\n");
-	fprintf(stdout,"\t-p --port <port>\n");
-	fprintf(stdout,"\t-l --learning\n");
+	fprintf(stdout,"Polyvaccine %s %s\n",POLYVACCINE_FILTER_ENGINE_NAME,VERSION);
+	fprintf(stdout,"Usage: %s [option(s)]\n",prog);
+        fprintf(stdout,"The options are:\n");
+        fprintf(stdout,"\t-i, --interface=<device>             Device or pcapfile.\n");
+        fprintf(stdout,"\t-p, --port=<port number>             Web-server port number (80 default).\n");
+	fprintf(stdout,"\t-l, --learning                       Cache all the HTTP request on the HTTP cache.\n");
 	fprintf(stdout,"\n");
-	return;
+        fprintf(stdout,"\t-h, --help                           Display this information.\n");
+        fprintf(stdout,"\t-V, --version                        Display this program's version number.\n");
+        fprintf(stdout,"\n");
+        fprintf(stdout,"%s",bugs_banner);
+        return;
 }
 
 void main(int argc, char **argv) {
-	int c,port,learning;
+	int c,port,learning,option_index;
 	char *source = NULL;
 
 	learning = FALSE;
 	port = 80;
-	while ((c = getopt (argc, argv, "s:p:l")) != -1){
+	while((c = getopt_long(argc,argv,short_options,
+                            long_options, &option_index)) != -1) {
         	switch (c) {
            		case 's':
              			source = optarg;
@@ -61,6 +78,12 @@ void main(int argc, char **argv) {
            		case 'l':
              			learning = TRUE;
              			break;
+			case 'h':
+				usage(argv[0]);
+				exit(0);
+			case 'V':
+				fprintf(stdout,"Polyvaccine %s %s\n",POLYVACCINE_FILTER_ENGINE_NAME,VERSION);
+				fprintf(stdout,"%s",version_banner);
            		default:
              			abort ();
            	}

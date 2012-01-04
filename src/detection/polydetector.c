@@ -40,7 +40,7 @@ void PODT_Init() {
 
 	SYIN_Init();
 	PODS_Init();
-        _polyDetector->bus = PODS_Connect(POLYVACCINE_DETECTOR_INTERFACE,(void*)_polyDetector);
+        _polyDetector->bus = PODS_Connect(POLYVACCINE_DETECTION_INTERFACE,(void*)_polyDetector);
 	
         for ( i = 0; i<MAX_PUBLIC_INTERFACES;i++) {
                 interface = &ST_PublicInterfaces[i];
@@ -67,6 +67,13 @@ void PODT_Init() {
         return;
 }
 
+void PODT_Stats() {
+	fprintf(stdout,"Statistics\n");
+	fprintf(stdout,"\tExecuted segments %d\n",_polyDetector->executed_segments);
+	fprintf(stdout,"\tShellcodes detected %d\n",_polyDetector->shellcodes_detected);
+	fprintf(stdout,"\n");
+	return;
+}
 
 
 void PODT_Run() {
@@ -75,7 +82,7 @@ void PODT_Run() {
         DBusWatch *local_watches[MAX_WATCHES];
         struct pollfd local_fds[MAX_WATCHES];
 
-        fprintf(stdout,"%s running on %s version %s machine %s\n",POLYVACCINE_DETECTOR_ENGINE_NAME,
+        fprintf(stdout,"%s running on %s version %s machine %s\n",POLYVACCINE_DETECTION_ENGINE_NAME,
                 SYIN_GetOSName(),SYIN_GetVersionName(),SYIN_GetMachineName());
 
         while (TRUE) {
@@ -108,5 +115,17 @@ void PODT_Run() {
                 }
         }
         return;
+}
+
+void PODT_ShowAvailableSyscalls(void){
+	SUSY_ShowSyscallSuspiciousTable();
+	return;
+}
+void PODT_Destroy(void){
+	PODS_Destroy();
+	PODT_Stats();
+	SYSU_Destroy();
+	g_free(_polyDetector);
+	return;
 }
 

@@ -5,6 +5,7 @@ temp_includes = os.popen("pkg-config --cflags dbus-1 glib-2.0").read().replace("
 temp_includes.append("../utils")
 temp_includes.append("../opcodes")
 temp_includes.append("../bus")
+temp_includes.append("../../.")
 
 source_files = ['polyvaccine_wrap.c', 'httpcache.c','polyengine.c','flowpool.c','connection.c']
 source_files = source_files + ['privatecallbacks.c','packetdecoder.c','memory.c','memorypool.c','httpanalyzer.c','system.c']

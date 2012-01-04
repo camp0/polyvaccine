@@ -28,18 +28,27 @@
 #include <config.h>
 #endif
 
-#include "stdio.h"
+#include <stdio.h>
 #include "debug.h"
+#include "banner.h"
 #include "polydbus.h"
 #include "callbacks.h" 
 #include <glib.h>
 #include <dbus/dbus.h>
 
-#define POLYVACCINE_DETECTOR_INTERFACE "polyvaccine.detector"
-#define POLYVACCINE_DETECTOR_ENGINE_NAME "Detector engine"
+enum {
+        POLYDETECTOR_STATE_STOP = 0,
+        POLYDETECTOR_STATE_RUNNING
+} polydetector_states;
+
+static const char *polydetector_states_str [] = { "stop","running"};
+
+#define POLYVACCINE_DETECTION_INTERFACE "polyvaccine.detector"
+#define POLYVACCINE_DETECTION_ENGINE_NAME "Detection engine"
 
 struct ST_PolyDetector {
         DBusConnection *bus;
+	int state;
 	int32_t executed_segments;
 	int32_t shellcodes_detected;
 	unsigned char buffer[MAX_DBUS_SEGMENT_BUFFER];
@@ -66,7 +75,7 @@ static ST_Callback ST_StaticPropertyCallbacks[MAX_PROPERTY_CALLBACKS] = {
 };
 
 static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {
-        { POLYVACCINE_DETECTOR_INTERFACE,
+        { POLYVACCINE_DETECTION_INTERFACE,
                 NULL,0,
                 ST_StaticSignalCallbacks, MAX_SIGNAL_CALLBACKS,
                 ST_StaticPropertyCallbacks,MAX_PROPERTY_CALLBACKS,
@@ -75,5 +84,7 @@ static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {
 
 void PODT_Init(void);
 void PODT_Run(void);
+void PODT_ShowAvailableSyscalls(void);
+void PODT_Destroy(void);
 
 #endif

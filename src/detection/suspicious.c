@@ -24,7 +24,6 @@
 #include "suspicious.h"
 
 ST_SysCall *SUSY_New(char *name,struct user_regs_struct *u,int status) {
-//	ST_SysCall *sys = (ST_SysCall*)malloc(sizeof(ST_SysCall));
 	ST_SysCall *sys = g_new0(ST_SysCall,1);
 
 	snprintf(sys->name,32,"%s",name);
@@ -102,4 +101,20 @@ void SUSY_Printf(ST_SysCall *c) {
 
 #endif	
 	return;
+}
+
+
+void SUSY_ShowSyscallSuspiciousTable(void){
+        ST_SysCallSuspicious *sys = &ST_SysCallSuspiciousTable[0];
+        register int i;
+	fprintf(stdout,"Suspicious syscall table\n");
+
+        i = 0;
+        while((sys!=NULL)&&(sys->number>0)) {
+		fprintf(stdout,"\tsyscall '%s' number'%d' priority'%s'\n",
+			sys->name,sys->number,str_suspicious_syscalls_name[sys->level]);
+                i++;
+                sys = &ST_SysCallSuspiciousTable[i];
+        }
+	return;	
 }

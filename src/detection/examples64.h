@@ -1,3 +1,30 @@
+/* 
+ * Polyvaccine a Polymorphic exploit detection engine.
+ *                                                              
+ * Copyright (C) 2009  Luis Campo Giralte 
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+ * Boston, MA  02110-1301, USA.
+ *
+ * Written by Luis Campo Giralte <luis.camp0.2009@gmail.com> 2009 
+ *
+ */
+
+#ifndef _EXAMPLES64_H_
+#define _EXAMPLES64_H_
+
 /* 64 bits examples */
 
 /*
@@ -28,7 +55,13 @@ char exit_9_64bits[] =
         "\x48\xbf\x09\x00\x00\x00\x00"
         "\x00\x00\x00"
         "\x0f\x05";
- 
+
+int size_shellcode_64bits = 48;
+char shellcode_64bits [] = 
+	"\x48\x31\xd2\x48\x89\xd6\x48\xbf\x2f\x62\x69\x6e\x2f\x73\x68"
+	"\x11\x48\xc1\xe7\x08\x48\xc1\xef\x08\x57\x48\x89\xe7\x48\xb8"
+	"\x3b\x11\x11\x11\x11\x11\x11\x11\x48\xc1\xe0\x38\x48\xc1\xe8"
+	"\x38\x0f\x05";
 
 int size_helloworld = 912;
 char helloworld[] =
@@ -94,4 +127,4 @@ char helloworld[] =
 	"\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00"
 	"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
 
-
+#endif

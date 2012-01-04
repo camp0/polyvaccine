@@ -4,6 +4,7 @@ from distutils.core import setup, Extension
 temp_includes = os.popen("pkg-config --cflags glib-2.0").read().replace("-I","").split()
 temp_includes.append("../utils")
 temp_includes.append("../opcodes")
+temp_includes.append("../../")
 
 source_files = [ 'polydetector_wrap.c','suspicious.c','syscalls.c','context.c' ]
 

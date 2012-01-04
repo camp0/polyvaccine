@@ -41,8 +41,10 @@
 #include <linux/if.h>
 #include <sys/ioctl.h>
 #include "../core/authorized.h"
+#include "banner.h"
 
 #define POLYVACCINE_PROTECTOR_INTERFACE "polyvaccine.protector"
+#define POLYVACCINE_PROTECTION_ENGINE_NAME "Protection engine"
 
 struct ST_PolyProtector {
         DBusConnection *bus;

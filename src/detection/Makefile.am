@@ -35,5 +35,5 @@ MAINTAINERCLEANFILES = \
 
 $(srcdir)/polydetector_wrap.c: polydetector.i
 	$(SWIG) -python polydetector.i
-	$(PYTHON) setup.py build_ext --inplace 
+	$(PYTHON) setup.py build_ext --inplace -DHAVE_CONFIG_H 
 

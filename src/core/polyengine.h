@@ -43,6 +43,7 @@
 #include "system.h"
 #include "privatecallbacks.h"
 #include "authorized.h"
+#include "banner.h"
 
 enum {
         POLYENGINE_STATE_STOP = 0,

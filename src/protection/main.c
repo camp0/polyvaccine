@@ -26,30 +26,56 @@
 #include <getopt.h>
 #include "polyprotector.h"
 
+static struct option long_options[] = {
+        {"interface",	required_argument,      0, 'i'},
+        {"authorized",	required_argument,      0, 'a'},
+        {"help",        no_argument,            0, 'h'},
+        {"version",     no_argument,            0, 'V'},
+        {0, 0, 0, 0}
+};
+
+static char *short_options = "i:hVa:";
+
 void sigquit(int signal) {
     	POPR_Exit(); 
         return;
 }
 
 void usage(char *prog){
-        fprintf(stdout,"Use %s -s <pcapfile/device> [options]\n",prog);
+        fprintf(stdout,"Polyvaccine %s %s\n",POLYVACCINE_PROTECTION_ENGINE_NAME,VERSION);
+        fprintf(stdout,"Usage %s [option(s)]\n",prog);
+        fprintf(stdout,"The options are:\n");
+        fprintf(stdout,"\t-i, --interface=<device>             Device\n");
+        fprintf(stdout,"\t-a, --authorized=<host>              Authorized host.\n");
+	fprintf(stdout,"\n");
+        fprintf(stdout,"\t-h, --help                           Display this information.\n");
+        fprintf(stdout,"\t-V, --version                        Display this program's version number.\n");
         fprintf(stdout,"\n");
-
+        fprintf(stdout,"%s",bugs_banner);
+        return;
 }
 
 void main(int argc, char **argv) {
-        int c,port;
+        int c,option_index;
         char *source = NULL;
+	char *authorized_host = NULL;
 
-        port = 80;
-        while ((c = getopt (argc, argv, "s:p:")) != -1){
+        while((c = getopt_long(argc,argv,short_options,
+                            long_options, &option_index)) != -1) {
                 switch (c) {
-                        case 's':
+                        case 'i':
                                 source = optarg;
                                 break;
-                        case 'p':
-                                port = atoi(optarg);
+                        case 'a':
+                                authorized_host = optarg;
                                 break;
+                        case 'h':
+                                usage(argv[0]);
+                                exit(0);
+                        case 'V':
+                                fprintf(stdout,"Polyvaccine %s %s\n",POLYVACCINE_PROTECTION_ENGINE_NAME,VERSION);
+                                fprintf(stdout,"%s",version_banner);
+				exit(0);
                         default:
                                 abort ();
                 }
@@ -63,7 +89,8 @@ void main(int argc, char **argv) {
 	POPR_Init();
 	signal(SIGINT,sigquit);
 	POPR_SetDevice(source);
-	POPR_AddAuthorizedHost("192.168.1.1");	
+	if(authorized_host)
+		POPR_AddAuthorizedHost(authorized_host);	
 	POPR_Run();
 
 	POPR_Exit();

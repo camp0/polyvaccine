@@ -1,3 +1,31 @@
+/* 
+ * Polyvaccine a Polymorphic exploit detection engine.
+ *                                                              
+ * Copyright (C) 2009  Luis Campo Giralte 
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+ * Boston, MA  02110-1301, USA.
+ *
+ * Written by Luis Campo Giralte <luis.camp0.2009@gmail.com> 2009 
+ *
+ */
+
+#ifndef _EXAMPLES_H_
+#define _EXAMPLES_H_
+
+/* 32 bits binary buffers for testing */
 
 char exit_0_32bits [] = "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90"  "\xb8\x01\x00\x00\x00\x31\xdb\xcd\x80";
 int size_exit_0_32bits = 20;
@@ -538,3 +566,6 @@ char xcorehttp2[] = {
 0x89, 0x13, 0x90, 0x80, 0x80, 0xee, 0x31, 0xaa, /* hay una indireccion correcta ,89 13                	mov    %edx,(%ebx)*/
 0x01, 0x11, 0x53, 0x11, 0x53, 0x12, 0x90, 0x90, /* hay dos indirecciones agrupadas 11 53 12             	adc    %edx,0x12(%ebx) */
 0xaa};
+
+
+#endif

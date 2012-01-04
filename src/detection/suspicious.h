@@ -40,8 +40,11 @@ enum {
         SYSCALL_LEVEL_INTERNAL = 0,
         SYSCALL_LEVEL_LOW,
         SYSCALL_LEVEL_MEDIUM,
-        SYSCALL_LEVEL_HIGH
+        SYSCALL_LEVEL_HIGH,
+	SYSCALL_LEVEL_MAX
 };
+
+static char *str_suspicious_syscalls_name [SYSCALL_LEVEL_MAX] = {"internal","low","medium","high"};
 
 struct ST_SysCallSuspicious {
 	int number;
@@ -77,4 +80,6 @@ static ST_SysCallSuspicious ST_SysCallSuspiciousTable [] = {
 ST_SysCall *SUSY_New(char *name,struct user_regs_struct *u,int status);
 void SUSY_Printf(ST_SysCall *c);
 void SUSY_Destroy(ST_SysCall *c);
+void SUSY_ShowSyscallSuspiciousTable(void);
+
 #endif
