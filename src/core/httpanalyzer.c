@@ -49,6 +49,7 @@ void HTAZ_Init() {
 	_http.total_valid_segments = 0;
 	_http.on_suspicious_header_break = TRUE;
 	_http.on_suspicious_parameter_break = TRUE;
+	_http.analyze_post_data = FALSE;
 
 	_http.expr_header = pcre_compile((char*)HTTP_HEADER_PARAM, PCRE_DOTALL, &_http.errstr, &erroffset, 0);
 	_http.pe_header = NULL;
@@ -63,6 +64,11 @@ void HTAZ_Init() {
 		g_hash_table_insert(_http.parameters,g_strdup(ST_HttpFields[i].name),&(ST_HttpFields[i]));
 		DEBUG1("Adding HTTP (%s)(0x%x) parameter type\n",ST_HttpFields[i].name,&(ST_HttpFields[i]));
 	}	
+}
+
+
+void HTAZ_SetForceAnalyzeHttpPostData(int value){
+	_http.analyze_post_data = value;
 }
 
 /**
@@ -109,7 +115,8 @@ void HTAZ_Destroy() {
 int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 	ST_MemorySegment *seg = f->memhttp;
 	ST_HttpNode *nod = NULL;
-	int ret,i;
+	int ret,i,process_bytes;
+	int have_data = FALSE;
 	ST_HttpField *h_field = NULL;
 	ST_HttpField *p_field = NULL;
 	gpointer pointer = NULL;
@@ -125,6 +132,7 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 		char uri[MAX_URI_LENGTH];
 		int methodlen,urilen,offset;
 
+		process_bytes = 0;
 		offset = 0;
 		methodlen = _http.ovector[3]-_http.ovector[2];
 		urilen = _http.ovector[1]-_http.ovector[0];
@@ -138,6 +146,8 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 		if(g_hash_table_lookup_extended(_http.methods,(gchar*)method,NULL,&pointer) == TRUE){
 			h_field = (ST_HttpField*)pointer;
 			h_field->matchs++;
+			if(h_field->have_data)
+				have_data = TRUE;
 		}else{
 			WARNING("Unkown HTTP header(%s)\n",method);
 			ST_HttpTypeHeaders[HTTP_HEADER_UNKNOWN].matchs++;
@@ -164,6 +174,7 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 				}
 			} 	
 		}
+		process_bytes += urilen;
 		char *init = &seg->mem[urilen+2];
 		char http_line[MAX_HTTP_LINE_LENGTH];
 		int http_line_length;
@@ -172,6 +183,7 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 			ptrend = strstr(init,CRLF);
 			if (ptrend != NULL) { // got it
 				http_line_length = (ptrend-init)+1;
+				process_bytes += http_line_length;
 				ptrend = ptrend + 2; // from strlen(CRLF);
 				snprintf(http_line,http_line_length,"%s",init);
 				if(strlen(http_line)>0) {
@@ -207,7 +219,31 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 					}
 				}
 			}else{
-				//printf("no more parameters\n");
+				if(have_data == TRUE){ // The payload of a post request
+					int len = seg->virtual_size - process_bytes;
+					if(_http.analyze_post_data) { // the data of the post should be analyzed.
+						DEBUG1("flow(0x%x) POST data forced to be suspicious\n",f);
+                                                c->parameter_suspicious_opcodes ++;
+                                                _http.suspicious_parameters++;
+                                                if(_http.on_suspicious_parameter_break == TRUE){
+                                                        _http.total_suspicious_segments++;
+                                                        return 1;
+                                                }	
+					}	
+					int suspicious_opcodes = CO_CountSuspiciousOpcodes(init,len);
+					if(suspicious_opcodes>1) {
+						DEBUG1("flow(0x%x) POST data have %d suspicious bytes\n",f,suspicious_opcodes);
+                                                c->parameter_suspicious_opcodes ++;
+                                                _http.suspicious_parameters++;
+                                                if(_http.on_suspicious_parameter_break == TRUE){
+                                                	_http.total_suspicious_segments++;
+							return 1;
+						}
+					}	
+					printf("post data %d\n",suspicious_opcodes);
+					printf("%s\n",init);
+				}
+				printf("no more parameters, process bytes %d of %d\n",process_bytes,seg->virtual_size);
 				break;
 			}
 			init = ptrend;

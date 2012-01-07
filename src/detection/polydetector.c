@@ -71,6 +71,7 @@ void PODT_Stats() {
 	fprintf(stdout,"Statistics\n");
 	fprintf(stdout,"\tExecuted segments %d\n",_polyDetector->executed_segments);
 	fprintf(stdout,"\tShellcodes detected %d\n",_polyDetector->shellcodes_detected);
+	SYSU_Stats();
 	fprintf(stdout,"\n");
 	return;
 }
@@ -104,7 +105,7 @@ void PODT_Run() {
 
                 ret = poll(local_fds,nfds,-1);
                 if (ret <0){
-                        perror("poll");
+                        //perror("poll");
                         break;
                 }
 
@@ -116,6 +117,12 @@ void PODT_Run() {
         }
         return;
 }
+
+void PODT_ShowExecutionPath(int value){
+	SYSU_ShowExecutionPath(value);
+	return;
+}
+  
 
 void PODT_ShowAvailableSyscalls(void){
 	SUSY_ShowSyscallSuspiciousTable();

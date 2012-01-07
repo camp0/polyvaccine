@@ -53,16 +53,19 @@ void POEG_Init() {
 		PODS_AddInterface(&ST_PublicInterfaces[i]);
 		
                 interface = &ST_PublicInterfaces[i];
+		DEBUG0("total methods %d\n",interface->total_methods);
 		/* Loads the methods first */
 		for (j = 0;j<interface->total_methods;j++){
 			current = (ST_Callback*)&interface->methods[j];
-			DEBUG0("callback(0x%x) add method '%s' on interface '%s'\n",current,current[j].name,interface->name);
+			DEBUG0("callback(0x%x) add method '%s' on interface '%s'\n",
+				current,current[j].name,interface->name);
 			PODS_AddPublicCallback(current);
 		}
+		DEBUG0("total properties %d\n",interface->total_properties);
 		for (j = 0;j<interface->total_properties;j++){
 			current = (ST_Callback*)&interface->properties[j];
-			//current = &interface->properties[j];
-			DEBUG0("callback(0x%x) add properties '%s' on interface '%s'\n",current,current[j].name,interface->name);
+			DEBUG0("callback(0x%x) add properties '%s' on interface '%s'\n",
+				current,current[j].name,interface->name);
 			PODS_AddPublicCallback(current);
 		}
 	}		
@@ -104,8 +107,21 @@ void POEG_SetSourcePort(int port){
 }
 
 /**
+ * POEG_SetForceAnalyzeHttpPostData - Force to send to the pvde the post request with data. 
+ *
+ * @param value TRUE of FALSE 
+ */
+
+void POEG_SetForceAnalyzeHttpPostData(int value){
+	HTAZ_SetForceAnalyzeHttpPostData(value);
+	return;	
+}
+
+
+/**
  * POEG_Start - Starts the polyengine 
  */
+
 void POEG_Start() {
 	
 	DEBUG0("Trying to start the engine, status=%s\n",polyengine_states_str[_polyEngine->polyengine_status]);

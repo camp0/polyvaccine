@@ -2,3 +2,4 @@
 - Add support for netfilter, so tcp segments need to be athorized by the pvde process.
 - Add more test for the detection engine(64bits and 32bits).
 - Adds a python script with data base support in order to store the httpcache.
+- Adds support for SIP protocols(create a sip analyzer that works as the current http analyzer).

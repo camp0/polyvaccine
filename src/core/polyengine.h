@@ -77,6 +77,7 @@ void POEG_Destroy(void);
 
 void POEG_SetSource(char *source);
 void POEG_SetSourcePort(int port);
+void POEG_SetForceAnalyzeHttpPostData(int value);
 
 void POEG_Stats(void);
 void POEG_Start(void);

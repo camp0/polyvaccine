@@ -30,7 +30,8 @@
 struct ST_HttpField {
 	int nfield;
 	char *name;
-	unsigned long matchs,size;
+	int32_t matchs;
+	int have_data;
 	int check_cache;
 };
 typedef struct ST_HttpField ST_HttpField;
@@ -52,7 +53,7 @@ enum {
 
 static ST_HttpField ST_HttpTypeHeaders[HTTP_MAX_HEADER] = {
 	{ HTTP_HEADER_GET,		"GET",		0,0,	TRUE},
-	{ HTTP_HEADER_POST,		"POST",		0,0,	TRUE},
+	{ HTTP_HEADER_POST,		"POST",		0,1,	TRUE},
 	{ HTTP_HEADER_OPTIONS,		"OPTIONS",	0,0,	TRUE},
 	{ HTTP_HEADER_HEAD,		"HEAD",		0,0,	TRUE},
 	{ HTTP_HEADER_CONNECT,		"CONNECT",	0,0,	TRUE},

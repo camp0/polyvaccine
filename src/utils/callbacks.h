@@ -18,7 +18,7 @@
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
  * Boston, MA  02110-1301, USA.
  *
- * Written by Luis Campo Giralte <camp0@gmail.com> 2009 
+ * Written by Luis Campo Giralte <luis.camp0.2009@gmail.com> 2009 
  *
  */
 
@@ -51,10 +51,5 @@ struct ST_Interface {
 };
 
 typedef struct ST_Interface ST_Interface;
-
-#define POLYVACCINE_AGENT_INTERFACE "polyvaccine.engine"
-#define POLYVACCINE_AGENT_HTTP_INTERFACE POLYVACCINE_AGENT_INTERFACE ".http"
-#define POLYVACCINE_AGENT_HTTPCACHE_INTERFACE POLYVACCINE_AGENT_INTERFACE ".httpcache"
-#define POLYVACCINE_AGENT_CONNECTION_INTERFACE POLYVACCINE_AGENT_INTERFACE ".connection"
 
 #endif

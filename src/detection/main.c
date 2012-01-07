@@ -28,14 +28,14 @@
 #include <signal.h>
 
 static struct option long_options[] = {
-       // {"interface",   required_argument,      0, 'i'},
-        {"syscalls",  	no_argument,      	0, 's'},
-        {"help",        no_argument,            0, 'h'},
-        {"version",     no_argument,            0, 'V'},
+        {"execution-path",	no_argument,      	0, 'p'},
+        {"syscalls",  		no_argument,      	0, 's'},
+        {"help",        	no_argument,            0, 'h'},
+        {"version",     	no_argument,            0, 'V'},
         {0, 0, 0, 0}
 };
 
-static char *short_options = "shV";
+static char *short_options = "shVp";
 
 void sigquit(int signal) {
         PODT_Destroy();
@@ -47,6 +47,7 @@ void usage(char *prog){
         fprintf(stdout,"Usage %s [option(s)]\n",prog);
         fprintf(stdout,"The options are:\n");
         fprintf(stdout,"\t-s, --syscall                        Shows the available syscalls.\n");
+        fprintf(stdout,"\t-p, --execution-path                 Shows the execution syscall path of the executions.\n");
         fprintf(stdout,"\n");
         fprintf(stdout,"\t-h, --help                           Display this information.\n");
         fprintf(stdout,"\t-V, --version                        Display this program's version number.\n");
@@ -59,12 +60,16 @@ void usage(char *prog){
 void main(int argc, char **argv) {
 	int c,option_index;
 	int show_syscalls = FALSE;
+	int show_execution_path = FALSE;
 
         while((c = getopt_long(argc,argv,short_options,
                             long_options, &option_index)) != -1) {
                 switch (c) {
                         case 's':
                                	show_syscalls = TRUE; 
+                                break;
+                        case 'p':
+                               	show_execution_path = TRUE; 
                                 break;
                         case 'h':
                                 usage(argv[0]);
@@ -83,10 +88,10 @@ void main(int argc, char **argv) {
 	signal(SIGINT,sigquit);
 
 	if(show_syscalls == TRUE){
-			printf("jodddddddddddddddd\n");
 		PODT_ShowAvailableSyscalls();
 	}
-	
+
+	PODT_ShowExecutionPath(show_execution_path);	
 	PODT_Run();
 
 	return;

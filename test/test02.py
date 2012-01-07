@@ -3,7 +3,7 @@ __copyright__ = "Copyright (C) 2011 by Luis Campo Giralte"
 __revision__ = "$Id$"
 __version__ = "0.1"
 
-import ctypes
+import ctypes,os,signal
 import sys
 sys.path.append("../src/core/")
 import polyvaccine as p
@@ -94,18 +94,19 @@ class Test_02(unittest.TestCase):
 
         def test_02_1(self):
 		"Test the pvfe with the dbus service State property"
-                p = subprocess.Popen(["../src/core/pvfe","-s","lo","-p 80"])
+                pp = subprocess.Popen(["../src/core/pvfe","-i","lo","-p 80"])
+		time.sleep(1)
 		bus = dbus.SessionBus()
-                "Test the pvfe with the dbus service propertie state"
 		s = bus.get_object('polyvaccine.engine', '/polyvaccine/engine')
 		d = dbus.Interface(s,dbus_interface='polyvaccine.engine')
 		state = d.State()
-		p.kill()	
+		pp.kill()	
 		self.assertTrue(state == "stop")
+		pp.wait()
 
 	def test_02_2(self):
                 "Test the pvfe with the dbus service methods"
-                pp = subprocess.Popen(["../src/core/pvfe","-s","lo","-p 80"])
+                pp = subprocess.Popen(["../src/core/pvfe","-i","lo","-p 80"])
 		
 		time.sleep(1)
 		bus = dbus.SessionBus()
@@ -116,8 +117,8 @@ class Test_02(unittest.TestCase):
 		param = ['Host: slashdot.org','Accept-Encoding: gzip, deflate','Connection: keep-alive']
 		for h in header:
               		d.AddCacheHeader(h)
-		for p in param:
-			d.AddCacheParameter(p)
+		for v in param:
+			d.AddCacheParameter(v)
 		d.Stop()
 		d.SetSource("./pcapfiles/http_slashdot.pcap")
 		d.Start()
@@ -125,14 +126,15 @@ class Test_02(unittest.TestCase):
 		b = d.ParameterHits()	
 		d.Stop()
 		pp.kill()
+		pp.wait()
 		self.assertEqual(a,1)
-		self.assertEqual(b,2)
-	
+		self.assertEqual(b,6)
+		
 if __name__ == '__main__':
 	print "Testing polyvaccine interfaces"
 	suite=unittest.TestSuite()
-    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_02))
-#    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
+#    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_02))
+    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
 #	unittest.main()
 	result=testrunner.BasicTestRunner().run(suite)
 	

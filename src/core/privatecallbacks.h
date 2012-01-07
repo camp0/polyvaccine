@@ -35,6 +35,11 @@
 #include <dbus/dbus.h>
 #include "debug.h"
 
+#define POLYVACCINE_AGENT_INTERFACE "polyvaccine.engine"
+#define POLYVACCINE_AGENT_HTTP_INTERFACE POLYVACCINE_AGENT_INTERFACE ".http"
+#define POLYVACCINE_AGENT_HTTPCACHE_INTERFACE POLYVACCINE_AGENT_INTERFACE ".httpcache"
+#define POLYVACCINE_AGENT_CONNECTION_INTERFACE POLYVACCINE_AGENT_INTERFACE ".connection"
+
 /* Properties functions */
 void PRCA_Property_GetState(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetSource(DBusConnection *conn,DBusMessage *msg, void *data);
@@ -160,11 +165,6 @@ static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {
 		NULL,0,
                	ST_StaticPropertiesCallbacks, MAX_PUBLIC_PROPERTIES 
         },
-        { POLYVACCINE_AGENT_CONNECTION_INTERFACE,
-                ST_StaticConnectionMethodCallbacs,MAX_CONNECTION_PUBLIC_METHODS,
-                NULL,0,
-                ST_StaticConnectionPropertiesCallbacks,MAX_CONNECTION_PUBLIC_PROPERTIES
-        },
 	{ POLYVACCINE_AGENT_HTTP_INTERFACE,
 		NULL,0,
 		NULL,0,
@@ -173,7 +173,12 @@ static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {
         { POLYVACCINE_AGENT_HTTPCACHE_INTERFACE,
                 ST_StaticHTTPCacheMethodCallbacks,MAX_HTTPCACHE_METHODS,
                 NULL,0,
-                ST_StaticHTTPCachePropertiesCallbacks,MAX_HTTPCACHE_PROPERTIES,
+                ST_StaticHTTPCachePropertiesCallbacks,MAX_HTTPCACHE_PROPERTIES
+        },
+        { POLYVACCINE_AGENT_CONNECTION_INTERFACE,
+                ST_StaticConnectionMethodCallbacs,MAX_CONNECTION_PUBLIC_METHODS,
+                NULL,0,
+                ST_StaticConnectionPropertiesCallbacks,MAX_CONNECTION_PUBLIC_PROPERTIES
         }
 };
 

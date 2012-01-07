@@ -21,42 +21,21 @@
  * Written by Luis Campo Giralte <camp0@gmail.com> 2009 
  *
  */
-#ifndef _DEBUG_H_
-#define _DEBUG_H_
-
-#include <stdio.h>
+#ifndef _BANNER_H_
+#define _BANNER_H_
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#define __DEBUG(a...)	do { \
-	fprintf(stdout, "DEBUG:%s:%d:", __FILE__, __LINE__); \
-	fprintf(stdout, a); \
-} while (0)
+static char *version_banner =  
+"GNU " PACKAGE " " PACKAGE_VERSION "\n"
+"Copyright 2009 Free Software Foundation, Inc.\n"
+"This program is free software; you may redistribute it under the terms of\n"
+"the GNU General Public License version 3 or (at your option) any later version.\n"
+"This program has absolutely no warranty.\n";
 
-#define __INFOMSG(a...) do { \
-        fprintf(stdout, "INFO:"); \
-        fprintf(stdout, a); \
-} while (0)
-
-#define __WARNING(a...) do { \
-        fprintf(stdout, "WARNING:"); \
-        fprintf(stdout, a); \
-} while (0)
-
-
-#define INFOMSG __INFOMSG
-#define WARNING __WARNING
-#define DEBUG1(a...) 
-//#define DEBUG1 __DEBUG
-#define DEBUG2(a...)
-//#define DEBUG2 __DEBUG
-
-#ifdef DEBUG
-#define DEBUG0 __DEBUG
-#else
-#define DEBUG0(a...)
-#endif
+static char *bugs_banner = 
+"Report bugs to <" PACKAGE_BUGREPORT ">.\n";
 
 #endif

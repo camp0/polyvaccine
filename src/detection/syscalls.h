@@ -84,7 +84,7 @@ struct ST_Tracer {
 	GHashTable *syscalls; // a pointer to ST_SysCallSuspicious
 	GSList *flow; // a single list of the syscalls maded by a process, stores ST_SysCall types
 	pid_t child_pid;
-	int got_child_signal;
+	int show_execution_path;
 
 	/* Info shared with the child */
 	ST_SharedContext *ctx;
@@ -160,6 +160,7 @@ linux_call_type(long codesegment)
 
 void SYSU_Init(void);
 void SYSU_Destroy(void);
+void SYSU_ShowExecutionPath(int value);
 int SYSU_AnalyzeSegmentMemory(char *buffer, int size, int offset);
 
 #endif

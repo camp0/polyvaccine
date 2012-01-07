@@ -31,12 +31,13 @@ static struct option long_options[] = {
         {"learning",	no_argument,       	0, 'l'},
         {"interface",  	required_argument, 	0, 'i'},
         {"port",  	required_argument, 	0, 'p'},
+        {"force-post", 	no_argument, 		0, 'f'},
         {"help",    	no_argument, 		0, 'h'},
         {"version",    	no_argument, 		0, 'V'},
         {0, 0, 0, 0}
 };
 
-static char *short_options = "li:p:hV";
+static char *short_options = "li:p:hVf";
 
 void sigquit(int signal) {
 	POEG_Stop();
@@ -51,6 +52,7 @@ void usage(char *prog){
         fprintf(stdout,"The options are:\n");
         fprintf(stdout,"\t-i, --interface=<device>             Device or pcapfile.\n");
         fprintf(stdout,"\t-p, --port=<port number>             Web-server port number (80 default).\n");
+        fprintf(stdout,"\t-f, --force-post                     Force the Http analyzer to analyze the post data content.\n");
 	fprintf(stdout,"\t-l, --learning                       Cache all the HTTP request on the HTTP cache.\n");
 	fprintf(stdout,"\n");
         fprintf(stdout,"\t-h, --help                           Display this information.\n");
@@ -63,13 +65,15 @@ void usage(char *prog){
 void main(int argc, char **argv) {
 	int c,port,learning,option_index;
 	char *source = NULL;
+	int force_post;
 
+	force_post = FALSE;
 	learning = FALSE;
 	port = 80;
 	while((c = getopt_long(argc,argv,short_options,
                             long_options, &option_index)) != -1) {
         	switch (c) {
-           		case 's':
+           		case 'i':
              			source = optarg;
              			break;
            		case 'p':
@@ -77,6 +81,9 @@ void main(int argc, char **argv) {
              			break;
            		case 'l':
              			learning = TRUE;
+             			break;
+           		case 'f':
+             			force_post = TRUE;
              			break;
 			case 'h':
 				usage(argv[0]);
@@ -101,6 +108,7 @@ void main(int argc, char **argv) {
 	if(learning)
 		POEG_SetLearningMode();
 
+	POEG_SetForceAnalyzeHttpPostData(force_post);
 	POEG_SetSource(source);
 	POEG_SetSourcePort(port);
 	//POEG_AddToHttpCache(0,"GET /dashboard HTTP/1.1");

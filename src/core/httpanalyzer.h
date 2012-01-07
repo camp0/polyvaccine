@@ -45,9 +45,13 @@ struct ST_HttpAnalyzer{
         pcre *expr_header;
         pcre_extra *pe_header;
         const char *errstr;
-        int ovector[OVECCOUNT];	
+        int ovector[OVECCOUNT];
+	/* configuration options */	
 	int on_suspicious_header_break;
 	int on_suspicious_parameter_break;
+	int analyze_post_data;
+	
+	/* statistics */
 	int32_t suspicious_headers;
 	int32_t suspicious_parameters;
 	int32_t total_suspicious_segments;
@@ -62,6 +66,7 @@ void HTAZ_Init(void);
 void HTAZ_Destroy(void);
 int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f);
 void HTAZ_AnalyzeDummyHttpRequest(ST_HttpCache *c, ST_HttpFlow *f);
+void HTAZ_SetForceAnalyzeHttpPostData(int value);
 
 /* Service functions */
 int32_t HTAZ_GetNumberValidHTTPHeaders(void); 

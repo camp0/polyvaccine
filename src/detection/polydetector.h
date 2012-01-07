@@ -33,6 +33,7 @@
 #include "banner.h"
 #include "polydbus.h"
 #include "callbacks.h" 
+#include "context.h"
 #include <glib.h>
 #include <dbus/dbus.h>
 
@@ -85,6 +86,7 @@ static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {
 void PODT_Init(void);
 void PODT_Run(void);
 void PODT_ShowAvailableSyscalls(void);
+void PODT_ShowExecutionPath(int value);
 void PODT_Destroy(void);
 
 #endif

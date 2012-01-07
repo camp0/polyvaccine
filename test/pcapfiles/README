@@ -1,0 +1,20 @@
+This directory contains examples of pcapfiles
+
+- http_2gets_1post.pcap 
+	Contains one flow with 2 get request and one post.
+
+- http_one_get_and_response.pcap
+	Contains a simple get.
+
+- http_slashdot.pcap
+	Contains several access to shasldot.org
+
+- polymorphic_admmutate32bits_port1986.pcap
+	Contains a instance of the polymorphic engine ADMmutate with a loop for with 
+	some writes on the standar output.
+
+- polymorphic_clet32bits_port1986.pcap
+	Contains a instance of the clet engine with a shellcode included.
+
+- http_alpha_mixed32bits_port1986.pcap
+	Contains a enconded backdoor with the encoder alpha mixed(metasploit).
