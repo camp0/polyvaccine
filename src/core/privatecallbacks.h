@@ -135,7 +135,7 @@ static ST_Callback ST_StaticConnectionPropertiesCallbacks [MAX_CONNECTION_PUBLIC
         { "FlowsOnPool",              NULL,"i",       PRCA_Property_GetTotalFlowsOnFlowPool },
         { "FlowReleases",              NULL,"i",       PRCA_Property_GetFlowPoolTotalReleases },
         { "FlowAcquires",              NULL,"i",       PRCA_Property_GetFlowPoolTotalAcquires },
-        { "FlowErrors",              	NULL,"i",       PRCA_Property_GetFlowPoolTotalErrors },
+	{ "FlowErrors",              	NULL,"i",       PRCA_Property_GetFlowPoolTotalErrors },
 	{ "SegmentsOnPool",		NULL,"i",	PRCA_Property_GetTotalSegmentOnMemoryPool },
 	{ "SegmentReleases",		NULL,"i",	PRCA_Property_GetMemoryPoolTotalReleases },
 	{ "SegmentAcquires",		NULL,"i",	PRCA_Property_GetMemoryPoolTotalAcquires },
@@ -161,24 +161,20 @@ static ST_Callback ST_StaticConnectionMethodCallbacs [MAX_CONNECTION_PUBLIC_METH
 
 static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {
         { POLYVACCINE_AGENT_INTERFACE,
-                ST_StaticEngineMethods,MAX_ENGINE_METHODS,
-		NULL,0,
-               	ST_StaticPropertiesCallbacks, MAX_PUBLIC_PROPERTIES 
+		MAX_ENGINE_METHODS,0,MAX_PUBLIC_PROPERTIES,
+                ST_StaticEngineMethods,NULL,ST_StaticPropertiesCallbacks
         },
 	{ POLYVACCINE_AGENT_HTTP_INTERFACE,
-		NULL,0,
-		NULL,0,
-		ST_StaticHTTPPropertiesCallbacks,MAX_HTTP_PUBLIC_PROPERTIES
+		0,0,MAX_HTTP_PUBLIC_PROPERTIES,
+		NULL,NULL,ST_StaticHTTPPropertiesCallbacks
 	},
         { POLYVACCINE_AGENT_HTTPCACHE_INTERFACE,
-                ST_StaticHTTPCacheMethodCallbacks,MAX_HTTPCACHE_METHODS,
-                NULL,0,
-                ST_StaticHTTPCachePropertiesCallbacks,MAX_HTTPCACHE_PROPERTIES
+		MAX_HTTPCACHE_METHODS,0,MAX_HTTPCACHE_PROPERTIES,
+                ST_StaticHTTPCacheMethodCallbacks,NULL,ST_StaticHTTPCachePropertiesCallbacks
         },
         { POLYVACCINE_AGENT_CONNECTION_INTERFACE,
-                ST_StaticConnectionMethodCallbacs,MAX_CONNECTION_PUBLIC_METHODS,
-                NULL,0,
-                ST_StaticConnectionPropertiesCallbacks,MAX_CONNECTION_PUBLIC_PROPERTIES
+		MAX_CONNECTION_PUBLIC_METHODS,0,MAX_CONNECTION_PUBLIC_PROPERTIES,
+                ST_StaticConnectionMethodCallbacs,NULL,ST_StaticConnectionPropertiesCallbacks
         }
 };
 

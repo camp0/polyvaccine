@@ -34,9 +34,9 @@ static ST_PolyEngine *_polyEngine = NULL;
  * POEG_Init - Initialize the main structures of the polyengine
  */
 void POEG_Init() {
+	register int i,j;
 	ST_Callback *current = NULL;
 	ST_Interface *interface = NULL;
-	register int i,j;
 
 	_polyEngine = (ST_PolyEngine*)g_new0(ST_PolyEngine,1);
 
@@ -50,22 +50,26 @@ void POEG_Init() {
 	_polyEngine->bus = PODS_Connect(POLYVACCINE_AGENT_INTERFACE,(void*)_polyEngine);
 
         for ( i = 0; i<MAX_PUBLIC_INTERFACES;i++) {
-		PODS_AddInterface(&ST_PublicInterfaces[i]);
-		
                 interface = &ST_PublicInterfaces[i];
-		DEBUG0("total methods %d\n",interface->total_methods);
+		PODS_AddInterface(interface);
+		
 		/* Loads the methods first */
 		for (j = 0;j<interface->total_methods;j++){
-			current = (ST_Callback*)&interface->methods[j];
-			DEBUG0("callback(0x%x) add method '%s' on interface '%s'\n",
+			current = (ST_Callback*)&(interface->methods[j]);
+			DEBUG0("callback(0x%x)(%d) add method '%s' on interface '%s'\n",
+				current,j,current[j].name,interface->name);
+			PODS_AddPublicCallback(current);
+		}
+		for (j = 0;j<interface->total_signals;j++){
+			current = (ST_Callback*)&(interface->signals[j]);
+			DEBUG0("callback(0x%x) add signal '%s' on interface '%s'\n",
 				current,current[j].name,interface->name);
 			PODS_AddPublicCallback(current);
 		}
-		DEBUG0("total properties %d\n",interface->total_properties);
 		for (j = 0;j<interface->total_properties;j++){
-			current = (ST_Callback*)&interface->properties[j];
-			DEBUG0("callback(0x%x) add properties '%s' on interface '%s'\n",
-				current,current[j].name,interface->name);
+			current = (ST_Callback*)&(interface->properties[j]);
+			DEBUG0("callback(0x%x)(%d) add properties '%s' on interface '%s'\n",
+				current,j,current[j].name,interface->name);
 			PODS_AddPublicCallback(current);
 		}
 	}		
@@ -355,6 +359,7 @@ void POEG_Run() {
 						flow->total_bytes += tcpsegment_size;
 						if(tcpsegment_size > 0) {
 							MESG_AppendPayloadNew(flow->memhttp,PKCX_GetPayload(),tcpsegment_size);
+
 							if(PKCX_IsTCPPush() == 1) {
 								if(AUHT_IsAuthorized(_polyEngine->hosts,PKCX_GetSrcAddrDotNotation())) {
 									HTAZ_AnalyzeDummyHttpRequest(_polyEngine->httpcache,flow);	

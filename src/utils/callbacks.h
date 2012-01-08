@@ -42,12 +42,12 @@ typedef struct ST_Callback ST_Callback;
 
 struct ST_Interface {
         char *name;
-        ST_Callback *methods;
         int total_methods;
-        ST_Callback *signals;
         int total_signals;
-        ST_Callback *properties;
         int total_properties;
+        ST_Callback *methods;
+        ST_Callback *signals;
+        ST_Callback *properties;
 };
 
 typedef struct ST_Interface ST_Interface;

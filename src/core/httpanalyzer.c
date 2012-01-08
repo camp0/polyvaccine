@@ -26,7 +26,7 @@
 #include "httpvalues.h"
 #include "debug.h"
 
-#define HTTP_URI_END "HTTP/1.1"
+#define HTTP_URI_END "HTTP/1."
 #define HTTP_HEADER_PARAM "^(GET|POST|OPTIONS|HEAD|CONNECT).*" HTTP_URI_END
 
 #define MAX_HTTP_LINE_LENGTH 2048
@@ -185,13 +185,17 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 				http_line_length = (ptrend-init)+1;
 				process_bytes += http_line_length;
 				ptrend = ptrend + 2; // from strlen(CRLF);
+				if(http_line_length> MAX_HTTP_LINE_LENGTH) 
+					printf("jooooooooooooooooooooo\n");
 				snprintf(http_line,http_line_length,"%s",init);
 				if(strlen(http_line)>0) {
 					/* retrieve the parameter name of the http line */
 					char parameter[MAX_HTTP_LINE_LENGTH];
 					char *pend = strstr(init,":");
 					if(pend != NULL) {
-						int parameter_length = (pend-init)+1;	
+						int parameter_length = (pend-init)+1;
+						if(parameter_length>MAX_HTTP_LINE_LENGTH)
+							printf("joooooooooooooooooooo\n");	
 						snprintf(parameter,parameter_length,"%s",init);
 						DEBUG1("flow(0x%x) HTTP parameter(%s)value(%s)length(%d)\n",f,
 							parameter,http_line,http_line_length);
