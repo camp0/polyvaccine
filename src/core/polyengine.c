@@ -350,6 +350,9 @@ void POEG_Run() {
 								memseg = MEPO_GetMemorySegment(_polyEngine->memorypool);
 								HTFL_SetMemorySegment(flow,memseg);
 								HTFL_SetArriveTime(flow,&currenttime);	
+							}else{
+								//WARNING("No flow pool allocated\n");
+								continue;
 							}
 						}
 						// TODO problem with retransmisions with post

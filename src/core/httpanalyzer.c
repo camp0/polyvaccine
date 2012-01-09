@@ -153,7 +153,7 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 			ST_HttpTypeHeaders[HTTP_HEADER_UNKNOWN].matchs++;
 		}	
 		if(urilen>MAX_URI_LENGTH) {
-			urilen = MAX_URI_LENGTH;
+			urilen = MAX_URI_LENGTH-1;
 		}
 		snprintf(uri,urilen+1,"%s",&(seg->mem[offset]));
 		DEBUG0("flow(0x%x) HTTP uri(%s)offset(%d)length(%d)\n",f,uri,offset,urilen);
@@ -284,7 +284,7 @@ void HTAZ_AnalyzeDummyHttpRequest(ST_HttpCache *c, ST_HttpFlow *f){
                 _http.ovector, OVECCOUNT);
         if (ret>1) { // The packet contains a minimum http header       
                 char method[16];
-                char uri[1024];
+                char uri[MAX_URI_LENGTH];
                 int methodlen,urilen,offset;
 
                 offset = 0;
@@ -293,8 +293,8 @@ void HTAZ_AnalyzeDummyHttpRequest(ST_HttpCache *c, ST_HttpFlow *f){
                 _http.total_http_bytes += seg->virtual_size;
 		_http.total_http_segments ++;
 
-                if(urilen>1024) {
-                        urilen = 1023;
+                if(urilen>MAX_URI_LENGTH) {
+                        urilen = MAX_URI_LENGTH-1;
                 }
                 snprintf(uri,urilen+1,"%s",&(seg->mem[offset]));
                 DEBUG0("authorized flow(0x%x) HTTP uri(%s)offset(%d)\n",f,uri,offset);

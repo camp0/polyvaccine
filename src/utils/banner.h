@@ -32,7 +32,7 @@ static char *version_banner =
 "GNU " PACKAGE " " PACKAGE_VERSION "\n"
 "Copyright 2009 Free Software Foundation, Inc.\n"
 "This program is free software; you may redistribute it under the terms of\n"
-"the GNU General Public License version 3 or (at your option) any later version.\n"
+"the GNU General Public License version 2 or (at your option) any later version.\n"
 "This program has absolutely no warranty.\n";
 
 static char *bugs_banner = 

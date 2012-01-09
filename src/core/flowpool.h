@@ -29,7 +29,7 @@
 #include <glib.h>
 #include "httpflow.h"
 
-#define MAX_FLOWS_PER_POOL 1024 * 4 
+#define MAX_FLOWS_PER_POOL 1024 * 16 
 
 struct ST_FlowPool {
 	GSList *flows;

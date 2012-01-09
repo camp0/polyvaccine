@@ -28,13 +28,14 @@
 
 static struct option long_options[] = {
         {"interface",	required_argument,      0, 'i'},
+        {"chain",	required_argument,      0, 'c'},
         {"authorized",	required_argument,      0, 'a'},
         {"help",        no_argument,            0, 'h'},
         {"version",     no_argument,            0, 'V'},
         {0, 0, 0, 0}
 };
 
-static char *short_options = "i:hVa:";
+static char *short_options = "i:hVa:c:";
 
 void sigquit(int signal) {
     	POPR_Exit(); 
@@ -47,6 +48,7 @@ void usage(char *prog){
         fprintf(stdout,"The options are:\n");
         fprintf(stdout,"\t-i, --interface=<device>             Device\n");
         fprintf(stdout,"\t-a, --authorized=<host>              Authorized host.\n");
+        fprintf(stdout,"\t-c, --chain=<netfilter chain>        Sets the netfilter chain(INPUT,OUTPUT,FORWARD).\n");
 	fprintf(stdout,"\n");
         fprintf(stdout,"\t-h, --help                           Display this information.\n");
         fprintf(stdout,"\t-V, --version                        Display this program's version number.\n");
@@ -59,12 +61,16 @@ void main(int argc, char **argv) {
         int c,option_index;
         char *source = NULL;
 	char *authorized_host = NULL;
+	char *netfilter_chain = NULL;
 
         while((c = getopt_long(argc,argv,short_options,
                             long_options, &option_index)) != -1) {
                 switch (c) {
                         case 'i':
                                 source = optarg;
+                                break;
+                        case 'c':
+                                netfilter_chain = optarg;
                                 break;
                         case 'a':
                                 authorized_host = optarg;
@@ -90,7 +96,11 @@ void main(int argc, char **argv) {
 	signal(SIGINT,sigquit);
 	POPR_SetDevice(source);
 	if(authorized_host)
-		POPR_AddAuthorizedHost(authorized_host);	
+		POPR_AddAuthorizedHost(authorized_host);
+
+	if(netfilter_chain!= NULL)
+		POPR_SetNetfilterChain(netfilter_chain);
+	
 	POPR_Run();
 
 	POPR_Exit();

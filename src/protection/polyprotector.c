@@ -44,6 +44,7 @@ void POPR_Init() {
 	_polyProtector->table = g_hash_table_new(g_direct_hash,g_direct_equal); 
 	_polyProtector->pool = NFPO_Init();
 	_polyProtector->hosts = AUHT_Init();
+	_polyProtector->netfilter_chain = "INPUT";
 
 	PODS_Init();
         _polyProtector->bus = PODS_Connect(POLYVACCINE_PROTECTOR_INTERFACE,(void*)&_polyProtector);
@@ -92,7 +93,7 @@ void POPR_SetDevice(char *dev){
 
         /* Get the interface index */
         if( (ioctl(sockfd, SIOCGIFINDEX, &ireq)) == -1) {
-                fprintf(stderr,"Unkonw Network Interface %s\n",dev);
+                fprintf(stderr,"Unknown Network Interface %s\n",dev);
                 exit(-1);
         }
         _polyProtector->dev_index = ireq.ifr_ifindex;
@@ -114,6 +115,7 @@ void POPR_Run() {
         DBusWatch *local_watches[MAX_WATCHES];
         struct pollfd local_fds[MAX_WATCHES];
 	char pktbuf[2048];
+	char buffer[512];
 
 	nffd = NFPK_InitNfq(_polyProtector); 
 	if(nffd == -1) {
@@ -126,10 +128,10 @@ void POPR_Run() {
 	 * chain should change. 
          *
          */
-        system("iptables -N DISTQUEUE");
-        system("iptables -I OUTPUT -p all -j DISTQUEUE");
-        //system("iptables -I FORWARD -p all -j DISTQUEUE");
-        system("iptables -I DISTQUEUE -p all -j NFQUEUE");
+        system("iptables -N PVQUEUE");
+	snprintf(buffer,512,"iptables -I %s -p all -j PVQUEUE",_polyProtector->netfilter_chain);
+        system(buffer);
+        system("iptables -I PVQUEUE -p all -j NFQUEUE");
 
 	SYIN_Init();
 	fprintf(stdout,"Protection engine running on %s version %s machine %s\n",
@@ -209,4 +211,15 @@ void POPR_Exit() {
 
 void POPR_AddAuthorizedHost(char *ip){
 	AUHT_AddHost(_polyProtector->hosts,ip);
+}
+
+
+/**
+ * POPR_SetNetfilterChain - sets the netfilter chain in order to forward the packets to the pvpe.
+ *
+ * @param value the chain type(INPUT,OUTPUT,FORWARD)
+ *
+ */
+void POPR_SetNetfilterChain(char *value){
+	_polyProtector->netfilter_chain = value;
 }

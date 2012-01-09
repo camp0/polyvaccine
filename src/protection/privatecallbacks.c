@@ -109,7 +109,7 @@ void PRCA_Property_GetTotalTcpPackets(DBusConnection *conn,DBusMessage *msg, voi
         dbus_int64_t value = 0;
 
         value = p->total_tcp_packets;
-        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT64,(void*)&value);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT64,(void*)value);
         return;
 }
 

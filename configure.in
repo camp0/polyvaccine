@@ -193,10 +193,10 @@ src/protection/Makefile
 pdf/Makefile
 test/Makefile
 test/pcapfiles/Makefile
+docs/Makefile
 samples/exploits/Makefile
 samples/exploits/http/Makefile
 samples/exploits/sip/Makefile
-docs/Makefile
 ])
 
 echo "

@@ -55,6 +55,7 @@ struct ST_PolyProtector {
 	/** The main Handler of netfilter */
 	struct nfq_handle *h;
 	ST_AuthorizedHost *hosts;
+	char *netfilter_chain;
 
 	int dev_index;
 
@@ -74,7 +75,7 @@ void PRCA_Signaling_AuthorizeSegment(DBusConnection *conn,DBusMessage *msg, void
 
 #define MAX_SIGNAL_CALLBACKS 1 
 static ST_Callback ST_StaticSignalCallbacks[ MAX_SIGNAL_CALLBACKS] = {
-	{ "veredict",		"a",NULL,	PRCA_Signaling_AuthorizeSegment }
+	{ "Veredict",		"a",NULL,	PRCA_Signaling_AuthorizeSegment }
 };
 
 void PRCA_Property_GetTotalInboundPackets(DBusConnection *conn,DBusMessage *msg, void *data);
@@ -85,11 +86,11 @@ void PRCA_Property_GetTcpDropSegments(DBusConnection *conn,DBusMessage *msg, voi
 
 #define MAX_PROPERTY_CALLBACKS 5 
 static ST_Callback ST_StaticPropertyCallbacks[MAX_PROPERTY_CALLBACKS] = {
-	{ "inbound packets",	NULL,"x",	PRCA_Property_GetTotalInboundPackets },
-	{ "tcp packets",	NULL,"x",	PRCA_Property_GetTotalTcpPackets },
-	{ "tcp segments",	NULL,"x",	PRCA_Property_GetTotalTcpSegments },
-	{ "retransmition drop tcp segments",	NULL,"x",	PRCA_Property_GetTcpRetransmitionDropSegments },
-	{ "drop tcp segments",	NULL,"x",	PRCA_Property_GetTcpDropSegments }
+	{ "InboundPackets",	NULL,"x",	PRCA_Property_GetTotalInboundPackets },
+	{ "TcpPackets",	NULL,"x",	PRCA_Property_GetTotalTcpPackets },
+	{ "TcpSegments",	NULL,"x",	PRCA_Property_GetTotalTcpSegments },
+	{ "RetransmitionDropTcpSegments",	NULL,"x",	PRCA_Property_GetTcpRetransmitionDropSegments },
+	{ "DropTcpSegments",	NULL,"x",	PRCA_Property_GetTcpDropSegments }
 };
 
 static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {
@@ -104,5 +105,6 @@ void POPR_Run(void);
 void POPR_SetDevice(char *dev);
 void POPR_Exit(void);
 void POPR_AddAuthorizedHost(char *ip);
+void POPR_SetNetfilterChain(char *value);
 
 #endif
