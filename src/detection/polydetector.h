@@ -45,11 +45,12 @@ enum {
 static const char *polydetector_states_str [] = { "stop","running"};
 
 #define POLYVACCINE_DETECTION_INTERFACE "polyvaccine.detector"
-#define POLYVACCINE_DETECTION_ENGINE_NAME "Detection engine"
+#define POLYVACCINE_DETECTION_ENGINE_NAME "Polyvaccine detection engine"
 
 struct ST_PolyDetector {
         DBusConnection *bus;
 	int state;
+	int show_received_payload;
 	int32_t executed_segments;
 	int32_t shellcodes_detected;
 	unsigned char buffer[MAX_DBUS_SEGMENT_BUFFER];
@@ -77,9 +78,8 @@ static ST_Callback ST_StaticPropertyCallbacks[MAX_PROPERTY_CALLBACKS] = {
 
 static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {
         { POLYVACCINE_DETECTION_INTERFACE,
-                NULL,0,
-                ST_StaticSignalCallbacks, MAX_SIGNAL_CALLBACKS,
-                ST_StaticPropertyCallbacks,MAX_PROPERTY_CALLBACKS,
+		0,MAX_SIGNAL_CALLBACKS,MAX_PROPERTY_CALLBACKS,
+                NULL,ST_StaticSignalCallbacks,ST_StaticPropertyCallbacks,
         }
 };
 

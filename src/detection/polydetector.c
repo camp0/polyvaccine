@@ -37,6 +37,7 @@ void PODT_Init() {
         _polyDetector = (ST_PolyDetector*)g_new0(ST_PolyDetector,1);
 	_polyDetector->executed_segments = 0;
 	_polyDetector->shellcodes_detected = 0;
+	_polyDetector->show_received_payload = FALSE;
 
 	SYIN_Init();
 	PODS_Init();
@@ -136,3 +137,7 @@ void PODT_Destroy(void){
 	return;
 }
 
+void PODT_ShowReceivedPayload(int value) {
+	_polyDetector->show_received_payload = value;
+	return;
+}

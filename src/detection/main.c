@@ -35,7 +35,7 @@ static struct option long_options[] = {
         {0, 0, 0, 0}
 };
 
-static char *short_options = "shVp";
+static char *short_options = "shVpx";
 
 void sigquit(int signal) {
         PODT_Destroy();
@@ -43,11 +43,12 @@ void sigquit(int signal) {
 }
 
 void usage(char *prog){
-        fprintf(stdout,"Polyvaccine %s %s\n",POLYVACCINE_DETECTION_ENGINE_NAME,VERSION);
+        fprintf(stdout,"%s %s\n",POLYVACCINE_DETECTION_ENGINE_NAME,VERSION);
         fprintf(stdout,"Usage %s [option(s)]\n",prog);
         fprintf(stdout,"The options are:\n");
         fprintf(stdout,"\t-s, --syscall                        Shows the available syscalls.\n");
         fprintf(stdout,"\t-p, --execution-path                 Shows the execution syscall path of the executions.\n");
+        fprintf(stdout,"\t-x, --payload                        Shows the execution payload received by the daemon.\n");
         fprintf(stdout,"\n");
         fprintf(stdout,"\t-h, --help                           Display this information.\n");
         fprintf(stdout,"\t-V, --version                        Display this program's version number.\n");
@@ -61,10 +62,14 @@ void main(int argc, char **argv) {
 	int c,option_index;
 	int show_syscalls = FALSE;
 	int show_execution_path = FALSE;
+	int show_received_payload = FALSE;	
 
         while((c = getopt_long(argc,argv,short_options,
                             long_options, &option_index)) != -1) {
                 switch (c) {
+                        case 'x':
+                               	show_received_payload = TRUE; 
+                                break;
                         case 's':
                                	show_syscalls = TRUE; 
                                 break;
@@ -75,7 +80,7 @@ void main(int argc, char **argv) {
                                 usage(argv[0]);
                                 exit(0);
                         case 'V':
-                                fprintf(stdout,"Polyvaccine %s %s\n",POLYVACCINE_DETECTION_ENGINE_NAME,VERSION);
+                                fprintf(stdout,"%s %s\n",POLYVACCINE_DETECTION_ENGINE_NAME,VERSION);
                                 fprintf(stdout,"%s",version_banner);
                                 exit(0);
                         default:
@@ -90,6 +95,9 @@ void main(int argc, char **argv) {
 	if(show_syscalls == TRUE){
 		PODT_ShowAvailableSyscalls();
 	}
+
+	if(show_received_payload == TRUE)
+		PODT_ShowReceivedPayload(show_received_payload);
 
 	PODT_ShowExecutionPath(show_execution_path);	
 	PODT_Run();

@@ -44,7 +44,7 @@
 #include "banner.h"
 
 #define POLYVACCINE_PROTECTOR_INTERFACE "polyvaccine.protector"
-#define POLYVACCINE_PROTECTION_ENGINE_NAME "Protection engine"
+#define POLYVACCINE_PROTECTION_ENGINE_NAME "Polyvaccine protection engine"
 
 struct ST_PolyProtector {
         DBusConnection *bus;
@@ -94,9 +94,8 @@ static ST_Callback ST_StaticPropertyCallbacks[MAX_PROPERTY_CALLBACKS] = {
 
 static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {
         { POLYVACCINE_PROTECTOR_INTERFACE,
-                NULL,0,
-                ST_StaticSignalCallbacks, MAX_SIGNAL_CALLBACKS,
-                ST_StaticPropertyCallbacks,MAX_PROPERTY_CALLBACKS,
+		0,MAX_SIGNAL_CALLBACKS,MAX_PROPERTY_CALLBACKS,
+                NULL,ST_StaticSignalCallbacks,ST_StaticPropertyCallbacks 
         }
 };
 

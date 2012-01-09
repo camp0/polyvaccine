@@ -67,6 +67,7 @@ typedef struct ST_SysCall ST_SysCall;
 static ST_SysCallSuspicious ST_SysCallSuspiciousTable [] = {
         { __NR_execve,          "execve",       SYSCALL_LEVEL_HIGH },
         { __NR_fork,            "fork",         SYSCALL_LEVEL_HIGH },
+        { __NR_setuid,          "setuid",         SYSCALL_LEVEL_HIGH },
 #ifdef _ASM_X86_UNISTD_32_H
         { __NR_socketcall,      "socketcall",   SYSCALL_LEVEL_HIGH},
 #endif

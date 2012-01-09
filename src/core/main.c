@@ -47,7 +47,7 @@ void sigquit(int signal) {
 }
 
 void usage(char *prog){
-	fprintf(stdout,"Polyvaccine %s %s\n",POLYVACCINE_FILTER_ENGINE_NAME,VERSION);
+	fprintf(stdout,"%s %s\n",POLYVACCINE_FILTER_ENGINE_NAME,VERSION);
 	fprintf(stdout,"Usage: %s [option(s)]\n",prog);
         fprintf(stdout,"The options are:\n");
         fprintf(stdout,"\t-i, --interface=<device>             Device or pcapfile.\n");
@@ -89,7 +89,7 @@ void main(int argc, char **argv) {
 				usage(argv[0]);
 				exit(0);
 			case 'V':
-				fprintf(stdout,"Polyvaccine %s %s\n",POLYVACCINE_FILTER_ENGINE_NAME,VERSION);
+				fprintf(stdout,"%s %s\n",POLYVACCINE_FILTER_ENGINE_NAME,VERSION);
 				fprintf(stdout,"%s",version_banner);
            		default:
              			abort ();

@@ -410,6 +410,7 @@ void PRCA_Method_GetHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void
 	GList *l = NULL; 
         DBusMessageIter iter;
         DBusMessage *reply = NULL;
+	int items = 0;
 
         reply = dbus_message_new_method_return(msg);
 
@@ -417,10 +418,14 @@ void PRCA_Method_GetHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void
         dbus_message_iter_init_append(reply, &iter);
 
 	l = g_hash_table_get_keys(p->httpcache->http_header_cache);
-
 	while(l != NULL) {
-		char *value = l->data;
-        	dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&value);
+		/** TODO 
+		 * Dbus have a bug or some limit, so only 255 items of 
+		 * the cache are send.
+		 */
+		items ++;
+		if(items >255) break;
+        	dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&(l->data));
 		l = g_list_next(l);
 	}
 
@@ -439,7 +444,7 @@ void PRCA_Method_GetHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, v
         DBusMessageIter iter;
         dbus_int32_t param;
         DBusMessage *reply = NULL;
-        int value = 1;
+        int items = 0;
 
         reply = dbus_message_new_method_return(msg);
 
@@ -449,8 +454,13 @@ void PRCA_Method_GetHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, v
         l = g_hash_table_get_keys(p->httpcache->http_parameter_cache);
 
         while(l != NULL) {
-                char *value = l->data;
-                dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&value);
+		 /** TODO 
+                 * Dbus have a bug or some limit, so only 255 items of 
+                 * the cache are send.
+                 */
+		items++;
+		if(items>255)break;
+                dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&(l->data));
                 l = g_list_next(l);
         }
 

@@ -100,12 +100,12 @@ void PRCA_Signaling_AnalyzeSegment(DBusConnection *conn,DBusMessage *msg, void *
 
 	DEBUG0("receive buffer lenght(%d)hash(%lu)seq(%lu)\n",
 		length,hash,seq);
-	printf("buffer size = %d value = %d\n",length,value);
-	for(i = 0;i<16;i++){
-		printf("0x%x ",array[i]);
-		if ((i %16) ==0)printf("\n");
-	} 	
-	printf("\n");
+
+	if(p->show_received_payload) {
+		fprintf(stdout,"Payload received:\n");
+		printfhex(array,length);
+		fprintf(stdout,"\n");
+	}
 	
 	ret = SYSU_AnalyzeSegmentMemory(array,length,0);
 	if(ret)
