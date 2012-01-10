@@ -25,10 +25,23 @@
 #include "connection.h"
 #include "httpflow.h"
 
+/**
+ * COMN_SetFlowPool - Sets the reference of the flowpool on the ST_Connection.
+ *
+ * @param conn the ST_Connection 
+ * @param flowpool 
+ */
 
 void COMN_SetFlowPool(ST_Connection *conn,ST_FlowPool *flowpool){
 	conn->flowpool = flowpool;
 }
+
+/**
+ * COMN_SetMemoryPool - Sets the reference of the memorypool on the ST_Connection.
+ *
+ * @param conn the ST_Connection 
+ * @param mempool 
+ */
 
 void COMN_SetMemoryPool(ST_Connection *conn,ST_MemoryPool *mempool){
 	conn->mempool = mempool;
@@ -42,6 +55,13 @@ gint flow_cmp(ST_HttpFlow *f1, ST_HttpFlow *f2) {
                 return 0;
 }
 
+/**
+ * COMN_InsertConnection - Adds a ST_HttpFlow to the ST_Connection.
+ *
+ * @param conn the ST_Connection 
+ * @param flow 
+ * @param hash 
+ */
 
 void COMN_InsertConnection(ST_Connection *conn,ST_HttpFlow *flow,unsigned long *hash){
         struct in_addr a,b;
@@ -60,6 +80,13 @@ void COMN_InsertConnection(ST_Connection *conn,ST_HttpFlow *flow,unsigned long *
 	return;
 }
 
+/**
+ * COMN_UpdateTimers - Updates the flow list in order to release the flows.
+ *
+ * @param conn the ST_Connection 
+ * @param currenttime 
+ * 
+ */
 void COMN_UpdateTimers(ST_Connection *conn,struct timeval *currenttime){
         GList *f_update = NULL;
         GList *current = NULL;
@@ -100,14 +127,12 @@ void COMN_UpdateTimers(ST_Connection *conn,struct timeval *currenttime){
         return;
 }
 
-
-static gboolean COMN_DestroyCallback(gpointer v) {
-	ST_HttpFlow *f = (ST_HttpFlow*)v;
-
-	MESG_Destroy(f->memhttp);
-        g_free(f);
-        return TRUE;
-}
+/**
+ * COMN_Init - Creates a ST_Connection type.
+ *
+ * @return ST_Connection 
+ * 
+ */
 
 ST_Connection *COMN_Init() {
 	ST_Connection *conn= NULL;
@@ -116,7 +141,6 @@ ST_Connection *COMN_Init() {
 	conn->table = g_hash_table_new(g_direct_hash,g_direct_equal);
 	//conn->table = g_hash_table_new_full(g_direct_hash,g_direct_equal,NULL,COMN_DestroyCallback);
 	conn->timers = NULL;
-	//conn->inactivitytime = 10;
 	conn->inactivitytime = 180;
 	conn->expiretimers = 0;
 	conn->flowpool = NULL;
@@ -124,12 +148,59 @@ ST_Connection *COMN_Init() {
 	return conn;
 };
 
+/**
+ * COMN_ReleaseFlows - Releases the flows stored on the ST_Connection.
+ *
+ * @param conn 
+ * 
+ */
+
+void COMN_ReleaseFlows(ST_Connection *conn){
+        GHashTableIter iter;
+        gpointer k,v;
+	int items = 0;
+
+        g_hash_table_iter_init (&iter, conn->table);
+        while (g_hash_table_iter_next (&iter, &k, &v)) {
+                ST_HttpFlow *flow = (ST_HttpFlow*)v;
+                ST_MemorySegment *seg = flow->memhttp;
+                flow->memhttp = NULL;
+                MEPO_AddMemorySegment(conn->mempool,seg);
+                FLPO_AddFlow(conn->flowpool,flow);
+		items++;
+        }
+        DEBUG0("Releasing %d flows to flowpool(0x%x)memorypool(0x%x)\n",
+		items,conn->flowpool,conn->mempool);
+	return;
+}
+
+/**
+ * COMN_Destroy - Destroy the ST_Connection.
+ *
+ * @param conn 
+ * 
+ */
+
 void COMN_Destroy(ST_Connection *conn) {
-        g_hash_table_destroy(conn->table);
+       	g_hash_table_destroy(conn->table);
         g_list_free(conn->timers);
      	g_free(conn); 
 }
 
+/**
+ * COMN_FindConnection - Finds a ST_HttFlow associated to a tcp connection.
+ *
+ * @param conn 
+ * @param saddr 
+ * @param sport 
+ * @param protocol 
+ * @param daddr
+ * @param dport 
+ * @param hash 
+ *
+ * @return ST_HttpFlow
+ * 
+ */
 ST_HttpFlow *COMN_FindConnection(ST_Connection *conn,u_int32_t saddr,u_int16_t sport,u_int16_t protocol,u_int32_t daddr,u_int16_t dport,unsigned long *hash){
         gpointer object;
         struct in_addr a,b;

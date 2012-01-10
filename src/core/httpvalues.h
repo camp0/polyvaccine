@@ -128,6 +128,14 @@ enum {
 	HTTP_FIELD_X_VERMEER_CONTENT_TYPE, /* campo raro del POST */
 	HTTP_FIELD_MIME_VERSION,	/* del POST */
 
+	/* Case sensitive headers */
+	HTTP_FIELD_CONTENT_TYPE_1,
+	HTTP_FIELD_CONTENT_TYPE_2,
+	HTTP_FIELD_CONTENT_LENGTH_1,
+	HTTP_FIELD_CONTENT_LENGTH_2,
+	HTTP_FIELD_USER_AGENT_1,
+	HTTP_FIELD_USER_AGENT_2,
+
 	HTTP_FIELD_UNKNOWN, // just for counting pourposes
 	HTTP_MAX_FIELD
 };
@@ -198,6 +206,12 @@ static ST_HttpField ST_HttpFields [HTTP_MAX_FIELD] = {
 	{ HTTP_FIELD_NPFREFR,			"NpfRefr",		0,0,	TRUE }, 
 	{ HTTP_FIELD_X_VERMEER_CONTENT_TYPE,	"X-Vermeer-Content-Type",0,0,	TRUE },
 	{ HTTP_FIELD_MIME_VERSION,		"MIME-Version",	0,0,	TRUE },
+	{ HTTP_FIELD_CONTENT_TYPE_1,		"Content-type",		0,0,	TRUE },
+	{ HTTP_FIELD_CONTENT_TYPE_2,		"content-type",		0,0,	TRUE },
+	{ HTTP_FIELD_CONTENT_LENGTH_1,		"Content-length",	0,0,	TRUE },
+	{ HTTP_FIELD_CONTENT_LENGTH_2,		"content-length",	0,0,	TRUE },
+	{ HTTP_FIELD_USER_AGENT_1,		"User-agent",		0,0,	TRUE },
+	{ HTTP_FIELD_USER_AGENT_2,		"user-agent",		0,0,	TRUE },
 	{ HTTP_FIELD_UNKNOWN,			"Unknown parameter",	0,0,	TRUE }
 
 };

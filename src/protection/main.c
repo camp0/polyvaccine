@@ -92,6 +92,11 @@ void main(int argc, char **argv) {
                 exit(0);
         }
 
+	if(geteuid()!= 0) {
+		fprintf(stdout,"%s needs root access\n",POLYVACCINE_PROTECTION_ENGINE_NAME,VERSION);
+		exit(-1);
+	}
+
 	POPR_Init();
 	signal(SIGINT,sigquit);
 	POPR_SetDevice(source);

@@ -50,6 +50,7 @@ struct ST_HttpAnalyzer{
 	int on_suspicious_header_break;
 	int on_suspicious_parameter_break;
 	int analyze_post_data;
+	int show_unknown_http;
 	
 	/* statistics */
 	int32_t suspicious_headers;
@@ -67,6 +68,7 @@ void HTAZ_Destroy(void);
 int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f);
 void HTAZ_AnalyzeDummyHttpRequest(ST_HttpCache *c, ST_HttpFlow *f);
 void HTAZ_SetForceAnalyzeHttpPostData(int value);
+void HTAZ_ShowUnknownHttp(int value);
 
 /* Service functions */
 int32_t HTAZ_GetNumberValidHTTPHeaders(void); 

@@ -9,6 +9,27 @@ all the process on the same machine.
 
 
 --------------------------------------------------------------
-Basic configuration
+Basic test configuration
 
+                   ----------------
+                   |  web-server  |
+                   ----------------
+                          |
+                          |
+                   ----------------
+                   |  pv-machine  |
+                   ----------------
+                        |eth0|
+                        ------
+                          |
+                          |
+                    -------------
+                    |           |
+                  inet        dummy
 
+All the process (pvfe,pfde and pvpe) are executed on the pv-machine with two ethernet devices.
+
+./pvfe -i eth0 -p 80
+sudo ./pvpe -i eth0  
+        
+                           

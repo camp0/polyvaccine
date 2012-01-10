@@ -92,6 +92,19 @@ void POEG_Init() {
 	return;
 }
 
+
+
+/**
+ * POEG_ShowUnknownHttp - Shows the unknown http traffic. 
+ *
+ * @param value
+ */
+
+void POEG_ShowUnknownHttp(int value){
+	HTAZ_ShowUnknownHttp(value);
+	return;
+}
+
 /**
  * POEG_SetSource - Sets the source of the network packets
  *
@@ -177,6 +190,11 @@ void POEG_Stop() {
  */
 void POEG_StopAndExit() {
 	POEG_Stop();
+	COMN_ReleaseFlows(_polyEngine->conn);
+        MEPO_Stats(_polyEngine->memorypool);
+        FLPO_Stats(_polyEngine->flowpool);
+        HTCC_Stats(_polyEngine->httpcache);
+        HTAZ_PrintfStats();
 	POEG_Destroy();
 	exit(0);
 }
@@ -188,7 +206,7 @@ void POEG_Destroy() {
 	PODS_Destroy();
 	g_string_free(_polyEngine->source,1);
 	FLPO_Destroy(_polyEngine->flowpool);
-	MEPO_Destroy(_polyEngine->memorypool);	
+	MEPO_Destroy(_polyEngine->memorypool);
 	COMN_Destroy(_polyEngine->conn);
 	HTCC_Destroy(_polyEngine->httpcache);
 	AUHT_Destroy(_polyEngine->hosts);

@@ -52,6 +52,7 @@ void COMN_InsertConnection(ST_Connection *conn,ST_HttpFlow *flow,unsigned long *
 void COMN_UpdateTimers(ST_Connection *conn,struct timeval *currenttime);
 void COMN_SetFlowPool(ST_Connection *conn,ST_FlowPool *flowpool);
 void COMN_SetMemoryPool(ST_Connection *conn,ST_MemoryPool *mempool);
+void COMN_ReleaseFlows(ST_Connection *conn);
 
 #endif
 

@@ -25,7 +25,7 @@
 #include "memorypool.h"
 
 /**
- * Inits the memory pool 
+ * MEPO_Init - Inits the memory pool 
  *
  */
 ST_MemoryPool *MEPO_Init() {
@@ -44,7 +44,7 @@ ST_MemoryPool *MEPO_Init() {
 }
 
 /**
- * Destroy the memory pool 
+ * MEPO_Destroy - Destroy the memory pool 
  *
  * @param mp the ST_MemoryPool to destroy 
  */
@@ -57,6 +57,13 @@ void MEPO_Destroy(ST_MemoryPool *mp){
 int MEPO_GetNumberMemorySegments(ST_MemoryPool *mp){
 	return g_slist_length(mp->mem);
 }
+
+/**
+ * MEPO_IncrementMemoryPool - Increments the items of the memory pool 
+ *
+ * @param mp the ST_MemoryPool to destroy 
+ * @param value 
+ */
 
 int MEPO_IncrementMemoryPool(ST_MemoryPool *mp,int value){
 	int i;
@@ -71,6 +78,13 @@ int MEPO_IncrementMemoryPool(ST_MemoryPool *mp,int value){
 	}
         return TRUE;
 }
+
+/**
+ * MEPO_DecrementMemoryPool - Decrements the items of the memory pool 
+ *
+ * @param mp the ST_MemoryPool to destroy 
+ * @param value 
+ */
 
 int MEPO_DecrementMemoryPool(ST_MemoryPool *mp,int value) {
 	ST_MemorySegment *m;

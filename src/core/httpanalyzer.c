@@ -50,6 +50,7 @@ void HTAZ_Init() {
 	_http.on_suspicious_header_break = TRUE;
 	_http.on_suspicious_parameter_break = TRUE;
 	_http.analyze_post_data = FALSE;
+	_http.show_unknown_http = FALSE;
 
 	_http.expr_header = pcre_compile((char*)HTTP_HEADER_PARAM, PCRE_DOTALL, &_http.errstr, &erroffset, 0);
 	_http.pe_header = NULL;
@@ -66,6 +67,10 @@ void HTAZ_Init() {
 	}	
 }
 
+
+void HTAZ_ShowUnknownHttp(int value){
+	_http.show_unknown_http = value;
+}
 
 void HTAZ_SetForceAnalyzeHttpPostData(int value){
 	_http.analyze_post_data = value;
@@ -139,7 +144,7 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 
 		_http.total_http_bytes += seg->virtual_size;	
 		_http.total_http_segments ++;
-		if (methodlen>1024){
+		if (methodlen>15){
 			exit(-1);
 		} 
 		snprintf(method,methodlen+1,"%s",&(seg->mem[offset]));
@@ -149,8 +154,10 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 			if(h_field->have_data)
 				have_data = TRUE;
 		}else{
-			WARNING("Unkown HTTP header(%s)\n",method);
 			ST_HttpTypeHeaders[HTTP_HEADER_UNKNOWN].matchs++;
+			if(_http.show_unknown_http)
+				WARNING("Unknown HTTP header(%.*s)\n",128,method);
+				
 		}	
 		if(urilen>MAX_URI_LENGTH) {
 			urilen = MAX_URI_LENGTH-1;
@@ -203,7 +210,8 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 							p_field->matchs++;
 						}else{
 							ST_HttpFields[HTTP_FIELD_UNKNOWN].matchs++;
-							WARNING("Unknown parameter(%s)offset(%d)\n",http_line,(pend-init));
+							if(_http.show_unknown_http)
+								WARNING("Unknown parameter(%s)offset(%d)\n",http_line,(pend-init));
 						}
 						nod = HTCC_GetParameterFromCache(c,http_line);
 						if(nod == NULL) { // The parameter value is not in the cache
@@ -242,16 +250,17 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 							return 1;
 						}
 					}	
-					printf("post data %d\n",suspicious_opcodes);
-					printf("%s\n",init);
+					//printf("post data %d\n",suspicious_opcodes);
+					//printf("%s\n",init);
 				}
-				printf("no more parameters, process bytes %d of %d\n",process_bytes,seg->virtual_size);
+				//printf("no more parameters, process bytes %d of %d\n",process_bytes,seg->virtual_size);
 				break;
 			}
 			init = ptrend;
 		}	
 	}else{
-                WARNING("Unkown HTTP header(%s)\n",seg->mem);
+		if(_http.show_unknown_http)
+			WARNING("Unknown HTTP header(%.*s)\n",128,seg->mem);
                 ST_HttpTypeHeaders[HTTP_HEADER_UNKNOWN].matchs++;
 		_http.total_suspicious_segments++;
 		return 1;
