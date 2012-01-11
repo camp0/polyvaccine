@@ -26,13 +26,10 @@
 #define _PACKETCONTEXT_H_
 
 #include <stdio.h>
-#ifdef __FAVOR_BSD
-#undef __FAVOR_BSD
-#endif // __FAVOR_BSD
+#include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <netinet/ip.h>
-#include <arpa/inet.h>
 
 #define ETH_P_8021Q 0x8100
 #define ETH_P_IP 0x0800

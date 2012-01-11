@@ -32,6 +32,7 @@
 #include <dbus/dbus.h>
 #include <sys/poll.h>
 #include "callbacks.h"
+#include <sys/types.h>
 
 #define MAX_WATCHES 4
 

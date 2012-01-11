@@ -32,7 +32,10 @@
 #include <pcap.h>
 #include <sys/time.h>
 #include <stdio.h>
+#ifdef __LINUX__
 #include <linux/if_ether.h>
+#endif
+#include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <netinet/ip.h>
