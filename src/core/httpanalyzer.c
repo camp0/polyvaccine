@@ -82,7 +82,7 @@ void HTAZ_SetForceAnalyzeHttpPostData(int value){
 void HTAZ_PrintfStats() {
 	register int i;
 
-	fprintf(stdout,"HTTP Analyzer Statistics\n");
+	fprintf(stdout,"HTTP analyzer statistics\n");
 	fprintf(stdout,"\ttotal segments %ld\n",_http.total_http_segments);
 	fprintf(stdout,"\ttotal bytes %ld\n",_http.total_http_bytes);
 	fprintf(stdout,"\ttotal suspicious segments %ld\n",_http.total_suspicious_segments);

@@ -18,7 +18,7 @@
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
  * Boston, MA  02110-1301, USA.
  *
- * Written by Luis Campo Giralte <camp0@gmail.com> 2009 
+ * Written by Luis Campo Giralte <luis.camp0.2009@gmail.com> 2009 
  *
  */
 #ifndef _DEBUG_H_
@@ -48,15 +48,16 @@
 
 #define INFOMSG __INFOMSG
 #define WARNING __WARNING
-#define DEBUG1(a...) 
-//#define DEBUG1 __DEBUG
-#define DEBUG2(a...)
-//#define DEBUG2 __DEBUG
 
 #ifdef DEBUG
 #define DEBUG0 __DEBUG
 #else
 #define DEBUG0(a...)
 #endif
+
+#define DEBUG1(a...) 
+//#define DEBUG1 __DEBUG
+#define DEBUG2(a...)
+//#define DEBUG2 __DEBUG
 
 #endif

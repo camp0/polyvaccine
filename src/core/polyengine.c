@@ -49,31 +49,34 @@ void POEG_Init() {
 	_polyEngine->source = g_string_new("");
 	_polyEngine->bus = PODS_Connect(POLYVACCINE_AGENT_INTERFACE,(void*)_polyEngine);
 
-        for ( i = 0; i<MAX_PUBLIC_INTERFACES;i++) {
-                interface = &ST_PublicInterfaces[i];
-		PODS_AddInterface(interface);
-		
-		/* Loads the methods first */
-		for (j = 0;j<interface->total_methods;j++){
-			current = (ST_Callback*)&(interface->methods[j]);
-			DEBUG0("callback(0x%x)(%d) add method '%s' on interface '%s'\n",
-				current,j,current[j].name,interface->name);
-			PODS_AddPublicCallback(current);
-		}
-		for (j = 0;j<interface->total_signals;j++){
-			current = (ST_Callback*)&(interface->signals[j]);
-			DEBUG0("callback(0x%x) add signal '%s' on interface '%s'\n",
-				current,current[j].name,interface->name);
-			PODS_AddPublicCallback(current);
-		}
-		for (j = 0;j<interface->total_properties;j++){
-			current = (ST_Callback*)&(interface->properties[j]);
-			DEBUG0("callback(0x%x)(%d) add properties '%s' on interface '%s'\n",
-				current,j,current[j].name,interface->name);
-			PODS_AddPublicCallback(current);
-		}
-	}		
-
+	/* Only load the callbacks if dbus is running */ 
+	if(_polyEngine->bus != NULL) {
+		for ( i = 0; i<MAX_PUBLIC_INTERFACES;i++) {
+			interface = &ST_PublicInterfaces[i];
+			PODS_AddInterface(interface);
+			
+			/* Loads the methods first */
+			for (j = 0;j<interface->total_methods;j++){
+				current = (ST_Callback*)&(interface->methods[j]);
+				DEBUG0("callback(0x%x)(%d) add method '%s' on interface '%s'\n",
+					current,j,current[j].name,interface->name);
+				PODS_AddPublicCallback(current);
+			}
+			for (j = 0;j<interface->total_signals;j++){
+				current = (ST_Callback*)&(interface->signals[j]);
+				DEBUG0("callback(0x%x) add signal '%s' on interface '%s'\n",
+					current,current[j].name,interface->name);
+				PODS_AddPublicCallback(current);
+			}
+			for (j = 0;j<interface->total_properties;j++){
+				current = (ST_Callback*)&(interface->properties[j]);
+				DEBUG0("callback(0x%x)(%d) add properties '%s' on interface '%s'\n",
+					current,j,current[j].name,interface->name);
+				PODS_AddPublicCallback(current);
+			}
+		}		
+	}
+	
 	PKCX_Init();
 	HTAZ_Init();
 	SYIN_Init();
@@ -191,6 +194,7 @@ void POEG_Stop() {
 void POEG_StopAndExit() {
 	POEG_Stop();
 	COMN_ReleaseFlows(_polyEngine->conn);
+	PKDE_PrintfStats();
         MEPO_Stats(_polyEngine->memorypool);
         FLPO_Stats(_polyEngine->flowpool);
         HTCC_Stats(_polyEngine->httpcache);
@@ -253,6 +257,10 @@ void POEG_AddToHttpCache(int type,char *value){
  */
 void POEG_SendSuspiciousSegmentToExecute(ST_MemorySegment *seg,unsigned long hash, uint32_t seq) {
 
+	if(_polyEngine->bus == NULL) {
+                DEBUG0("Cannot send suspicious segment over dbus, no connection available\n");
+		return;
+	}
 	PODS_SendSuspiciousSegment(_polyEngine->bus,"/polyvaccine/detector","polyvaccine.detector.analyze","Analyze",
 		seg->mem,seg->virtual_size,hash,seq);
 	return;
@@ -267,7 +275,11 @@ void POEG_SendSuspiciousSegmentToExecute(ST_MemorySegment *seg,unsigned long has
  * 
  */
 void POEG_SendVerifiedSegment(unsigned long hash, u_int32_t seq,int veredict) {
-
+	
+	if(_polyEngine->bus == NULL) {
+                DEBUG0("Cannot send vereridct segment over dbus, no connection available\n");
+		return;
+	}
 	PODS_SendVerifiedSegment(_polyEngine->bus,"/polyvaccine/protector","polyvaccine.protector.veredict","Veredict",
 		seq,hash,veredict);
 	return;
@@ -289,8 +301,9 @@ void POEG_Run() {
 	unsigned char *pkt_data;
 	struct pollfd local_fds[MAX_WATCHES];
 
-        fprintf(stdout,"%s running on %s version %s machine %s\n",POLYVACCINE_FILTER_ENGINE_NAME,
-		SYIN_GetOSName(),SYIN_GetVersionName(),SYIN_GetMachineName());
+        fprintf(stdout,"%s running on %s version %s\n",POLYVACCINE_FILTER_ENGINE_NAME,
+		SYIN_GetOSName(),SYIN_GetVersionName());
+        fprintf(stdout,"\tmachine %s\n",SYIN_GetMachineName());
 	if(_polyEngine->hosts->all)
 		fprintf(stdout,"\tLearning mode active\n");
 
@@ -382,6 +395,7 @@ void POEG_Run() {
 							MESG_AppendPayloadNew(flow->memhttp,PKCX_GetPayload(),tcpsegment_size);
 
 							if(PKCX_IsTCPPush() == 1) {
+								printf("a correr\n");	
 								if(AUHT_IsAuthorized(_polyEngine->hosts,PKCX_GetSrcAddrDotNotation())) {
 									HTAZ_AnalyzeDummyHttpRequest(_polyEngine->httpcache,flow);	
 								}else{

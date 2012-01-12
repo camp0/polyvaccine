@@ -165,7 +165,8 @@ void COMN_ReleaseFlows(ST_Connection *conn){
                 ST_HttpFlow *flow = (ST_HttpFlow*)v;
                 ST_MemorySegment *seg = flow->memhttp;
                 flow->memhttp = NULL;
-                MEPO_AddMemorySegment(conn->mempool,seg);
+		if(seg!= NULL)
+                	MEPO_AddMemorySegment(conn->mempool,seg);
                 FLPO_AddFlow(conn->flowpool,flow);
 		items++;
         }

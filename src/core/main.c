@@ -109,7 +109,7 @@ void main(int argc, char **argv) {
 	POEG_Init();
 
 	signal(SIGINT,sigquit);
-	signal(SIGSEGV,sigquit);
+	//signal(SIGSEGV,sigquit);
 
 	if(learning)
 		POEG_SetLearningMode();

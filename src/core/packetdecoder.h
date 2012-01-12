@@ -35,6 +35,9 @@
 #ifdef __LINUX__
 #include <linux/if_ether.h>
 #endif
+#ifdef __FREEBSD__
+#include <net/ethernet.h>
+#endif
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
@@ -48,6 +51,7 @@ struct ST_PacketDecoder {
         int64_t _totalEthernetPackets;
         int64_t _totalEthernetVlanPackets;
         int64_t _totalIpPackets;
+        int64_t _totalIpv6Packets;
         int64_t _totalTcpPackets;
         int64_t _totalUdpPackets;
         int64_t _totalUnknownPackets;
@@ -58,6 +62,7 @@ typedef struct ST_PacketDecoder ST_PacketDecoder;
 
 void PKDE_Init(void);
 void PKDE_Destroy(void);
+void PKDE_PrintfStats(void);
 int PKDE_Decode(struct pcap_pkthdr *hdr, unsigned char *packet);
 
 #endif

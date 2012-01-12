@@ -260,7 +260,7 @@ samples/exploits/sip/Makefile
 echo "
   Polyvaccine 
   ($PACKAGE_NAME) version $PACKAGE_VERSION
-  Platform. ...........: $host_os $host
+  Platform.............: $host
   Prefix...............: $prefix
   Debug Build..........: $enable_debug
   C Compiler...........: $CXX $CFLAGS $CPPFLAGS

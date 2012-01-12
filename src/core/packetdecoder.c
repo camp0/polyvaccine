@@ -30,10 +30,18 @@
 
 static ST_PacketDecoder _pktdec;
 
+#ifdef __LINUX__
+static unsigned int ether_size = sizeof(struct ethhdr);
+#endif
+#ifdef __FREEBSD__
+static unsigned int ether_size = sizeof(struct ether_header);
+#endif
+
 void PKDE_Init() {
         _pktdec._totalEthernetPackets = 0;
 	_pktdec._totalEthernetVlanPackets = 0;
 	_pktdec._totalIpPackets = 0;
+	_pktdec._totalIpv6Packets = 0;
 	_pktdec._totalTcpPackets = 0;
 	_pktdec._totalUdpPackets = 0;
 	_pktdec._totalUnknownPackets = 0;
@@ -45,9 +53,22 @@ void PKDE_Destroy(){
 	return;
 }
 
+void PKDE_PrintfStats() {
+        fprintf(stdout,"Packet decoder statistics\n");
+        fprintf(stdout,"\ttotal ethernet packets %ld\n",_pktdec._totalEthernetPackets);
+        fprintf(stdout,"\ttotal vlan packets %ld\n",_pktdec._totalEthernetVlanPackets);
+        fprintf(stdout,"\ttotal ip packets %ld\n",_pktdec._totalIpPackets);
+        fprintf(stdout,"\ttotal ipv6 packets %ld\n",_pktdec._totalIpv6Packets);
+        fprintf(stdout,"\ttotal tcp packets %ld\n",_pktdec._totalTcpPackets);
+        fprintf(stdout,"\ttotal udp packets %ld\n",_pktdec._totalUdpPackets);
+        fprintf(stdout,"\ttotal http packets %ld\n",_pktdec._totalHttpPackets);
+        fprintf(stdout,"\ttotal unknown packets %ld\n",_pktdec._totalUnknownPackets);
+        return;
+}
+
 
 int PKDE_Decode(struct pcap_pkthdr *hdr, unsigned char *packet) {
-        unsigned int offset = sizeof(struct ethhdr);
+        unsigned int offset = ether_size;
         unsigned int l7size = 0;
         int have_l7 = FALSE;
         unsigned short next_proto = ETH_P_IP;
@@ -82,6 +103,8 @@ int PKDE_Decode(struct pcap_pkthdr *hdr, unsigned char *packet) {
 				return FALSE;
                         case IPPROTO_ICMP:
                         case IPPROTO_IPV6:
+				_pktdec._totalIpv6Packets++;
+				return FALSE;
                         default:
                                 _pktdec._totalUnknownPackets++;
                                 return FALSE;

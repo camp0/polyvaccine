@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = gnu
 lib_LTLIBRARIES = libpolyvaccine.la
 
 INCLUDES =      -I../opcodes/ \
-		`pkg-config --cflags dbus-1 glib-2.0` \
+		`pkg-config --cflags dbus-1 glib-2.0 libpcre` \
                 -I../utils/ \
 		-I../bus/ 
 
@@ -18,10 +18,10 @@ noinst_HEADERS =	httpvalues.h flowpool.h connection.h httpcache.h polyengine.h \
 			httpanalyzer.h memory.h memorypool.h system.h 
 
 libpolyvaccine_la_LIBADD = ../opcodes/libopcodes.la ../bus/libpolybus.la $(DEPS_LIBS) 
-libpolyvaccine_la_LDFLAGS = -version-info 0:0:0 $(DEPS_LIBS) `pkg-config --libs glib-2.0 dbus-1`
+libpolyvaccine_la_LDFLAGS = -version-info 0:0:0 $(DEPS_LIBS) `pkg-config --libs glib-2.0 dbus-1 libpcre`
 libpolyvaccine_la_CPPFLAGS = -I$(PYTHON_CPPFLAGS) $(DEPS_CFLAGS)
 
-PYTHON_INCLUDES = -I/usr/include -I. -I.. -I../.. "`pkg-config --cflags glib-2.0 dbus-1`" 
+PYTHON_INCLUDES = -I/usr/include -I. -I.. -I../.. "`pkg-config --cflags glib-2.0 dbus-1 libpcre`" 
 
 bin_PROGRAMS = pvfe 
 
