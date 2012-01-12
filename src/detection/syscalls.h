@@ -35,7 +35,9 @@
 #include <glib.h>
 #include "debug.h"
 #include <signal.h>
+#ifdef __LINUX__
 #include <asm/unistd.h>
+#endif
 #include <sys/ptrace.h>
 #include <sys/wait.h>
 #include <sys/user.h>
@@ -67,6 +69,38 @@ enum {
 	EXPECT_UNKNOWN,
 	EXPECT_STOPPED
 };
+
+#ifdef __LINUX__
+enum {
+	TRACE_SYSCALL = PTRACE_SYSCALL,
+	TRACE_TRACEME = PTRACE_TRACEME,
+	TRACE_O_TRACEFORK = PTRACE_O_TRACEFORK,
+	TRACE_GETREGS = PTRACE_GETREGS,
+	TRACE_KILL = PTRACE_KILL
+}ptrace_types;
+
+enum {
+	SEGMENT_EXECUTABLE = MAP_EXECUTABLE,
+	SEGMENT_ANONYMOUS =MAP_ANONYMOUS
+}segment_types;
+
+#endif
+#ifdef __FREEBSD__
+enum {
+	TRACE_SYSCALL = PT_SYSCALL,
+	TRACE_TRACEME = PT_TRACE_ME,
+	TRACE_O_TRACEFORK = 0,
+	TRACE_GETREGS = PT_GETREGS,
+	TRACE_KILL = PT_KILL
+}ptrace_types;
+
+enum {
+	SEGMENT_EXECUTABLE = PROT_EXEC,
+	SEGMENT_ANONYMOUS = MAP_ANON
+}segment_types;
+
+#endif
+
 
 struct ST_ProcessExitCode {
         int signal;

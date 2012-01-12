@@ -48,18 +48,48 @@ void PRCA_Method_StopEngine(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Method_SetSource(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Method_AddAuthorizedHost(DBusConnection *conn,DBusMessage *msg, void *data);
 
-#define MAX_ENGINE_METHODS 4
-static ST_Callback ST_StaticEngineMethods[MAX_ENGINE_METHODS] = {
-	{ "Start",		NULL,"b",	PRCA_Method_StartEngine },
-	{ "Stop",		NULL,"b",	PRCA_Method_StopEngine },
-	{ "SetSource",		"s","b",	PRCA_Method_SetSource },
-	{ "AddAuthorizedHost",	"s","b",	PRCA_Method_AddAuthorizedHost }
+static ST_Callback ST_StaticEngineMethods[] = {
+	{ 
+		.name 	= 	"Start",
+		.in 	=	NULL,
+		.out 	=	"b",
+		.func	= 	PRCA_Method_StartEngine 
+	},
+	{ 
+		.name 	= 	"Stop",
+		.in	=	NULL,
+		.out	=	"b",
+		.func	=	PRCA_Method_StopEngine 
+	},
+	{	
+		.name	= 	"SetSource",
+		.in	=	"s",
+		.out	=	"b",
+		.func	=	PRCA_Method_SetSource
+	},
+	{
+		.name	=	"AddAuthorizedHost",
+		.in	=	"s",
+		.out	=	"b",
+		.func	=	PRCA_Method_AddAuthorizedHost		
+	},
+	{} 
 };
 
-#define MAX_PUBLIC_PROPERTIES 2
-static ST_Callback ST_StaticPropertiesCallbacks [MAX_PUBLIC_PROPERTIES] = {
-        { "State",              NULL,"s",       PRCA_Property_GetState },
-        { "Source",             "s","s",        PRCA_Property_GetSource }
+static ST_Callback ST_StaticPropertiesCallbacks [] = {
+        { 
+		.name	=	"State",
+		.in	=       NULL,
+		.out	=	"s",       
+		.func	=	PRCA_Property_GetState 
+	},
+        { 
+		.name	=	"Source",
+		.in	=       "s",
+		.out	=	"s",
+		.func	=        PRCA_Property_GetSource 
+	},
+	{}
 };
 
 /* Functions related to the HTTP analyzer */
@@ -150,21 +180,24 @@ void PRCA_Method_IncreaseFlowPool(DBusConnection *conn,DBusMessage *msg, void *d
 void PRCA_Method_DecreaseFlowPool(DBusConnection *conn,DBusMessage *msg, void *data);
 
 #define MAX_CONNECTION_PUBLIC_METHODS 4
-static ST_Callback ST_StaticConnectionMethodCallbacs [MAX_CONNECTION_PUBLIC_METHODS] = {
+static ST_Callback ST_StaticConnectionMethodCallbacks [MAX_CONNECTION_PUBLIC_METHODS] = {
 	{ "IncreaseMemoryPool",		"i","b",	PRCA_Method_IncreaseMemoryPool },
 	{ "DecreaseMemoryPool",		"i","b",	PRCA_Method_DecreaseMemoryPool },
 	{ "IncreaseFlowPool",		"i","b",	PRCA_Method_IncreaseFlowPool },
 	{ "DecreaseFlowPool",		"i","b",	PRCA_Method_DecreaseFlowPool }
 };
 
-#define MAX_PUBLIC_INTERFACES 4
+#define MAX_PUBLIC_INTERFACES 1 
 
 static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {
-        { POLYVACCINE_AGENT_INTERFACE,
-		MAX_ENGINE_METHODS,0,MAX_PUBLIC_PROPERTIES,
-                ST_StaticEngineMethods,NULL,ST_StaticPropertiesCallbacks
-        },
-	{ POLYVACCINE_AGENT_HTTP_INTERFACE,
+        { 
+		.name		=	POLYVACCINE_AGENT_INTERFACE,
+		.methods 	= 	ST_StaticEngineMethods,
+		.signals 	= 	NULL,
+		.properties 	= 	ST_StaticPropertiesCallbacks	
+	},
+	{}
+/*	{ POLYVACCINE_AGENT_HTTP_INTERFACE,
 		0,0,MAX_HTTP_PUBLIC_PROPERTIES,
 		NULL,NULL,ST_StaticHTTPPropertiesCallbacks
 	},
@@ -174,8 +207,8 @@ static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {
         },
         { POLYVACCINE_AGENT_CONNECTION_INTERFACE,
 		MAX_CONNECTION_PUBLIC_METHODS,0,MAX_CONNECTION_PUBLIC_PROPERTIES,
-                ST_StaticConnectionMethodCallbacs,NULL,ST_StaticConnectionPropertiesCallbacks
-        }
+                ST_StaticConnectionMethodCallbacks,NULL,ST_StaticConnectionPropertiesCallbacks
+        } */
 };
 
 

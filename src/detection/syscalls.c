@@ -32,43 +32,6 @@
 static ST_Tracer *tracer = NULL;
 static ST_SharedContext *ctx = NULL; 
 
-#define IA32_LINUX_EXIT_CODES 34
-static ST_ProcessExitCode ST_ProcessExitCodes[IA32_LINUX_EXIT_CODES] = {
-        { 0,            "Exit Correct",                         0},
-        { SIGHUP,       "SigHUp",                       0},
-        { SIGINT,       "SigInt",                       0},
-        { SIGQUIT,      "SigQuit",                       0},
-        { SIGILL,       "Illegal Instruction",                  0},
-        { SIGTRAP,      "SigTrap",               0},
-        { SIGABRT,      "Abort Signal",                         0},
-        { SIGBUS,       "SigBus",               0},
-        { SIGFPE,       "Floating point exception",             0},
-        { SIGKILL,      "Kill Signal",                          0},
-        { SIGUSR1,      "User Signal 1",               0},
-        { SIGSEGV,      "Invalid memory reference",             0},
-        { SIGUSR2,      "User Signal 2",               0},
-        { SIGPIPE,      "SigPipe",               0},
-        { SIGALRM,      "SigAlarm",               0},
-        { SIGTERM,      "SigTerm",               0},
-        { SIGSTKFLT,    "SigHUp",               0},
-        { SIGCHLD,      "SigHUp",               0},
-        { SIGCONT,      "SigHUp",               0},
-        { SIGSTOP,      "SigStop",               0},
-        { SIGTSTP,      "SigHUp",               0},
-        { SIGTTIN,      "SigHUp",               0},
-        { SIGTTOU,      "SigHUp",               0},
-        { SIGURG,       "SigHUp",               0},
-        { SIGXCPU,      "SigXcpu",               0},
-        { SIGXFSZ,      "SigHUp",               0},
-        { SIGVTALRM,    "SigHUp",               0},
-        { SIGPROF,      "SigHUp",               0},
-        { SIGWINCH,     "SigHUp",               0},
-        { SIGIO,        "SigIO & SigPoll",              0},
-        { SIGPWR,       "SigHUp",               0},
-        { SIGSYS,       "SigHUp",               0},
-        { SIGUNUSED,    "SigHUp",               0}
-};
-
 /**
  * Prints a buffer, just for debugging pourposes. 
  *
@@ -310,7 +273,7 @@ int SYSU_Wait(pid_t p, int report, int stopsig) {
                 //        stopsig, WSTOPSIG(status));
                 if ((WSTOPSIG(status) & 0x7f) == (stopsig & 0x7f))
                         return PROCESS_RUNNING;
-                SYSU_PTraceVoid(PTRACE_SYSCALL, p, 0, (void*) WSTOPSIG(status));
+                SYSU_PTraceVoid(TRACE_SYSCALL, p, 0, (void*) WSTOPSIG(status));
                 return SYSU_Wait(p, report, stopsig);
         }
 
@@ -373,7 +336,7 @@ void SYSU_NewExecutionProcess(ST_SharedContext *c) {
                         ctx->virtualeip = ctx->size;
                         return;
                 }
-                SYSU_PTraceVoid(PTRACE_TRACEME, 0, NULL, SIGUSR1);
+                SYSU_PTraceVoid(TRACE_TRACEME, 0, NULL, SIGUSR1);
                 SYSU_Kill(ctx->parent_pid, SIGUSR1);
                 ctx->isptracechild = TRUE;
                 while (!got_child_signal);
@@ -394,7 +357,12 @@ void SYSU_NewExecutionProcess(ST_SharedContext *c) {
 
 int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
         int ret,syscall;
+#ifdef __LINUX__
 	struct user_regs_struct u_in;
+#endif
+#ifdef __FREEBSD__
+	struct reg u_in;
+#endif
 
         SYSU_Kill(child_pid, SIGUSR1);
         ret = SYSU_Wait(child_pid, EXPECT_STOPPED, SIGUSR1);
@@ -404,8 +372,7 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
         }
 
         SYSU_SetSysGood(child_pid);
-        SYSU_PTraceVoid(PTRACE_SYSCALL, child_pid, PTRACE_O_TRACEFORK, (void*)SIGUSR1);
-        //SYSU_PTraceVoid(PTRACE_SYSCALL, child_pid, NULL, (void*)SIGUSR1);
+	SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, TRACE_O_TRACEFORK, (void*)SIGUSR1);
 	SYSU_DestroySuspiciousSyscalls();
         alarm(3);
         while(1) {
@@ -416,12 +383,18 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 
                 ret = SYSU_Wait(child_pid, EXPECT_STOPPED, SIGSYSTRAP);
                 if (ret == PROCESS_RUNNING) { /* Process still running */
-                        SYSU_PTraceVoid(PTRACE_GETREGS, child_pid, 0, &u_in);
+                        SYSU_PTraceVoid(TRACE_GETREGS, child_pid, 0, &u_in);
+#ifdef __LINUX__
 #if __WORDSIZE == 64 // 64 Bits machine
                         syscall = u_in.orig_rax;
 #else
 			syscall = u_in.orig_eax;
-#endif			
+#endif	
+#endif // __LINUX__
+
+#ifdef __FREEBSD__
+			syscall = u_in.r_rax;
+#endif
                         if (syscall-1 >= 0 && syscall-1 < SIZE(linux_syscallnames) && (syscall_name=linux_syscallnames[syscall])) {
 
 				sus = (ST_SysCallSuspicious*)g_hash_table_lookup(tracer->syscalls,GINT_TO_POINTER(syscall));
@@ -429,6 +402,7 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 					if (sus->level == SYSCALL_LEVEL_HIGH) {
 						SYSU_AddSuspiciousSyscall(t,syscall_name,&u_in,0);		
 						WARNING("High suspicious syscall %s on memory\n",syscall_name);
+#ifdef __LINUX__
 #if __WORDSIZE == 64 // 64 Bits machine
 						WARNING("\trax=%x;rbx=%x;rcx=%x;rdx=%x\n",
 							u_in.orig_rax, u_in.rbx,u_in.rcx, u_in.rdx);
@@ -438,8 +412,14 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 						WARNING("\trax=%x;rbx=%x;rcx=%x;rdx=%x\n",
 							u_in.orig_eax, u_in.ebx,u_in.ecx, u_in.edx);
 #endif
-                                        	kill(child_pid,SIGKILL);
-                                        	SYSU_PTraceVoid(PTRACE_KILL,child_pid,0, 0);
+#endif // __LINUX__
+
+#ifdef __FREEBSD__
+						WARNING("\trax=%x;rbx=%x;rcx=%x;rdx=%x\n",
+							u_in.r_rax, u_in.r_rbx,u_in.r_rcx, u_in.r_rdx);
+#endif 
+						kill(child_pid,SIGKILL);
+                                        	SYSU_PTraceVoid(TRACE_KILL,child_pid,0, 0);
 						WARNING("Process %d killed by parent\n",child_pid);
                                         	alarm(0);
 						if(t->show_execution_path== TRUE) 
@@ -451,7 +431,7 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 					}
                                 }
                         }
-                        SYSU_PTraceVoid(PTRACE_SYSCALL, child_pid, 0, 0);
+                        SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, 0, 0);
                 }else
                         break;
         }
@@ -537,7 +517,7 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, int offset) {
 
         tracer->executable_segment_size = real_size;
         tracer->executable_segment = mmap(0, tracer->executable_segment_size, 
-		PROT_EXEC|PROT_READ|PROT_WRITE, MAP_SHARED|MAP_EXECUTABLE|MAP_ANONYMOUS, -1, 0);
+		PROT_EXEC|PROT_READ|PROT_WRITE, MAP_SHARED|SEGMENT_EXECUTABLE|SEGMENT_ANONYMOUS, -1, 0);
         if (tracer->executable_segment == MAP_FAILED) {
 		perror("mmap");
                 return 0;

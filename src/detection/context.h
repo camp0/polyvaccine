@@ -33,6 +33,7 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <sys/time.h>
 
 struct ST_SharedContext {
 	struct timeval total_latency;

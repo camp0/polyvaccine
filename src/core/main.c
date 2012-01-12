@@ -97,7 +97,8 @@ void main(int argc, char **argv) {
 				fprintf(stdout,"%s %s\n",POLYVACCINE_FILTER_ENGINE_NAME,VERSION);
 				fprintf(stdout,"%s",version_banner);
            		default:
-             			abort ();
+				usage(argv[0]);
+				exit(-1);
            	}
 	}
 
@@ -119,8 +120,6 @@ void main(int argc, char **argv) {
 	POEG_SetSourcePort(port);
 	POEG_ShowUnknownHttp(show_unknown);
 	
-	//POEG_AddToHttpCache(0,"GET /dashboard HTTP/1.1");
-	//POEG_AddToHttpCache(1,"Host: www.tumblr.com");
 	POEG_Start();
 	POEG_Run();
 

@@ -23,6 +23,7 @@
  */
 #include "suspicious.h"
 
+#ifdef __LINUX__
 ST_SysCall *SUSY_New(char *name,struct user_regs_struct *u,int status) {
 	ST_SysCall *sys = g_new0(ST_SysCall,1);
 
@@ -78,6 +79,17 @@ ST_SysCall *SUSY_New(char *name,struct user_regs_struct *u,int status) {
 
 	return sys;
 }
+#endif // __LINUX__
+
+#ifdef __FREEBSD__
+ST_SysCall *SUSY_New(char *name,struct reg *u,int status) {
+        ST_SysCall *sys = g_new0(ST_SysCall,1);
+
+        snprintf(sys->name,32,"%s",name);
+
+	return sys;
+}
+#endif
 
 void SUSY_Destroy(ST_SysCall *c){
 	g_free(c);
@@ -87,7 +99,7 @@ void SUSY_Destroy(ST_SysCall *c){
 void SUSY_Printf(ST_SysCall *c) {
 
 	fprintf(stdout,"Syscall %s status %d\n",c->name,c->status);
-
+#ifdef __LINUX__
 #if __WORDSIZE == 64
 	fprintf(stdout,"\torig_rax=0x%x;rax=0x%x;rbx=0x%x;rcx=0x%x\n",
 		c->regs.orig_rax,c->regs.rax,c->regs.rbx,c->regs.rcx);	
@@ -100,6 +112,7 @@ void SUSY_Printf(ST_SysCall *c) {
 		c->regs.xcs,c->regs.eip,c->regs.esi,c->regs.edi);
 
 #endif	
+#endif // __LINUX__
 	return;
 }
 

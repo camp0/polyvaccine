@@ -54,25 +54,32 @@ void POEG_Init() {
 		for ( i = 0; i<MAX_PUBLIC_INTERFACES;i++) {
 			interface = &ST_PublicInterfaces[i];
 			PODS_AddInterface(interface);
-			
+	
 			/* Loads the methods first */
-			for (j = 0;j<interface->total_methods;j++){
-				current = (ST_Callback*)&(interface->methods[j]);
+			current = (ST_Callback*)&(interface->methods[0]);
+			j = 0;
+			while(current->name != NULL) {
+			//for (j = 0;j<interface->t_methods;j++){
 				DEBUG0("callback(0x%x)(%d) add method '%s' on interface '%s'\n",
-					current,j,current[j].name,interface->name);
+					current,j,current->name,interface->name);
 				PODS_AddPublicCallback(current);
+				j++;
+				current = (ST_Callback*)&(interface->methods[j]);
 			}
-			for (j = 0;j<interface->total_signals;j++){
+	/*		for (j = 0;j<interface->total_signals;j++){
 				current = (ST_Callback*)&(interface->signals[j]);
 				DEBUG0("callback(0x%x) add signal '%s' on interface '%s'\n",
 					current,current[j].name,interface->name);
 				PODS_AddPublicCallback(current);
-			}
-			for (j = 0;j<interface->total_properties;j++){
-				current = (ST_Callback*)&(interface->properties[j]);
+			} */
+			j = 0;
+			current = (ST_Callback*)&(interface->properties[0]);
+			while(current->name != NULL){
 				DEBUG0("callback(0x%x)(%d) add properties '%s' on interface '%s'\n",
-					current,j,current[j].name,interface->name);
+					current,j,current->name,interface->name);
 				PODS_AddPublicCallback(current);
+				j++;
+				current = (ST_Callback*)&(interface->properties[j]);
 			}
 		}		
 	}
@@ -301,9 +308,9 @@ void POEG_Run() {
 	unsigned char *pkt_data;
 	struct pollfd local_fds[MAX_WATCHES];
 
-        fprintf(stdout,"%s running on %s version %s\n",POLYVACCINE_FILTER_ENGINE_NAME,
-		SYIN_GetOSName(),SYIN_GetVersionName());
-        fprintf(stdout,"\tmachine %s\n",SYIN_GetMachineName());
+        fprintf(stdout,"%s running on %s machine %s\n",POLYVACCINE_FILTER_ENGINE_NAME,
+		SYIN_GetOSName(),SYIN_GetMachineName());
+        fprintf(stdout,"\tversion %s\n",SYIN_GetVersionName());
 	if(_polyEngine->hosts->all)
 		fprintf(stdout,"\tLearning mode active\n");
 
@@ -345,7 +352,7 @@ void POEG_Run() {
                                 POEG_Stop();
                                 usepcap = 0;
                                 if(_polyEngine->is_pcap_file == TRUE){
-                                        break;
+                              //          break;
                                 }
 			}else {
 				if(PKDE_Decode(header,pkt_data) == TRUE){
@@ -393,9 +400,7 @@ void POEG_Run() {
 						flow->total_bytes += tcpsegment_size;
 						if(tcpsegment_size > 0) {
 							MESG_AppendPayloadNew(flow->memhttp,PKCX_GetPayload(),tcpsegment_size);
-
 							if(PKCX_IsTCPPush() == 1) {
-								printf("a correr\n");	
 								if(AUHT_IsAuthorized(_polyEngine->hosts,PKCX_GetSrcAddrDotNotation())) {
 									HTAZ_AnalyzeDummyHttpRequest(_polyEngine->httpcache,flow);	
 								}else{

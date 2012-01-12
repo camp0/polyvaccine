@@ -84,8 +84,9 @@ void PODT_Run() {
         DBusWatch *local_watches[MAX_WATCHES];
         struct pollfd local_fds[MAX_WATCHES];
 
-        fprintf(stdout,"%s running on %s version %s machine %s\n",POLYVACCINE_DETECTION_ENGINE_NAME,
-                SYIN_GetOSName(),SYIN_GetVersionName(),SYIN_GetMachineName());
+        fprintf(stdout,"%s running on %s machine %s\n",POLYVACCINE_DETECTION_ENGINE_NAME,
+                SYIN_GetOSName(),SYIN_GetMachineName());
+	fprintf(stdout,"\tversion %s\n",SYIN_GetVersionName());
 
         while (TRUE) {
                 nfds = 0;

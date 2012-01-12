@@ -94,7 +94,7 @@ void PODS_ExecuteCallback(GHashTable *h, DBusConnection *c,DBusMessage *msg,char
         callback = (ST_Callback*)g_hash_table_lookup(h,(gchar*)key);
         if(callback != NULL) {
                 DEBUG0("method found '%s' callback(0x%x)\n",key,callback);
-                callback->function(c,msg,data);
+                callback->func(c,msg,data);
         }else{
                 DEBUG0("method not found '%s'\n",key);
         }
@@ -298,8 +298,8 @@ void PODS_Method_Instrospect(DBusConnection *conn,DBusMessage *msg, void *data) 
                 g_string_append_printf (xml_data," \n<interface name=\"%s\">\n  ",interfaces->name);
 
                 current = &interfaces->methods[0];
-                for (j = 0; j<interfaces->total_methods;j++) {
-
+		j = 0;
+		while(current->name != NULL) {
                         g_string_append_printf(xml_data,"<method name=\"%s\">\n",current[j].name);
 
                         /* adding the format parameters */
@@ -313,6 +313,8 @@ void PODS_Method_Instrospect(DBusConnection *conn,DBusMessage *msg, void *data) 
                         }
 
                         g_string_append(xml_data,"  </method>\n");
+			j++;
+                	current = &interfaces->methods[j];
                 }
 
                 /* now check for signals */
@@ -320,7 +322,8 @@ void PODS_Method_Instrospect(DBusConnection *conn,DBusMessage *msg, void *data) 
 
                 /* now check for properties */
                 current = &interfaces->properties[0];
-                for (j = 0;j<interfaces->total_properties;j++) {
+		j = 0;
+		while(current->name != NULL) {
                         char *access = "read";
                         char *type = "";
                         g_string_append_printf(xml_data,"  <property name=\"%s\" ",
@@ -331,6 +334,8 @@ void PODS_Method_Instrospect(DBusConnection *conn,DBusMessage *msg, void *data) 
                                 access = "readwrite";
                         type = current[j].out;
                         g_string_append_printf(xml_data,"type=\"%s\" access=\"%s\"/>\n",type,access);
+			j++;
+                	current = &interfaces->properties[j];
                 }
 
                 g_string_append(xml_data,"</interface>\n");

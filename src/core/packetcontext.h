@@ -25,6 +25,9 @@
 #ifndef _PACKETCONTEXT_H_
 #define _PACKETCONTEXT_H_
 
+#define __USE_BSD 
+#define __FAVOR_BSD
+
 #include <stdio.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -54,8 +57,8 @@ ST_PacketContext _pktctx;
 	
 static void PKCX_Init(void) { _pktctx.ip= NULL;_pktctx.tcp = NULL;_pktctx.payload = NULL;_pktctx.len=0;};
 static void PKCX_Destroy(void) { return;};
-static void PKCX_SetTCPHeader(const unsigned char *packet) { _pktctx.tcp = (struct tcphdr*)packet; };
-static void PKCX_SetL7Payload(const unsigned char *packet,int length) {_pktctx.payload = packet;_pktctx.len = length;};
+static void PKCX_SetTCPHeader(unsigned char *packet) { _pktctx.tcp = (struct tcphdr*)packet; };
+static void PKCX_SetL7Payload(unsigned char *packet,int length) {_pktctx.payload = packet;_pktctx.len = length;};
 
 #ifdef __LINUX__
 
@@ -115,12 +118,12 @@ static unsigned char *PKCX_GetPayload(void) { return _pktctx.payload;}
 static char* PKCX_GetSrcAddrDotNotation(void) { 
 	static char ip[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, &(_pktctx.ip->ip_src), ip, INET_ADDRSTRLEN);
-	return &ip;
+	return (char*)&ip;
 }
 static char* PKCX_GetDstAddrDotNotation(void) { 
 	static char ip[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, &(_pktctx.ip->ip_dst), ip, INET_ADDRSTRLEN);
-	return &ip;
+	return (char*)&ip;
 }
 static u_int32_t PKCX_GetTCPSequenceNumber(void) { return ntohl(_pktctx.tcp->th_seq); }
 

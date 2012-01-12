@@ -31,8 +31,15 @@
 
 #include <glib.h>
 #include "debug.h"
+#include <sys/types.h>
 #include <sys/user.h>
+#ifdef __LINUX__
 #include <asm/unistd.h>
+#endif
+#ifdef __FREEBSD__
+#include <sys/syscall.h>
+#include <machine/reg.h>
+#endif
 
 #define MAX_SYSCALL_NAME 32
 
@@ -57,12 +64,19 @@ typedef struct ST_SysCallSuspicious ST_SysCallSuspicious;
 struct ST_SysCall {
 	char name[MAX_SYSCALL_NAME];
         int number;
-	struct user_regs_struct regs; 
+#ifdef __LINUX__
+	struct user_regs_struct regs;
+#endif
+#ifdef __FREEBSD__
+	struct reg regs;
+#endif 
 	int status;
 };
 typedef struct ST_SysCall ST_SysCall;
 
 #define MAX_SYSCALL_SUSPICIOUS_TABLE 1 
+
+#ifdef __LINUX__
 
 static ST_SysCallSuspicious ST_SysCallSuspiciousTable [] = {
         { __NR_execve,          "execve",       SYSCALL_LEVEL_HIGH },
@@ -76,9 +90,28 @@ static ST_SysCallSuspicious ST_SysCallSuspiciousTable [] = {
         { __NR_open,            "open",         SYSCALL_LEVEL_HIGH},
         { 0,			"none",		SYSCALL_LEVEL_INTERNAL}
 };
+#endif
 
+#ifdef __FREEBSD__
+static ST_SysCallSuspicious ST_SysCallSuspiciousTable [] = {
+        { SYS_execve,          	"execve",       SYSCALL_LEVEL_HIGH },
+        { SYS_fork,            	"fork",         SYSCALL_LEVEL_HIGH },
+        { SYS_setuid,          	"setuid",         SYSCALL_LEVEL_HIGH },
+        { SYS_reboot,      	"reboot",         SYSCALL_LEVEL_HIGH },
+        { SYS_write,           	"write",         SYSCALL_LEVEL_HIGH },
+        { SYS_exit,            	"exit",         SYSCALL_LEVEL_HIGH },
+        { SYS_open,            	"open",         SYSCALL_LEVEL_HIGH },
+        { 0,                   	"none",         SYSCALL_LEVEL_INTERNAL}
+};
+#endif
 
+#ifdef __LINUX__
 ST_SysCall *SUSY_New(char *name,struct user_regs_struct *u,int status);
+#endif
+#ifdef __FREEBSD__
+ST_SysCall *SUSY_New(char *name,struct reg *u,int status);
+#endif
+
 void SUSY_Printf(ST_SysCall *c);
 void SUSY_Destroy(ST_SysCall *c);
 void SUSY_ShowSyscallSuspiciousTable(void);
