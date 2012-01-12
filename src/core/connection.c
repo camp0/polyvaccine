@@ -211,7 +211,7 @@ ST_HttpFlow *COMN_FindConnection(ST_Connection *conn,u_int32_t saddr,u_int16_t s
 
         unsigned long h = (saddr^sport^protocol^daddr^dport);
 
-//        DEBUG2("first lookup(%lu):[%s:%d:%d:%s:%d]\n",h,inet_ntoa(a),sport,protocol,inet_ntoa(b),dport);
+ //       DEBUG2("first lookup(%lu):[%s:%d:%d:%s:%d]\n",h,inet_ntoa(a),sport,protocol,inet_ntoa(b),dport);
 
         object = g_hash_table_lookup(conn->table,GINT_TO_POINTER(h));
         if (object != NULL){

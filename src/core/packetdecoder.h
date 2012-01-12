@@ -29,6 +29,9 @@
 #include <config.h>
 #endif
 
+//#define __USE_BSD
+//#define __FAVOR_BSD
+
 #include <pcap.h>
 #include <sys/time.h>
 #include <stdio.h>

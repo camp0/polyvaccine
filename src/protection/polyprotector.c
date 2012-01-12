@@ -48,27 +48,39 @@ void POPR_Init() {
 
 	PODS_Init();
         _polyProtector->bus = PODS_Connect(POLYVACCINE_PROTECTOR_INTERFACE,(void*)&_polyProtector);
-	
-        for ( i = 0; i<MAX_PUBLIC_INTERFACES;i++) {
-                PODS_AddInterface(&ST_PublicInterfaces[i]);
 
-                interface = &ST_PublicInterfaces[i];
+	i = 0;
+	interface = &ST_PublicInterfaces[0];
+	while(interface->name != NULL) {	
+                PODS_AddInterface(interface);
+
                 /* Loads the methods first */
-                for (j = 0;j<interface->total_methods;j++){
+                current = &interface->methods[0];
+		j=0;
+		while((current!=NULL)&&(current->name!=NULL)){
+                        DEBUG0("add method '%s' on interface '%s'\n",current->name,interface->name);
+                        PODS_AddPublicCallback(current);
+			j++;
                         current = &interface->methods[j];
-                        DEBUG0("add method '%s' on interface '%s'\n",current[j].name,interface->name);
-                        PODS_AddPublicCallback(current);
                 }
-                for (j = 0;j<interface->total_properties;j++){
+                current = &interface->properties[0];
+		j=0;
+		while((current!=NULL)&&(current->name!=NULL)){
+                        DEBUG0("add properties '%s' on interface '%s'\n",current->name,interface->name);
+                        PODS_AddPublicCallback(current);
+			j++;
                         current = &interface->properties[j];
-                        DEBUG0("add properties '%s' on interface '%s'\n",current[j].name,interface->name);
-                        PODS_AddPublicCallback(current);
                 }
-                for (j = 0;j<interface->total_signals;j++){
-                        current = &interface->signals[j];
-                        DEBUG0("add signal '%s' on interface '%s'\n",current[j].name,interface->name);
+                current = &interface->signals[0];
+		j=0;
+		while((current!=NULL)&&(current->name!=NULL)){
+                        DEBUG0("add signal '%s' on interface '%s'\n",current->name,interface->name);
                         PODS_AddPublicCallback(current);
+			j++;
+                        current = &interface->signals[j];
 		}
+		i ++;
+                interface = &ST_PublicInterfaces[i];
         }
         return;
 }

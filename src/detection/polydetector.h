@@ -70,17 +70,30 @@ static ST_Callback ST_StaticSignalCallbacks[ MAX_SIGNAL_CALLBACKS] = {
 void PRCA_Property_GetNumberExecutedSegments(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetNumberShellcodesDetected(DBusConnection *conn,DBusMessage *msg, void *data);
 
-#define MAX_PROPERTY_CALLBACKS 2
-static ST_Callback ST_StaticPropertyCallbacks[MAX_PROPERTY_CALLBACKS] = {
-	{ "ExecutedSegments",	NULL,"i",	PRCA_Property_GetNumberExecutedSegments },
-	{ "ShellcodesDetected",	NULL,"i",	PRCA_Property_GetNumberShellcodesDetected }
+static ST_Callback ST_StaticPropertyCallbacks[] = {
+	{ 
+		.name	=	"ExecutedSegments",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=	PRCA_Property_GetNumberExecutedSegments 
+	},
+	{ 
+		.name	=	"ShellcodesDetected",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=	PRCA_Property_GetNumberShellcodesDetected 
+	},
+	{}
 };
 
-static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {
-        { POLYVACCINE_DETECTION_INTERFACE,
-		0,MAX_SIGNAL_CALLBACKS,MAX_PROPERTY_CALLBACKS,
-                NULL,ST_StaticSignalCallbacks,ST_StaticPropertyCallbacks,
-        }
+static ST_Interface ST_PublicInterfaces [] = {
+        { 
+		.name		=	POLYVACCINE_DETECTION_INTERFACE,
+		.methods	=	NULL,
+		.signals	=	ST_StaticSignalCallbacks,
+		.properties	=	ST_StaticPropertyCallbacks
+	},
+	{}
 };
 
 void PODT_Init(void);

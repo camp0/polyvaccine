@@ -42,27 +42,40 @@ void PODT_Init() {
 	SYIN_Init();
 	PODS_Init();
         _polyDetector->bus = PODS_Connect(POLYVACCINE_DETECTION_INTERFACE,(void*)_polyDetector);
-	
-        for ( i = 0; i<MAX_PUBLIC_INTERFACES;i++) {
-                interface = &ST_PublicInterfaces[i];
+
+
+	i=0;	
+        interface = &ST_PublicInterfaces[0];
+	while(interface->name != NULL) {
                 PODS_AddInterface(interface);
 
                 /* Loads the methods first */
-                for (j = 0;j<interface->total_methods;j++){
+                current = &interface->methods[0];
+		j=0;
+		while((current!=NULL)&&(current->name!=NULL)){
+			DEBUG0("callback(0x%x) add method '%s' on interface '%s'\n",current,current->name,interface->name);
+                        PODS_AddPublicCallback(current);
+			j++;
                         current = &interface->methods[j];
-			DEBUG0("callback(0x%x) add method '%s' on interface '%s'\n",current,current[j].name,interface->name);
-                        PODS_AddPublicCallback(current);
                 }
-                for (j = 0;j<interface->total_properties;j++){
+		j=0;
+                current = &interface->properties[0];
+		while((current!=NULL)&&(current->name!=NULL)){
+			DEBUG0("callback(0x%x) add property '%s' on interface '%s'\n",current,current->name,interface->name);
+                        PODS_AddPublicCallback(current);
+			j++;
                         current = &interface->properties[j];
-			DEBUG0("callback(0x%x) add property '%s' on interface '%s'\n",current,current[j].name,interface->name);
+                } 
+		j=0;
+                current = &interface->signals[0];
+		while((current!=NULL)&&(current->name!=NULL)){
+			DEBUG0("callback(0x%x) add signal '%s' on interface '%s'\n",current,current->name,interface->name);
                         PODS_AddPublicCallback(current);
-                }
-                for (j = 0;j<interface->total_signals;j++){
+			j++;
                         current = &interface->signals[j];
-			DEBUG0("callback(0x%x) add signal '%s' on interface '%s'\n",current,current[j].name,interface->name);
-                        PODS_AddPublicCallback(current);
 		}
+		i++;
+                interface = &ST_PublicInterfaces[i];
         }
 	SYSU_Init();
         return;

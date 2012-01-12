@@ -73,9 +73,14 @@ typedef struct ST_PolyProtector ST_PolyProtector;
 
 void PRCA_Signaling_AuthorizeSegment(DBusConnection *conn,DBusMessage *msg, void *data);
 
-#define MAX_SIGNAL_CALLBACKS 1 
-static ST_Callback ST_StaticSignalCallbacks[ MAX_SIGNAL_CALLBACKS] = {
-	{ "Veredict",		"a",NULL,	PRCA_Signaling_AuthorizeSegment }
+static ST_Callback ST_StaticSignalCallbacks[] = {
+	{ 
+		.name	=	"Veredict",
+		.in	=	"a",
+		.out	=	NULL,
+		.func	=	PRCA_Signaling_AuthorizeSegment 
+	},
+	{}
 };
 
 void PRCA_Property_GetTotalInboundPackets(DBusConnection *conn,DBusMessage *msg, void *data);
@@ -84,20 +89,48 @@ void PRCA_Property_GetTotalTcpSegments(DBusConnection *conn,DBusMessage *msg, vo
 void PRCA_Property_GetTcpRetransmitionDropSegments(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetTcpDropSegments(DBusConnection *conn,DBusMessage *msg, void *data);
 
-#define MAX_PROPERTY_CALLBACKS 5 
-static ST_Callback ST_StaticPropertyCallbacks[MAX_PROPERTY_CALLBACKS] = {
-	{ "InboundPackets",	NULL,"x",	PRCA_Property_GetTotalInboundPackets },
-	{ "TcpPackets",	NULL,"x",	PRCA_Property_GetTotalTcpPackets },
-	{ "TcpSegments",	NULL,"x",	PRCA_Property_GetTotalTcpSegments },
-	{ "RetransmitionDropTcpSegments",	NULL,"x",	PRCA_Property_GetTcpRetransmitionDropSegments },
-	{ "DropTcpSegments",	NULL,"x",	PRCA_Property_GetTcpDropSegments }
+static ST_Callback ST_StaticPropertyCallbacks[] = {
+	{ 
+		.name	=	"InboundPackets",
+		.in	=	NULL,
+		.out	=	"x",
+		.func	=	PRCA_Property_GetTotalInboundPackets 
+	},
+	{ 
+		.name	=	"TcpPackets",
+		.in	=	NULL,
+		.out	=	"x",	
+		.func	=	PRCA_Property_GetTotalTcpPackets 
+	},
+	{ 	
+		.name	=	"TcpSegments",
+		.in	=	NULL,
+		.out	=	"x",
+		.func	=	PRCA_Property_GetTotalTcpSegments 
+	},
+	{ 
+		.name	=	"RetransmitionDropTcpSegments",	
+		.in	=	NULL,
+		.out	=	"x",
+		.func	=	PRCA_Property_GetTcpRetransmitionDropSegments 
+	},
+	{ 
+		.name	=	"DropTcpSegments",
+		.in	=	NULL,
+		.out	=	"x",
+		.func	=	PRCA_Property_GetTcpDropSegments 
+	},
+	{}
 };
 
-static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {
-        { POLYVACCINE_PROTECTOR_INTERFACE,
-		0,MAX_SIGNAL_CALLBACKS,MAX_PROPERTY_CALLBACKS,
-                NULL,ST_StaticSignalCallbacks,ST_StaticPropertyCallbacks 
-        }
+static ST_Interface ST_PublicInterfaces [] = {
+        { 
+		.name		=	POLYVACCINE_PROTECTOR_INTERFACE,
+		.methods	=	NULL,
+		.signals	=	ST_StaticSignalCallbacks,
+		.properties	=	ST_StaticPropertyCallbacks
+	},
+	{}
 };
 
 void POPR_Init(void);

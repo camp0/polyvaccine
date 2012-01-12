@@ -102,21 +102,59 @@ void PRCA_Property_GetNumberSuspiciousHTTPParameters(DBusConnection *conn,DBusMe
 void PRCA_Property_GetNumberSuspiciousSegments(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetNumberValidSegments(DBusConnection *conn,DBusMessage *msg, void *data);
 
-#define MAX_HTTP_PUBLIC_PROPERTIES 8
-static ST_Callback ST_StaticHTTPPropertiesCallbacks [MAX_HTTP_PUBLIC_PROPERTIES] = {
-        { "ValidHeaders",              NULL,"i",       PRCA_Property_GetNumberValidHTTPHeaders },
-        { "UnknownHeaders",            NULL,"i",       PRCA_Property_GetNumberUnknownHTTPHeaders },
-        { "ValidParameters",           NULL,"i",      	PRCA_Property_GetNumberValidHTTPParameters  },
-        { "UnknownParameters",         NULL,"i",       PRCA_Property_GetNumberUnknownHTTPParameters },
-        { "SuspiciousHeaders",         NULL,"i",       PRCA_Property_GetNumberSuspiciousHTTPHeaders },
-        { "SuspiciousParameters",      NULL,"i",       PRCA_Property_GetNumberSuspiciousHTTPParameters },
-        { "SuspiciousSegments",      	NULL,"i",       PRCA_Property_GetNumberSuspiciousSegments },
-        { "ValidSegments",      	NULL,"i",       PRCA_Property_GetNumberValidSegments }
+static ST_Callback ST_StaticHTTPPropertiesCallbacks [] = {
+        { 
+		.name	=	"ValidHeaders",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	= 	PRCA_Property_GetNumberValidHTTPHeaders 
+	},
+	{
+		.name	=	"UnknownHeaders",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=	PRCA_Property_GetNumberUnknownHTTPHeaders
+	},
+	{	
+		.name	=	"ValidParameters",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=	PRCA_Property_GetNumberValidHTTPParameters
+	},
+        { 
+		.name	=	"UnknownParameters",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=       PRCA_Property_GetNumberUnknownHTTPParameters 
+	},
+        { 
+		.name	=	"SuspiciousHeaders",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=	PRCA_Property_GetNumberSuspiciousHTTPHeaders 
+	},
+        { 
+		.name	=	"SuspiciousParameters",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=       PRCA_Property_GetNumberSuspiciousHTTPParameters 
+	},
+        { 
+		.name	=	"SuspiciousSegments",
+		.in	=      	NULL,
+		.out	=	"i",
+		.func	=       PRCA_Property_GetNumberSuspiciousSegments 
+	},
+        { 
+		.name	=	"ValidSegments",
+		.in	=      	NULL,
+		.out	=	"i",
+		.func	=       PRCA_Property_GetNumberValidSegments 
+	}, 
+	{}
 };
 
 /* Functions related to the HTTP cache */
-#define MAX_HTTPCACHE_PROPERTIES 6
-
 void PRCA_Property_GetNumberHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetNumberHttpCacheParameters (DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetNumberHttpHeaderHits(DBusConnection *conn,DBusMessage *msg, void *data);
@@ -124,27 +162,77 @@ void PRCA_Property_GetNumberHttpHeaderFails(DBusConnection *conn,DBusMessage *ms
 void PRCA_Property_GetNumberHttpParameterHits(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetNumberHttpParameterFails(DBusConnection *conn,DBusMessage *msg, void *data);
 
-static ST_Callback ST_StaticHTTPCachePropertiesCallbacks [MAX_HTTPCACHE_PROPERTIES] = {
-        { "CacheHeaders",              NULL,"i",       PRCA_Property_GetNumberHttpCacheHeaders },
-        { "CacheParameters",           NULL,"i",       PRCA_Property_GetNumberHttpCacheParameters },
-        { "HeaderHits",                NULL,"i",       PRCA_Property_GetNumberHttpHeaderHits  },
-        { "HeaderFails",               NULL,"i",       PRCA_Property_GetNumberHttpHeaderFails  },
-        { "ParameterHits",             NULL,"i",       PRCA_Property_GetNumberHttpParameterHits  },
-        { "ParameterFails",            NULL,"i",       PRCA_Property_GetNumberHttpParameterFails  }
+static ST_Callback ST_StaticHTTPCachePropertiesCallbacks [] = {
+        { 
+		.name	=	"CacheHeaders",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=       PRCA_Property_GetNumberHttpCacheHeaders 
+	},
+        { 
+		.name 	=	"CacheParameters",
+		.in	=       NULL,
+		.out	=	"i",
+		.func	=       PRCA_Property_GetNumberHttpCacheParameters 
+	},
+        { 
+		.name	=	"HeaderHits",
+		.in	=       NULL,
+		.out	=	"i",
+		.func	=       PRCA_Property_GetNumberHttpHeaderHits  
+	},
+        { 
+		.name	=	"HeaderFails",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=       PRCA_Property_GetNumberHttpHeaderFails  
+	},
+        { 
+		.name	=	"ParameterHits",
+		.in	=       NULL,
+		.out	=	"i",
+		.func	=       PRCA_Property_GetNumberHttpParameterHits  
+	},
+        { 
+		.name	=	"ParameterFails",
+		.in	=       NULL,
+		.out	=	"i",
+		.func	=       PRCA_Property_GetNumberHttpParameterFails  
+	},
+	{}
 };
-
-#define MAX_HTTPCACHE_METHODS 4 
 
 void PRCA_Method_GetHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Method_GetHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Method_AddHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Method_AddHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, void *data);
 
-static ST_Callback ST_StaticHTTPCacheMethodCallbacks [MAX_HTTPCACHE_METHODS] = {
-	{ "GetCacheHeaders",		NULL,"a(s)",	PRCA_Method_GetHttpCacheHeaders },
-	{ "GetCacheParameters",		NULL,"a(s)",	PRCA_Method_GetHttpCacheParameters},
-	{ "AddCacheHeader",		"s","b",	PRCA_Method_AddHttpCacheHeaders },
-	{ "AddCacheParameter",		"s","b",	PRCA_Method_AddHttpCacheParameters}
+static ST_Callback ST_StaticHTTPCacheMethodCallbacks [] = {
+	{ 
+		.name	=	"GetCacheHeaders",
+		.in	=	NULL,
+		.out	=	"a(s)",
+		.func	=	PRCA_Method_GetHttpCacheHeaders 
+	},
+	{ 
+		.name	=	"GetCacheParameters",
+		.in	=	NULL,
+		.out	=	"a(s)",
+		.func	=	PRCA_Method_GetHttpCacheParameters
+	},
+	{ 
+		.name	=	"AddCacheHeader",
+		.in	=	"s",
+		.out	=	"b",
+		.func	=	PRCA_Method_AddHttpCacheHeaders 
+	},
+	{ 
+		.name	=	"AddCacheParameter",
+		.in	=	"s",
+		.out	=	"b",
+		.func	=	PRCA_Method_AddHttpCacheParameters
+	},
+	{}
 };
 
 /* Functions related to the connection manager */
@@ -160,18 +248,68 @@ void PRCA_Property_GetMemoryPoolTotalAcquireBytes(DBusConnection *conn,DBusMessa
 void PRCA_Property_GetTotalFlowsOnFlowPool(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetTotalSegmentOnMemoryPool(DBusConnection *conn,DBusMessage *msg, void *data);
 
-#define MAX_CONNECTION_PUBLIC_PROPERTIES 10 
-static ST_Callback ST_StaticConnectionPropertiesCallbacks [MAX_CONNECTION_PUBLIC_PROPERTIES] = {
-        { "FlowsOnPool",              NULL,"i",       PRCA_Property_GetTotalFlowsOnFlowPool },
-        { "FlowReleases",              NULL,"i",       PRCA_Property_GetFlowPoolTotalReleases },
-        { "FlowAcquires",              NULL,"i",       PRCA_Property_GetFlowPoolTotalAcquires },
-	{ "FlowErrors",              	NULL,"i",       PRCA_Property_GetFlowPoolTotalErrors },
-	{ "SegmentsOnPool",		NULL,"i",	PRCA_Property_GetTotalSegmentOnMemoryPool },
-	{ "SegmentReleases",		NULL,"i",	PRCA_Property_GetMemoryPoolTotalReleases },
-	{ "SegmentAcquires",		NULL,"i",	PRCA_Property_GetMemoryPoolTotalAcquires },
-	{ "SegmentErrors",		NULL,"i",	PRCA_Property_GetMemoryPoolTotalErrors },
-	{ "SegmentByteReleases",	NULL,"x",	PRCA_Property_GetMemoryPoolTotalReleaseBytes },
-	{ "SegmentByteAcquires",	NULL,"x",	PRCA_Property_GetMemoryPoolTotalAcquireBytes }
+static ST_Callback ST_StaticConnectionPropertiesCallbacks [] = {
+        { 
+		.name	=	"FlowsOnPool",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=       PRCA_Property_GetTotalFlowsOnFlowPool 
+	},
+        { 
+		.name	=	"FlowReleases",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=       PRCA_Property_GetFlowPoolTotalReleases 
+	},
+        { 
+		.name	=	"FlowAcquires",
+		.in	=       NULL,
+		.out	=	"i",
+		.func	=       PRCA_Property_GetFlowPoolTotalAcquires 
+	},
+	{ 
+		.name	=	"FlowErrors",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=       PRCA_Property_GetFlowPoolTotalErrors 
+	},
+	{ 
+		.name	=	"SegmentsOnPool",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=	PRCA_Property_GetTotalSegmentOnMemoryPool 
+	},
+	{ 
+		.name	=	"SegmentReleases",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=	PRCA_Property_GetMemoryPoolTotalReleases 
+	},
+	{ 
+		.name	=	"SegmentAcquires",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=	PRCA_Property_GetMemoryPoolTotalAcquires 
+	},
+	{ 
+		.name	=	"SegmentErrors",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=	PRCA_Property_GetMemoryPoolTotalErrors 
+	},
+	{ 
+		.name	=	"SegmentByteReleases",
+		.in	=	NULL,
+		.out	=	"x",
+		.func	=	PRCA_Property_GetMemoryPoolTotalReleaseBytes 
+	},
+	{ 
+		.name	=	"SegmentByteAcquires",	
+		.in	=	NULL,
+		.out	=	"x",
+		.func	=	PRCA_Property_GetMemoryPoolTotalAcquireBytes 
+	},
+	{}
 };
 
 void PRCA_Method_IncreaseMemoryPool(DBusConnection *conn,DBusMessage *msg, void *data);
@@ -179,36 +317,60 @@ void PRCA_Method_DecreaseMemoryPool(DBusConnection *conn,DBusMessage *msg, void 
 void PRCA_Method_IncreaseFlowPool(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Method_DecreaseFlowPool(DBusConnection *conn,DBusMessage *msg, void *data);
 
-#define MAX_CONNECTION_PUBLIC_METHODS 4
-static ST_Callback ST_StaticConnectionMethodCallbacks [MAX_CONNECTION_PUBLIC_METHODS] = {
-	{ "IncreaseMemoryPool",		"i","b",	PRCA_Method_IncreaseMemoryPool },
-	{ "DecreaseMemoryPool",		"i","b",	PRCA_Method_DecreaseMemoryPool },
-	{ "IncreaseFlowPool",		"i","b",	PRCA_Method_IncreaseFlowPool },
-	{ "DecreaseFlowPool",		"i","b",	PRCA_Method_DecreaseFlowPool }
+static ST_Callback ST_StaticConnectionMethodCallbacks [] = {
+	{ 
+		.name	=	"IncreaseMemoryPool",
+		.in	=	"i",
+		.out	=	"b",
+		.func	=	PRCA_Method_IncreaseMemoryPool 
+	},
+	{ 
+		.name	=	"DecreaseMemoryPool",
+		.in	=	"i",
+		.out	=	"b",
+		.func	=	PRCA_Method_DecreaseMemoryPool 
+	},
+	{ 
+		.name	=	"IncreaseFlowPool",
+		.in	=	"i",
+		.out	=	"b",
+		.func	=	PRCA_Method_IncreaseFlowPool 
+	},
+	{ 
+		.name	=	"DecreaseFlowPool",
+		.in	=	"i",
+		.out	=	"b",
+		.func	=	PRCA_Method_DecreaseFlowPool 
+	},
+	{}
 };
 
-#define MAX_PUBLIC_INTERFACES 1 
-
-static ST_Interface ST_PublicInterfaces [MAX_PUBLIC_INTERFACES] = {
+static ST_Interface ST_PublicInterfaces [] = {
         { 
 		.name		=	POLYVACCINE_AGENT_INTERFACE,
 		.methods 	= 	ST_StaticEngineMethods,
 		.signals 	= 	NULL,
 		.properties 	= 	ST_StaticPropertiesCallbacks	
 	},
-	{}
-/*	{ POLYVACCINE_AGENT_HTTP_INTERFACE,
-		0,0,MAX_HTTP_PUBLIC_PROPERTIES,
-		NULL,NULL,ST_StaticHTTPPropertiesCallbacks
+	{	
+		.name		= 	POLYVACCINE_AGENT_HTTP_INTERFACE,
+		.methods	=	NULL,
+		.signals	=	NULL,
+		.properties	=	ST_StaticHTTPPropertiesCallbacks
 	},
-        { POLYVACCINE_AGENT_HTTPCACHE_INTERFACE,
-		MAX_HTTPCACHE_METHODS,0,MAX_HTTPCACHE_PROPERTIES,
-                ST_StaticHTTPCacheMethodCallbacks,NULL,ST_StaticHTTPCachePropertiesCallbacks
-        },
-        { POLYVACCINE_AGENT_CONNECTION_INTERFACE,
-		MAX_CONNECTION_PUBLIC_METHODS,0,MAX_CONNECTION_PUBLIC_PROPERTIES,
-                ST_StaticConnectionMethodCallbacks,NULL,ST_StaticConnectionPropertiesCallbacks
-        } */
+	{
+		.name		=	POLYVACCINE_AGENT_HTTPCACHE_INTERFACE,
+		.methods	=	ST_StaticHTTPCacheMethodCallbacks,
+		.signals	=	NULL,
+		.properties	=	ST_StaticHTTPCachePropertiesCallbacks	
+	},
+	{
+		.name		=	POLYVACCINE_AGENT_CONNECTION_INTERFACE,
+		.methods	=	ST_StaticConnectionMethodCallbacks,	
+		.signals	=	NULL,
+		.properties	=	ST_StaticConnectionPropertiesCallbacks	
+	},
+	{}
 };
 
 

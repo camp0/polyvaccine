@@ -51,36 +51,41 @@ void POEG_Init() {
 
 	/* Only load the callbacks if dbus is running */ 
 	if(_polyEngine->bus != NULL) {
-		for ( i = 0; i<MAX_PUBLIC_INTERFACES;i++) {
-			interface = &ST_PublicInterfaces[i];
+		i = 0;
+		interface = &ST_PublicInterfaces[0];
+		while(interface->name != NULL) {
 			PODS_AddInterface(interface);
-	
+
 			/* Loads the methods first */
 			current = (ST_Callback*)&(interface->methods[0]);
 			j = 0;
-			while(current->name != NULL) {
-			//for (j = 0;j<interface->t_methods;j++){
+			while((current != NULL)&&(current->name != NULL)) {
 				DEBUG0("callback(0x%x)(%d) add method '%s' on interface '%s'\n",
 					current,j,current->name,interface->name);
 				PODS_AddPublicCallback(current);
 				j++;
 				current = (ST_Callback*)&(interface->methods[j]);
 			}
-	/*		for (j = 0;j<interface->total_signals;j++){
-				current = (ST_Callback*)&(interface->signals[j]);
+			j = 0;
+			current = (ST_Callback*)&(interface->signals[0]);
+			while((current != NULL)&&(current->name != NULL)) {
 				DEBUG0("callback(0x%x) add signal '%s' on interface '%s'\n",
 					current,current[j].name,interface->name);
 				PODS_AddPublicCallback(current);
-			} */
+				j++;
+				current = (ST_Callback*)&(interface->signals[j]);
+			} 
 			j = 0;
 			current = (ST_Callback*)&(interface->properties[0]);
-			while(current->name != NULL){
+			while((current!=NULL)&&(current->name != NULL)){
 				DEBUG0("callback(0x%x)(%d) add properties '%s' on interface '%s'\n",
 					current,j,current->name,interface->name);
 				PODS_AddPublicCallback(current);
 				j++;
 				current = (ST_Callback*)&(interface->properties[j]);
 			}
+			i++;
+			interface = &ST_PublicInterfaces[i];
 		}		
 	}
 	

@@ -299,17 +299,17 @@ void PODS_Method_Instrospect(DBusConnection *conn,DBusMessage *msg, void *data) 
 
                 current = &interfaces->methods[0];
 		j = 0;
-		while(current->name != NULL) {
-                        g_string_append_printf(xml_data,"<method name=\"%s\">\n",current[j].name);
+		while((current!=NULL)&&(current->name != NULL)) {
+                        g_string_append_printf(xml_data,"<method name=\"%s\">\n",current->name);
 
                         /* adding the format parameters */
-                        if(current[j].in != NULL) {
+                        if(current->in != NULL) {
                                 g_string_append_printf(xml_data,"    <arg name=\"%s\" type=\"%s\" direction=\"in\"/>\n",
-                                        current[j].in,current[j].in);
+                                        current->in,current->in);
                         }
-                        if(current[j].out != NULL) {
+                        if(current->out != NULL) {
                                 g_string_append_printf(xml_data,"    <arg name=\"result\" type=\"%s\" direction=\"out\"/>\n",
-                                       current[j].out);
+                                       current->out);
                         }
 
                         g_string_append(xml_data,"  </method>\n");
@@ -319,20 +319,22 @@ void PODS_Method_Instrospect(DBusConnection *conn,DBusMessage *msg, void *data) 
 
                 /* now check for signals */
                 /* TODO not implemented jet */
-
+		current = &interfaces->signals[0];
+		
+		
                 /* now check for properties */
                 current = &interfaces->properties[0];
 		j = 0;
-		while(current->name != NULL) {
+		while((current!=NULL)&&(current->name != NULL)) {
                         char *access = "read";
                         char *type = "";
                         g_string_append_printf(xml_data,"  <property name=\"%s\" ",
-                               current[j].name);
-                        if(current[j].in == NULL)
+                               current->name);
+                        if(current->in == NULL)
                                 access = "read";
                         else
                                 access = "readwrite";
-                        type = current[j].out;
+                        type = current->out;
                         g_string_append_printf(xml_data,"type=\"%s\" access=\"%s\"/>\n",type,access);
 			j++;
                 	current = &interfaces->properties[j];

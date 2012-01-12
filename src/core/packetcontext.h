@@ -25,9 +25,6 @@
 #ifndef _PACKETCONTEXT_H_
 #define _PACKETCONTEXT_H_
 
-#define __USE_BSD 
-#define __FAVOR_BSD
-
 #include <stdio.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -62,13 +59,13 @@ static void PKCX_SetL7Payload(unsigned char *packet,int length) {_pktctx.payload
 
 #ifdef __LINUX__
 
-static void PKCX_SetIPHeader(const unsigned char* packet) { _pktctx.ip = (struct iphdr*)packet;} ;
+static void PKCX_SetIPHeader(unsigned char* packet) { _pktctx.ip = (struct iphdr*)packet;} ;
 
 /* IP Fields */
-static void PKCX_SetIPSrcAddr(u_int32_t saddr) { _pktctx.ip->saddr = saddr; }
-static void PKCX_SetIPDstAddr(u_int32_t daddr) { _pktctx.ip->daddr = daddr; }
-static u_int32_t PKCX_GetIPSrcAddr(void) { return _pktctx.ip->saddr; }
-static u_int32_t PKCX_GetIPDstAddr(void) { return _pktctx.ip->daddr; }
+static void PKCX_SetIPSrcAddr(u_int32_t saddr) { _pktctx.ip->saddr = saddr; };
+static void PKCX_SetIPDstAddr(u_int32_t daddr) { _pktctx.ip->daddr = daddr; };
+static u_int32_t PKCX_GetIPSrcAddr(void) { return _pktctx.ip->saddr; };
+static u_int32_t PKCX_GetIPDstAddr(void) { return _pktctx.ip->daddr; };
 static u_int8_t PKCX_GetTTL(void) { return _pktctx.ip->ttl; }
 static u_int32_t PKCX_GetIPPacketLength(void) { return ntohs(_pktctx.ip->tot_len); }
 static u_int16_t PKCX_GetIPHeaderLength(void) { return _pktctx.ip->ihl * 4; }
@@ -80,10 +77,24 @@ static int PKCX_GetPayloadLength(void) { return _pktctx.len; }
 static unsigned int PKCX_GetTCPHeaderLength(void) { return _pktctx.tcp->doff * 4; }
 static u_int16_t PKCX_GetTCPSrcPort(void) { return ntohs(_pktctx.tcp->source); }
 static u_int16_t PKCX_GetTCPDstPort(void) { return ntohs(_pktctx.tcp->dest); }
-static int PKCX_IsTCPPush(void) { return _pktctx.tcp->psh; }
+static int PKCX_IsTCPPush(void) { return _pktctx.tcp->psh;}
 static unsigned char *PKCX_GetPayload(void) { return _pktctx.payload;}
-static char* PKCX_GetSrcAddrDotNotation(void) { struct in_addr a; a.s_addr=_pktctx.ip->saddr; return inet_ntoa(a); }
-static char* PKCX_GetDstAddrDotNotation(void) { struct in_addr a; a.s_addr=_pktctx.ip->daddr; return inet_ntoa(a); }
+
+static char* PKCX_GetSrcAddrDotNotation(void) { 
+	struct in_addr a; 
+        static char ip[INET_ADDRSTRLEN];
+	a.s_addr=_pktctx.ip->saddr; 
+        inet_ntop(AF_INET, &a, ip, INET_ADDRSTRLEN);
+        return (char*)&ip;
+}
+
+static char* PKCX_GetDstAddrDotNotation(void) { 
+	struct in_addr a;
+        static char ip[INET_ADDRSTRLEN];
+        a.s_addr=_pktctx.ip->daddr;
+        inet_ntop(AF_INET, &a, ip, INET_ADDRSTRLEN);
+        return (char*)&ip;
+}
 static u_int32_t PKCX_GetTCPSequenceNumber(void) { return ntohl(_pktctx.tcp->seq); }
 
 #endif // LINUX
