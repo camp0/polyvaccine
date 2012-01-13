@@ -52,7 +52,6 @@ enum {
 
 static const char *polyengine_states_str [] = { "stop","running"};
 
-#define POLYVACCINE_AGENT_INTERFACE "polyvaccine.engine"
 #define POLYVACCINE_FILTER_ENGINE_NAME "Polyvaccine filter engine"
 
 struct ST_PolyEngine {

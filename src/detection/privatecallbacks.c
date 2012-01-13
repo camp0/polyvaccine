@@ -27,8 +27,6 @@
 #include <stdio.h>
 #include <glib.h>
 
-#define MAX_PUBLIC_INTERFACES 1
-
 /* Used for the Property Dbus interface */
 void __CMD_GenericPropertyGetter(DBusConnection *conn,DBusMessage *msg,int type, void *value) {
         DBusMessageIter args;

@@ -36,6 +36,7 @@
 #include "context.h"
 #include <glib.h>
 #include <dbus/dbus.h>
+#include "interfaces.h"
 
 enum {
         POLYDETECTOR_STATE_STOP = 0,
@@ -44,7 +45,6 @@ enum {
 
 static const char *polydetector_states_str [] = { "stop","running"};
 
-#define POLYVACCINE_DETECTION_INTERFACE "polyvaccine.detector"
 #define POLYVACCINE_DETECTION_ENGINE_NAME "Polyvaccine detection engine"
 
 struct ST_PolyDetector {
@@ -58,13 +58,16 @@ struct ST_PolyDetector {
 
 typedef struct ST_PolyDetector ST_PolyDetector;
 
-#define MAX_PUBLIC_INTERFACES 1
-
 void PRCA_Signaling_AnalyzeSegment(DBusConnection *conn,DBusMessage *msg, void *data);
 
-#define MAX_SIGNAL_CALLBACKS 1
-static ST_Callback ST_StaticSignalCallbacks[ MAX_SIGNAL_CALLBACKS] = {
-	{ "Analyze",		"a",NULL,	PRCA_Signaling_AnalyzeSegment }
+static ST_Callback ST_StaticSignalCallbacks[] = {
+	{ 
+		.name	=	"Analyze",
+		.in	=	"a",
+		.out	=	NULL,
+		.func	=	PRCA_Signaling_AnalyzeSegment 
+	},
+	{}
 };
 
 void PRCA_Property_GetNumberExecutedSegments(DBusConnection *conn,DBusMessage *msg, void *data);

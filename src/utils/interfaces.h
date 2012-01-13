@@ -22,21 +22,25 @@
  *
  */
 
-#ifndef _EXAMPLES64FREEBSD_H_
-#define _EXAMPLES64FREEBSD_H_
+#ifndef _INTERFACES_H_
+#define _INTERFACES_H_
 
-const char shellcode_64bits_freebsd[] =
-        "\x48\x31\xc0"                               // xor    %rax,%rax
-        "\x99"                                       // cltd
-        "\xb0\x3b"                                   // mov    $0x3b,%al
-        "\x48\xbf\x2f\x2f\x62\x69\x6e\x2f\x73\x68"   // mov $0x68732f6e69622fff,%rdi
-        "\x48\xc1\xef\x08"                           // shr    $0x8,%rdi
-        "\x57"                                       // push   %rdi
-        "\x48\x89\xe7"                               // mov    %rsp,%rdi
-        "\x57"                                       // push   %rdi
-        "\x52"                                       // push   %rdx
-        "\x48\x89\xe6"                               // mov    %rsp,%rsi
-        "\x0f\x05";                                  // syscall
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#define POLYVACCINE "polyvaccine"
+
+/* Dbus names for the filter engine */
+#define POLYVACCINE_FILTER_INTERFACE POLYVACCINE ".filter"
+#define POLYVACCINE_FILTER_HTTP_INTERFACE POLYVACCINE_FILTER_INTERFACE ".http"
+#define POLYVACCINE_FILTER_HTTPCACHE_INTERFACE POLYVACCINE_FILTER_INTERFACE ".httpcache"
+#define POLYVACCINE_FILTER_CONNECTION_INTERFACE POLYVACCINE_FILTER_INTERFACE ".connection"
+
+/* Dbus names for the detection engine */
+#define POLYVACCINE_DETECTION_INTERFACE POLYVACCINE ".detector"
+
+/* Dbus names for the protection engine */
 
 
 #endif

@@ -29,16 +29,12 @@
 #include <config.h>
 #endif
 
+#include "interfaces.h"
 #include "callbacks.h"
 #include <glib.h>
 #include "polydbus.h"
 #include <dbus/dbus.h>
 #include "debug.h"
-
-#define POLYVACCINE_AGENT_INTERFACE "polyvaccine.engine"
-#define POLYVACCINE_AGENT_HTTP_INTERFACE POLYVACCINE_AGENT_INTERFACE ".http"
-#define POLYVACCINE_AGENT_HTTPCACHE_INTERFACE POLYVACCINE_AGENT_INTERFACE ".httpcache"
-#define POLYVACCINE_AGENT_CONNECTION_INTERFACE POLYVACCINE_AGENT_INTERFACE ".connection"
 
 /* Properties functions */
 void PRCA_Property_GetState(DBusConnection *conn,DBusMessage *msg, void *data);
@@ -347,25 +343,25 @@ static ST_Callback ST_StaticConnectionMethodCallbacks [] = {
 
 static ST_Interface ST_PublicInterfaces [] = {
         { 
-		.name		=	POLYVACCINE_AGENT_INTERFACE,
+		.name		=	POLYVACCINE_FILTER_INTERFACE,
 		.methods 	= 	ST_StaticEngineMethods,
 		.signals 	= 	NULL,
 		.properties 	= 	ST_StaticPropertiesCallbacks	
 	},
 	{	
-		.name		= 	POLYVACCINE_AGENT_HTTP_INTERFACE,
+		.name		= 	POLYVACCINE_FILTER_HTTP_INTERFACE,
 		.methods	=	NULL,
 		.signals	=	NULL,
 		.properties	=	ST_StaticHTTPPropertiesCallbacks
 	},
 	{
-		.name		=	POLYVACCINE_AGENT_HTTPCACHE_INTERFACE,
+		.name		=	POLYVACCINE_FILTER_HTTPCACHE_INTERFACE,
 		.methods	=	ST_StaticHTTPCacheMethodCallbacks,
 		.signals	=	NULL,
 		.properties	=	ST_StaticHTTPCachePropertiesCallbacks	
 	},
 	{
-		.name		=	POLYVACCINE_AGENT_CONNECTION_INTERFACE,
+		.name		=	POLYVACCINE_FILTER_CONNECTION_INTERFACE,
 		.methods	=	ST_StaticConnectionMethodCallbacks,	
 		.signals	=	NULL,
 		.properties	=	ST_StaticConnectionPropertiesCallbacks	

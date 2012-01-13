@@ -30,4 +30,4 @@ MAINTAINERCLEANFILES = \
 
 $(srcdir)/counter_wrap.c: counter.i
 	$(SWIG) -python counter.i
-	$(PYTHON) setup.py build_ext --inplace 
+	$(PYTHON) setup.py build_ext --inplace

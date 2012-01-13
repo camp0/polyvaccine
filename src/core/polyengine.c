@@ -47,7 +47,7 @@ void POEG_Init() {
 	_polyEngine->pcap = NULL;
 	_polyEngine->defaultport = 80;
 	_polyEngine->source = g_string_new("");
-	_polyEngine->bus = PODS_Connect(POLYVACCINE_AGENT_INTERFACE,(void*)_polyEngine);
+	_polyEngine->bus = PODS_Connect(POLYVACCINE_FILTER_INTERFACE,(void*)_polyEngine);
 
 	/* Only load the callbacks if dbus is running */ 
 	if(_polyEngine->bus != NULL) {

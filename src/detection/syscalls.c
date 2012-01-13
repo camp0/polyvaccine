@@ -160,8 +160,9 @@ void SYSU_Kill(pid_t pid, int sig) {
 }
 
 void SYSU_Exit() {
-	SYSU_Destroy();
+	//SYSU_Destroy();
 	SYSU_Kill(ctx->child_pid,SIGKILL);
+	SYSU_Destroy();
 //	SYSU_Kill(ctx->parent_pid,SIGKILL);
 	return;
 }	
@@ -371,8 +372,8 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
                 return 0;
         }
 
-        SYSU_SetSysGood(child_pid);
-	SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, TRACE_O_TRACEFORK, (void*)SIGUSR1);
+ //       SYSU_SetSysGood(child_pid);
+//	SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, TRACE_O_TRACEFORK, (void*)SIGUSR1);
 	SYSU_DestroySuspiciousSyscalls();
         alarm(3);
         while(1) {
@@ -461,7 +462,7 @@ void sigusr(int signal) {
 }
 
 void sigsegv_handler(int sig, siginfo_t *info, void *data) {
-	DEBUG_TRACER("Child receives signal %d on virtualeip %d\n",sig,ctx->virtualeip);
+	DEBUG_TRACER("Child(%d) receives signal %d on virtualeip %d\n",getpid(),sig,ctx->virtualeip);
 
         if((ctx->virtualeip>=ctx->size)||(ctx->virtualeip < 0)) {
                 DEBUG_TRACER("Child(%d) Overflow exit on virtualeip=%d size=%d\n",getpid(),
