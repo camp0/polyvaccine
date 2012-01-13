@@ -42,8 +42,8 @@
 #include <sys/ioctl.h>
 #include "../core/authorized.h"
 #include "banner.h"
+#include "interfaces.h"
 
-#define POLYVACCINE_PROTECTOR_INTERFACE "polyvaccine.protector"
 #define POLYVACCINE_PROTECTION_ENGINE_NAME "Polyvaccine protection engine"
 
 struct ST_PolyProtector {
@@ -68,8 +68,6 @@ struct ST_PolyProtector {
 };
 
 typedef struct ST_PolyProtector ST_PolyProtector;
-
-#define MAX_PUBLIC_INTERFACES 1
 
 void PRCA_Signaling_AuthorizeSegment(DBusConnection *conn,DBusMessage *msg, void *data);
 

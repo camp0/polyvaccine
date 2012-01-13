@@ -273,7 +273,10 @@ void POEG_SendSuspiciousSegmentToExecute(ST_MemorySegment *seg,unsigned long has
                 DEBUG0("Cannot send suspicious segment over dbus, no connection available\n");
 		return;
 	}
-	PODS_SendSuspiciousSegment(_polyEngine->bus,"/polyvaccine/detector","polyvaccine.detector.analyze","Analyze",
+	PODS_SendSuspiciousSegment(_polyEngine->bus,
+		POLYVACCINE_DETECTION_OBJECT,
+		POLYVACCINE_DETECTION_INTERFACE,
+		"Analyze",
 		seg->mem,seg->virtual_size,hash,seq);
 	return;
 }
@@ -292,7 +295,10 @@ void POEG_SendVerifiedSegment(unsigned long hash, u_int32_t seq,int veredict) {
                 DEBUG0("Cannot send vereridct segment over dbus, no connection available\n");
 		return;
 	}
-	PODS_SendVerifiedSegment(_polyEngine->bus,"/polyvaccine/protector","polyvaccine.protector.veredict","Veredict",
+	PODS_SendVerifiedSegment(_polyEngine->bus,
+		POLYVACCINE_PROTECTOR_OBJECT,
+		POLYVACCINE_PROTECTOR_INTERFACE,
+		"Veredict",
 		seq,hash,veredict);
 	return;
 }
@@ -357,7 +363,7 @@ void POEG_Run() {
                                 POEG_Stop();
                                 usepcap = 0;
                                 if(_polyEngine->is_pcap_file == TRUE){
-                              //          break;
+                                        break;
                                 }
 			}else {
 				if(PKDE_Decode(header,pkt_data) == TRUE){

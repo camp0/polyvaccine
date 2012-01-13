@@ -372,8 +372,8 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
                 return 0;
         }
 
- //       SYSU_SetSysGood(child_pid);
-//	SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, TRACE_O_TRACEFORK, (void*)SIGUSR1);
+       	SYSU_SetSysGood(child_pid);
+	SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, TRACE_O_TRACEFORK, (void*)SIGUSR1);
 	SYSU_DestroySuspiciousSyscalls();
         alarm(3);
         while(1) {

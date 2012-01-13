@@ -146,8 +146,9 @@ void POPR_Run() {
         system("iptables -I PVQUEUE -p all -j NFQUEUE");
 
 	SYIN_Init();
-	fprintf(stdout,"Protection engine running on %s version %s machine %s\n",
-                SYIN_GetOSName(),SYIN_GetVersionName(),SYIN_GetMachineName());
+        fprintf(stdout,"%s running on %s machine %s\n",POLYVACCINE_PROTECTION_ENGINE_NAME,
+                SYIN_GetOSName(),SYIN_GetMachineName());
+        fprintf(stdout,"\tversion %s\n",SYIN_GetVersionName());
 	DEBUG0("netfilter descriptor %d\n",nffd);
 
         while (TRUE) {
