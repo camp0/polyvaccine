@@ -34,7 +34,7 @@
 #include "memory.h"
 #include "debug.h"
 
-#define MAX_MEMORY_SEGMENTS_PER_POOL 1024 * 16 
+#define MAX_MEMORY_SEGMENTS_PER_POOL 1024 * 256 
 
 struct ST_MemoryPool {
 	GSList *mem;

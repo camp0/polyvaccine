@@ -49,7 +49,20 @@ ST_FlowPool *FLPO_Init() {
  */
 
 void FLPO_Stats(ST_FlowPool *p){
+	int32_t value = MAX_FLOWS_PER_POOL * sizeof(ST_HttpFlow);
+        char *unit = "Bytes";
+
+        if((value / 1024)>0){
+                unit = "KBytes";
+                value = value / 1024;
+        }
+        if((value / 1024)>0){
+                unit = "MBytes";
+                value = value / 1024;
+        }
+
 	fprintf(stdout,"FlowPool statistics\n");
+	fprintf(stdout,"\tallocated memory:%d %s\n",value,unit);
 	fprintf(stdout,"\tflows:%d\n\treleases:%d\n",g_slist_length(p->flows),p->total_releases);
 	fprintf(stdout,"\tacquires:%d\n\terrors:%d\n",p->total_acquires,p->total_errors);
 	return;

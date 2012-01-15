@@ -131,7 +131,20 @@ ST_MemorySegment *MEPO_GetMemorySegment(ST_MemoryPool *mp){
 }
 
 void MEPO_Stats(ST_MemoryPool *mp){
+	int32_t value = MAX_MEMORY_SEGMENTS_PER_POOL * (sizeof(ST_MemorySegment)+MAX_SEGMENT_SIZE);
+	char *unit = "Bytes";
+
+	if((value / 1024)>0){
+		unit = "KBytes";
+		value = value / 1024;
+	}
+	if((value / 1024)>0){
+		unit = "MBytes";
+		value = value / 1024;
+	}
+	
 	fprintf(stdout,"Memory pool statistics\n");
+	fprintf(stdout,"\tallocate memory:%d %s\n",value,unit);
 	fprintf(stdout,"\tacquire bytes:%d\n\treleases bytes:%d\n",mp->total_release_bytes,mp->total_acquire_bytes);
         fprintf(stdout,"\tblocks:%d\n\treleases:%d\n",g_slist_length(mp->mem),mp->total_releases);
         fprintf(stdout,"\tacquires:%d\n\terrors:%d\n",mp->total_acquires,mp->total_errors);

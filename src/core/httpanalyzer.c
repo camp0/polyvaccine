@@ -47,7 +47,7 @@ void HTAZ_Init() {
         _http.total_http_segments = 0;
 	_http.total_suspicious_segments = 0;
 	_http.total_valid_segments = 0;
-	_http.on_suspicious_header_break = TRUE;
+	_http.on_suspicious_header_break = FALSE;
 	_http.on_suspicious_parameter_break = TRUE;
 	_http.analyze_post_data = FALSE;
 	_http.show_unknown_http = FALSE;
@@ -181,7 +181,7 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 				}
 			} 	
 		}
-		process_bytes += urilen;
+		process_bytes += urilen+2;
 		char *init = &seg->mem[urilen+2];
 		char http_line[MAX_HTTP_LINE_LENGTH];
 		int http_line_length;
@@ -190,9 +190,7 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 			ptrend = strstr(init,CRLF);
 			if (ptrend != NULL) { // got it
 				http_line_length = (ptrend-init)+1;
-				process_bytes += http_line_length;
 				ptrend = ptrend + 2; // from strlen(CRLF);
-				
 				snprintf(http_line,http_line_length,"%s",init);
 				if(strlen(http_line)>0) {
 					/* retrieve the parameter name of the http line */
@@ -202,8 +200,8 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 						int parameter_length = (pend-init)+1;
 					
 						snprintf(parameter,parameter_length,"%s",init);
-						DEBUG1("flow(0x%x) HTTP parameter(%s)value(%s)length(%d)\n",f,
-							parameter,http_line,http_line_length);
+						DEBUG1("flow(0x%x) HTTP parameter(%s)value(%s)offset(%d)length(%d)\n",f,
+							parameter,http_line,process_bytes,http_line_length);
 
 						if(g_hash_table_lookup_extended(_http.parameters,(gchar*)parameter,NULL,&pointer) == TRUE){
 							p_field = (ST_HttpField*)pointer;
@@ -211,7 +209,7 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 						}else{
 							ST_HttpFields[HTTP_FIELD_UNKNOWN].matchs++;
 							if(_http.show_unknown_http)
-								WARNING("Unknown parameter(%s)offset(%d)\n",http_line,(pend-init));
+								WARNING("Unknown parameter(%s)offset(%d)\n",http_line,process_bytes);
 						}
 						nod = HTCC_GetParameterFromCache(c,http_line);
 						if(nod == NULL) { // The parameter value is not in the cache
@@ -228,6 +226,7 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 						}
 					}
 				}
+				process_bytes += http_line_length;
 			}else{
 				if(have_data == TRUE){ // The payload of a post request
 					int len = seg->virtual_size - process_bytes;

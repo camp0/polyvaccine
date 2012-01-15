@@ -136,6 +136,10 @@ enum {
 	HTTP_FIELD_USER_AGENT_1,
 	HTTP_FIELD_USER_AGENT_2,
 
+	/* Other fields */
+	HTTP_FIELD_PROXY_CONNECTION,
+	HTTP_FIELD_CONTENT_FILTER_HELPER,
+
 	HTTP_FIELD_UNKNOWN, // just for counting pourposes
 	HTTP_MAX_FIELD
 };
@@ -212,6 +216,8 @@ static ST_HttpField ST_HttpFields [HTTP_MAX_FIELD] = {
 	{ HTTP_FIELD_CONTENT_LENGTH_2,		"content-length",	0,0,	TRUE },
 	{ HTTP_FIELD_USER_AGENT_1,		"User-agent",		0,0,	TRUE },
 	{ HTTP_FIELD_USER_AGENT_2,		"user-agent",		0,0,	TRUE },
+	{ HTTP_FIELD_PROXY_CONNECTION,		"Proxy-Connection",	0,0,	TRUE },
+	{ HTTP_FIELD_CONTENT_FILTER_HELPER,	"Content-Filter-Helper",0,0,	TRUE },
 	{ HTTP_FIELD_UNKNOWN,			"Unknown parameter",	0,0,	TRUE }
 
 };
