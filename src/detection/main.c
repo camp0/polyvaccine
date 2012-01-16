@@ -30,12 +30,14 @@
 static struct option long_options[] = {
         {"execution-path",	no_argument,      	0, 'p'},
         {"syscalls",  		no_argument,      	0, 's'},
+        {"payload",  		no_argument,      	0, 'x'},
+        {"block",  		no_argument,      	0, 'b'},
         {"help",        	no_argument,            0, 'h'},
         {"version",     	no_argument,            0, 'V'},
         {0, 0, 0, 0}
 };
 
-static char *short_options = "shVpx";
+static char *short_options = "shVpxb";
 
 void sigquit(int signal) {
         PODT_Destroy();
@@ -49,6 +51,7 @@ void usage(char *prog){
         fprintf(stdout,"\t-s, --syscall                        Shows the available syscalls.\n");
         fprintf(stdout,"\t-p, --execution-path                 Shows the execution syscall path of the executions.\n");
         fprintf(stdout,"\t-x, --payload                        Shows the execution payload received by the daemon.\n");
+        fprintf(stdout,"\t-b, --block                          Blocks the syscall detected and continue exexution path.\n");
         fprintf(stdout,"\n");
         fprintf(stdout,"\t-h, --help                           Display this information.\n");
         fprintf(stdout,"\t-V, --version                        Display this program's version number.\n");
@@ -63,12 +66,16 @@ void main(int argc, char **argv) {
 	int show_syscalls = FALSE;
 	int show_execution_path = FALSE;
 	int show_received_payload = FALSE;	
+	int block_syscalls  = FALSE;
 
         while((c = getopt_long(argc,argv,short_options,
                             long_options, &option_index)) != -1) {
                 switch (c) {
                         case 'x':
                                	show_received_payload = TRUE; 
+                                break;
+                        case 'b':
+                               	block_syscalls = TRUE; 
                                 break;
                         case 's':
                                	show_syscalls = TRUE; 
@@ -99,6 +106,8 @@ void main(int argc, char **argv) {
 	if(show_received_payload == TRUE)
 		PODT_ShowReceivedPayload(show_received_payload);
 
+	printf("block_syscalls=%d\n",block_syscalls);
+	PODT_BlockDetectedSyscalls(block_syscalls);
 	PODT_ShowExecutionPath(show_execution_path);	
 	PODT_Run();
 

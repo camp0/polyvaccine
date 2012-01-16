@@ -76,6 +76,7 @@ enum {
 	TRACE_TRACEME = PTRACE_TRACEME,
 	TRACE_O_TRACEFORK = PTRACE_O_TRACEFORK,
 	TRACE_GETREGS = PTRACE_GETREGS,
+	TRACE_SETREGS = PTRACE_SETREGS,
 	TRACE_KILL = PTRACE_KILL
 }ptrace_types;
 
@@ -91,6 +92,7 @@ enum {
 	TRACE_TRACEME = PT_TRACE_ME,
 	TRACE_O_TRACEFORK = 0,
 	TRACE_GETREGS = PT_GETREGS,
+	TRACE_SETREGS = PT_SETREGS,
 	TRACE_KILL = PT_KILL
 }ptrace_types;
 
@@ -119,6 +121,7 @@ struct ST_Tracer {
 	GSList *flow; // a single list of the syscalls maded by a process, stores ST_SysCall types
 	pid_t child_pid;
 	int show_execution_path;
+	int block_syscalls_eax;
 
 	/* Info shared with the child */
 	ST_SharedContext *ctx;
@@ -195,6 +198,7 @@ linux_call_type(long codesegment)
 void SYSU_Init(void);
 void SYSU_Destroy(void);
 void SYSU_ShowExecutionPath(int value);
+void SYSU_BlockDetectedSyscalls(int value);
 int SYSU_AnalyzeSegmentMemory(char *buffer, int size, int offset);
 
 #endif

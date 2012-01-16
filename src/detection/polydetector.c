@@ -140,6 +140,11 @@ void PODT_ShowExecutionPath(int value){
 }
   
 
+void PODT_BlockDetectedSyscalls(int value){
+	SYSU_BlockDetectedSyscalls(value);
+	return;
+}
+
 void PODT_ShowAvailableSyscalls(void){
 	SUSY_ShowSyscallSuspiciousTable();
 	return;

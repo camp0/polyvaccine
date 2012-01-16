@@ -71,6 +71,7 @@ void SYSU_Init(){
 	tracer->syscalls = g_hash_table_new(g_direct_hash,g_direct_equal);
 	tracer->flow = NULL;
 	tracer->show_execution_path = FALSE;
+	tracer->block_syscalls_eax = FALSE;
 
 	/* parent and child shares a context */
 	ctx = COXT_GetContext();
@@ -91,6 +92,11 @@ void SYSU_Init(){
 		sys = &ST_SysCallSuspiciousTable[i];
         }
         return ;
+}
+
+void SYSU_BlockDetectedSyscalls(int value) {
+	tracer->block_syscalls_eax = value;
+	return;
 }
 
 void SYSU_ShowExecutionPath(int value){
@@ -130,16 +136,13 @@ void SYSU_PrintSuspiciousSysCalls(){
 
 void SYSU_Destroy(){
         g_hash_table_destroy(tracer->syscalls);
-	GSList *l = tracer->flow;
-	ST_SysCall *s = NULL;
-	register int i;
 
 	SYSU_PrintSuspiciousSysCalls();
 	SYSU_DestroySuspiciousSyscalls();
 	
 	g_slist_free(tracer->flow);
 	free(tracer);
-	tracer = NULL;
+//	tracer = NULL;
 	return;
 }
 
@@ -419,13 +422,19 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 						WARNING("\trax=%x;rbx=%x;rcx=%x;rdx=%x\n",
 							u_in.r_rax, u_in.r_rbx,u_in.r_rcx, u_in.r_rdx);
 #endif 
-						kill(child_pid,SIGKILL);
-                                        	SYSU_PTraceVoid(TRACE_KILL,child_pid,0, 0);
-						WARNING("Process %d killed by parent\n",child_pid);
-                                        	alarm(0);
 						if(t->show_execution_path== TRUE) 
 							SYSU_PrintSuspiciousSysCalls();
-                                        	return 1;
+						if(t->block_syscalls_eax==TRUE){
+							u_in.orig_rax = 0xbeefbeef;
+							SYSU_PTraceVoid(TRACE_SETREGS,child_pid,NULL,&u_in);
+							WARNING("Modifying syscall number rax=%x\n",u_in.orig_rax);
+						}else {			
+							kill(child_pid,SIGKILL);
+                                        		SYSU_PTraceVoid(TRACE_KILL,child_pid,0, 0);
+							WARNING("Process %d killed by parent\n",child_pid);
+                                        		alarm(0);
+                                        		return 1;
+						}
 					}
 					if (sus->level == SYSCALL_LEVEL_MEDIUM) {
 						WARNING("Medium suspicious syscall %s on memory\n",syscall_name);

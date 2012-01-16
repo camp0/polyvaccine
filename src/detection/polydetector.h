@@ -103,6 +103,7 @@ void PODT_Init(void);
 void PODT_Run(void);
 void PODT_ShowAvailableSyscalls(void);
 void PODT_ShowExecutionPath(int value);
+void PODT_BlockDetectedSyscalls(int value);
 void PODT_Destroy(void);
 
 #endif
