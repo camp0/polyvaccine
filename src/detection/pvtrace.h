@@ -34,6 +34,28 @@
 #include <sys/types.h>
 
 #ifdef __LINUX__
+#ifdef __WORDSIZE == 64
+#define REG_AX(a) a.orig_rax
+#define REG_BX(a) a.rbx
+#define REG_CX(a) a.rcx
+#define REG_DX(a) a.rdx
+#else
+#define REG_AX(a) a.orig_eax 
+#define REG_BX(a) a.ebx
+#define REG_CX(a) a.ecx
+#define REG_DX(a) a.edx
+#endif
+#endif // __LINUX__
+#ifdef __FREEBSD__
+#define REG_AX(a) a.r_rax
+#define REG_BX(a) a.r_rbx
+#define REG_CX(a) a.r_rcx
+#define REG_DX(a) a.r_rdx
+#endif
+
+
+
+#ifdef __LINUX__
 enum {
 	TRACE_SYSCALL = PTRACE_SYSCALL,
 	TRACE_TRACEME = PTRACE_TRACEME,

@@ -390,18 +390,9 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
                 ret = SYSU_Wait(child_pid, EXPECT_STOPPED, SIGSYSTRAP);
                 if (ret == PROCESS_RUNNING) { /* Process still running */
 			PTRC_TraceGetRegisters(child_pid,&u_in);
-//                        SYSU_PTraceVoid(TRACE_GETREGS, child_pid, 0, &u_in);
-#ifdef __LINUX__
-#if __WORDSIZE == 64 // 64 Bits machine
-                        syscall = u_in.orig_rax;
-#else
-			syscall = u_in.orig_eax;
-#endif	
-#endif // __LINUX__
 
-#ifdef __FREEBSD__
-			syscall = u_in.r_rax;
-#endif
+			syscall = REG_AX(u_in);
+
                         if (syscall-1 >= 0 && syscall-1 < SIZE(linux_syscallnames) && (syscall_name=linux_syscallnames[syscall])) {
 
 				sus = (ST_SysCallSuspicious*)g_hash_table_lookup(tracer->syscalls,GINT_TO_POINTER(syscall));
@@ -409,29 +400,15 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 					if (sus->level == SYSCALL_LEVEL_HIGH) {
 						SYSU_AddSuspiciousSyscall(t,syscall_name,&u_in,0);		
 						WARNING("High suspicious syscall %s on memory\n",syscall_name);
-#ifdef __LINUX__
-#if __WORDSIZE == 64 // 64 Bits machine
-						WARNING("\trax=%x;rbx=%x;rcx=%x;rdx=%x\n",
-							u_in.orig_rax, u_in.rbx,u_in.rcx, u_in.rdx);
-						WARNING("\trsi=%x;rdi=%x;cs=%x;rip=%x\n",
-							u_in.rsi, u_in.rdi,u_in.cs, u_in.rip);
-#else
-						WARNING("\trax=%x;rbx=%x;rcx=%x;rdx=%x\n",
-							u_in.orig_eax, u_in.ebx,u_in.ecx, u_in.edx);
-#endif
-#endif // __LINUX__
+						WARNING("\tax=%x;bx=%x;cx=%x;dx=%x\n",REG_AX(u_in),REG_BX(u_in),REG_CX(u_in),REG_DX(u_in));
 
-#ifdef __FREEBSD__
-						WARNING("\trax=%x;rbx=%x;rcx=%x;rdx=%x\n",
-							u_in.r_rax, u_in.r_rbx,u_in.r_rcx, u_in.r_rdx);
-#endif 
 						if(t->show_execution_path== TRUE) 
 							SYSU_PrintSuspiciousSysCalls();
 						if(t->block_syscalls_eax==TRUE){
-							u_in.orig_rax = 0xbeefbeef;
+							REG_AX(u_in) = 0xbeefbeef;
 							PTRC_TraceSetRegisters(child_pid,&u_in);
 //							SYSU_PTraceVoid(TRACE_SETREGS,child_pid,NULL,&u_in);
-							WARNING("\tModifying syscall number rax=%x, process continue execution\n",u_in.orig_rax);
+							WARNING("\tModifying syscall number rax=%x, process continue execution\n",syscall);
 						}else {			
 							kill(child_pid,SIGKILL);
 							PTRC_TraceKill(child_pid);;
