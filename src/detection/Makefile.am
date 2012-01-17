@@ -7,11 +7,11 @@ INCLUDES =      -I../utils/ -I../opcodes/ \
 		`pkg-config --cflags glib-2.0 dbus-1` 
 
 noinst_HEADERS =	syscalls.h examples.h context.h examples64.h linux_syscalls.h suspicious.h polydetector.h \
-			examples64freebsd.h
+			examples64freebsd.h pvtrace.h
 
 bin_PROGRAMS = pvde sendexploit
 
-pvde_SOURCES =  main.c	polydetector.c privatecallbacks.c suspicious.c syscalls.c context.c ../core/system.c 
+pvde_SOURCES =  main.c	polydetector.c privatecallbacks.c pvtrace.c suspicious.c syscalls.c context.c ../core/system.c 
 pvde_LDADD = -lglib-2.0 -ldbus-1 ../bus/libpolybus.la 
 
 sendexploit_SOURCES = sendexploit.c

@@ -25,6 +25,7 @@
 #include "suspicious.h"
 #include "syscalls.h"
 #include "linux_syscalls.h"
+#include "pvtrace.h"
 
 #define DEBUG_TRACER(a...) 
 #define DEBUG_TRACER __DEBUG
@@ -170,22 +171,11 @@ void SYSU_Exit() {
 	return;
 }	
 
-void SYSU_PTraceVoid(int request, pid_t pid, void *addr, void *data) {
-        int i = ptrace(request, pid, addr, data);
-        if (i) {
-                fprintf(stderr,"Can not ptrace process %d \n",pid);
-		SYSU_Exit();
-        }
-        return;
-}
-
-
 int SYSU_Wait(pid_t p, int report, int stopsig) {
         int status;
         int i;
-        pid_t pw = wait(&status);
 
-        if (pw == (pid_t) -1) {
+	if(waitpid(p,&status,0)< 0){
                 perror("wait");
                 return PROCESS_EXIT;
         }
@@ -226,7 +216,7 @@ int SYSU_Wait(pid_t p, int report, int stopsig) {
               (since Linux 2.6.10) returns true if the child process was resumed by delivery of SIGCONT.
 */
 
-/*
+
 #ifdef DEBUG
 	int ifexisted = WIFEXITED(status);
 	int ifexisstatus = WEXITSTATUS(status);
@@ -236,15 +226,23 @@ int SYSU_Wait(pid_t p, int report, int stopsig) {
 	int ifstoped = WIFSTOPPED(status);
 	int ifstopsig = WSTOPSIG(status);
 	int ifcontinued = WIFCONTINUED(status);
+        int byusr1 = 0;
+        int bysigstop = 0;
+
+        if(WSTOPSIG(status) == SIGUSR1)
+                byusr1=1;
+
+        if(WSTOPSIG(status) ==SIGTRAP)
+                bysigstop = 1;
 
 	printf("Process %d generates the next status offset=%d\n",p,ctx->virtualeip);
 	printf("\tifexited=%d;ifexitstatus=%d;",ifexisted,ifexisstatus);
 	printf("ifsignaled=%d;termsig=%d\n",ifsignaled,termsig);
 	printf("\tcoredump=%d;ifstoped=%d;",coredump,ifstoped);
 	printf("ifstopsig=%d;ifcontinued=%d\n",ifstopsig,ifcontinued);
-	printf("\tifstopsigname=%s\n",ST_ProcessExitCodes[ifstopsig].description);
+	printf("\tbysigusr=%d;bysigtrap=%d\n",byusr1,bysigstop);
 #endif
-*/
+
 
 //	printf("---status = %d i=%d\n",status,i);
         //ST_ProcessExitCodes[i].received ++;
@@ -277,7 +275,9 @@ int SYSU_Wait(pid_t p, int report, int stopsig) {
                 //        stopsig, WSTOPSIG(status));
                 if ((WSTOPSIG(status) & 0x7f) == (stopsig & 0x7f))
                         return PROCESS_RUNNING;
-                SYSU_PTraceVoid(TRACE_SYSCALL, p, 0, (void*) WSTOPSIG(status));
+
+		PTRC_TraceSyscall(p,WSTOPSIG(status));	
+                //SYSU_PTraceVoid(TRACE_SYSCALL, p, 0, (void*) WSTOPSIG(status));
                 return SYSU_Wait(p, report, stopsig);
         }
 
@@ -340,7 +340,8 @@ void SYSU_NewExecutionProcess(ST_SharedContext *c) {
                         ctx->virtualeip = ctx->size;
                         return;
                 }
-                SYSU_PTraceVoid(TRACE_TRACEME, 0, NULL, SIGUSR1);
+		PTRC_TraceMe();
+//                SYSU_PTraceVoid(TRACE_TRACEME, 0, NULL, SIGUSR1);
                 SYSU_Kill(ctx->parent_pid, SIGUSR1);
                 ctx->isptracechild = TRUE;
                 while (!got_child_signal);
@@ -375,8 +376,9 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
                 return 0;
         }
 
-       	SYSU_SetSysGood(child_pid);
-	SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, TRACE_O_TRACEFORK, (void*)SIGUSR1);
+//       	SYSU_SetSysGood(child_pid);
+	PTRC_TraceSyscall(child_pid,SIGUSR1);
+//	SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, TRACE_O_TRACEFORK, (void*)SIGUSR1);
 	SYSU_DestroySuspiciousSyscalls();
         alarm(3);
         while(1) {
@@ -387,7 +389,8 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 
                 ret = SYSU_Wait(child_pid, EXPECT_STOPPED, SIGSYSTRAP);
                 if (ret == PROCESS_RUNNING) { /* Process still running */
-                        SYSU_PTraceVoid(TRACE_GETREGS, child_pid, 0, &u_in);
+			PTRC_TraceGetRegisters(child_pid,&u_in);
+//                        SYSU_PTraceVoid(TRACE_GETREGS, child_pid, 0, &u_in);
 #ifdef __LINUX__
 #if __WORDSIZE == 64 // 64 Bits machine
                         syscall = u_in.orig_rax;
@@ -426,11 +429,12 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 							SYSU_PrintSuspiciousSysCalls();
 						if(t->block_syscalls_eax==TRUE){
 							u_in.orig_rax = 0xbeefbeef;
-							SYSU_PTraceVoid(TRACE_SETREGS,child_pid,NULL,&u_in);
-							WARNING("Modifying syscall number rax=%x\n",u_in.orig_rax);
+							PTRC_TraceSetRegisters(child_pid,&u_in);
+//							SYSU_PTraceVoid(TRACE_SETREGS,child_pid,NULL,&u_in);
+							WARNING("\tModifying syscall number rax=%x, process continue execution\n",u_in.orig_rax);
 						}else {			
 							kill(child_pid,SIGKILL);
-                                        		SYSU_PTraceVoid(TRACE_KILL,child_pid,0, 0);
+							PTRC_TraceKill(child_pid);;
 							WARNING("Process %d killed by parent\n",child_pid);
                                         		alarm(0);
                                         		return 1;
@@ -441,7 +445,8 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 					}
                                 }
                         }
-                        SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, 0, 0);
+//                        SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, 0, 0);
+			PTRC_TraceSyscall(child_pid,0);
                 }else
                         break;
         }

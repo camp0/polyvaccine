@@ -88,6 +88,7 @@ static ST_SysCallSuspicious ST_SysCallSuspiciousTable [] = {
         { __NR_write,           "write",        SYSCALL_LEVEL_MEDIUM },
         { __NR_exit,            "exit",         SYSCALL_LEVEL_HIGH },
         { __NR_open,            "open",         SYSCALL_LEVEL_HIGH},
+        { __NR_chmod,           "chmod",         SYSCALL_LEVEL_HIGH},
         { 0,			"none",		SYSCALL_LEVEL_INTERNAL}
 };
 #endif
