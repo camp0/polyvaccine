@@ -25,6 +25,7 @@
 #include "suspicious.h"
 #include "syscalls.h"
 #include "linux_syscalls.h"
+#include "freebsd_syscalls.h"
 #include "pvtrace.h"
 
 #define DEBUG_TRACER(a...) 
@@ -67,9 +68,11 @@ void printfhex(char *payload,int size) {
  */
 void SYSU_Init(){
 	ST_SysCallSuspicious *sys = &ST_SysCallSuspiciousTable[0];
+	ST_SyscallNode *n = &ST_SyscallTable[0];
 	int i;
 	tracer = (ST_Tracer*)malloc(sizeof(ST_Tracer)); 
 	tracer->syscalls = g_hash_table_new(g_direct_hash,g_direct_equal);
+	tracer->syscalltable = g_hash_table_new(g_direct_hash,g_direct_equal);
 	tracer->flow = NULL;
 	tracer->show_execution_path = FALSE;
 	tracer->block_syscalls_eax = FALSE;
@@ -92,6 +95,13 @@ void SYSU_Init(){
 		i++;
 		sys = &ST_SysCallSuspiciousTable[i];
         }
+	i = 0;	
+	while((n!=NULL)&&(n->name!=NULL)) {
+		g_hash_table_insert(tracer->syscalltable,GINT_TO_POINTER(n->number),n);
+		i++;
+		n = &ST_SyscallTable[i];
+	}
+	DEBUG0("syscalls avaiable %d\n",i);
         return ;
 }
 
@@ -148,9 +158,20 @@ void SYSU_Destroy(){
 }
 
 void SYSU_Stats() {
+        GHashTableIter iter;
+        gpointer k,v;
+
 	fprintf(stdout,"Tracer statistics\n");
 	fprintf(stdout,"\texecutions by tracer %d\n",ctx->incbytracer);
 	fprintf(stdout,"\texecutions by child %d\n",ctx->incbytracer);
+        fprintf(stdout,"\tExecuted syscalls\n");
+        g_hash_table_iter_init (&iter, tracer->syscalltable);
+        while (g_hash_table_iter_next (&iter, &k, &v)) {
+                ST_SyscallNode *nod = (ST_SyscallNode*)v;
+		if(nod->matchs>0) 
+                	fprintf(stdout,"\t\tsyscall(%s)matchs(%d)\n",nod->name,nod->matchs);
+        }
+
 	return;
 }
 
@@ -216,6 +237,7 @@ int SYSU_Wait(pid_t p, int report, int stopsig) {
               (since Linux 2.6.10) returns true if the child process was resumed by delivery of SIGCONT.
 */
 
+/*
 
 #ifdef DEBUG
 	int ifexisted = WIFEXITED(status);
@@ -242,7 +264,7 @@ int SYSU_Wait(pid_t p, int report, int stopsig) {
 	printf("ifstopsig=%d;ifcontinued=%d\n",ifstopsig,ifcontinued);
 	printf("\tbysigusr=%d;bysigtrap=%d\n",byusr1,bysigstop);
 #endif
-
+*/
 
 //	printf("---status = %d i=%d\n",status,i);
         //ST_ProcessExitCodes[i].received ++;
@@ -384,6 +406,7 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
         while(1) {
                 struct ST_SysCallFlow *scf;
 		ST_SysCallSuspicious *sus;
+		ST_SyscallNode *nod;
                 ret = PROCESS_RUNNING;
 		char *syscall_name;
 
@@ -392,8 +415,11 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 			PTRC_TraceGetRegisters(child_pid,&u_in);
 
 			syscall = REG_AX(u_in);
-
-                        if (syscall-1 >= 0 && syscall-1 < SIZE(linux_syscallnames) && (syscall_name=linux_syscallnames[syscall])) {
+			nod = (ST_SyscallNode*)g_hash_table_lookup(tracer->syscalltable,GINT_TO_POINTER(syscall));
+			if(nod) {
+				syscall_name = nod->name;
+				nod->matchs++;
+				printf("syscall_name = %s \n",syscall_name);
 
 				sus = (ST_SysCallSuspicious*)g_hash_table_lookup(tracer->syscalls,GINT_TO_POINTER(syscall));
 				if(sus != NULL) {
@@ -401,6 +427,7 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 						SYSU_AddSuspiciousSyscall(t,syscall_name,&u_in,0);		
 						WARNING("High suspicious syscall %s on memory\n",syscall_name);
 						WARNING("\tax=%x;bx=%x;cx=%x;dx=%x\n",REG_AX(u_in),REG_BX(u_in),REG_CX(u_in),REG_DX(u_in));
+						WARNING("\tcs=%x;ip=%x;di=%x;si=%x\n",REG_CS(u_in),REG_IP(u_in),REG_DI(u_in),REG_SI(u_in));
 
 						if(t->show_execution_path== TRUE) 
 							SYSU_PrintSuspiciousSysCalls();

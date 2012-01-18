@@ -100,6 +100,7 @@ typedef struct ST_ProcessSysCallFlow ST_ProcessSysCallFlow;
 
 struct ST_Tracer {
 	GHashTable *syscalls; // a pointer to ST_SysCallSuspicious
+	GHashTable *syscalltable; 
 	GSList *flow; // a single list of the syscalls maded by a process, stores ST_SysCall types
 	pid_t child_pid;
 	int show_execution_path;

@@ -7,7 +7,7 @@ INCLUDES =      -I../utils/ -I../opcodes/ \
 		`pkg-config --cflags glib-2.0 dbus-1` 
 
 noinst_HEADERS =	syscalls.h examples.h context.h examples64.h linux_syscalls.h suspicious.h polydetector.h \
-			examples64freebsd.h pvtrace.h
+			examples64freebsd.h pvtrace.h freebsd_syscalls.h
 
 bin_PROGRAMS = pvde sendexploit
 

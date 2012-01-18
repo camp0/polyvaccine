@@ -30,6 +30,8 @@
 #endif
 
 #include "debug.h"
+#include <stdio.h>
+#include <unistd.h>
 #include <sys/ptrace.h>
 #include <sys/types.h>
 
@@ -51,32 +53,14 @@
 #define REG_BX(a) a.r_rbx
 #define REG_CX(a) a.r_rcx
 #define REG_DX(a) a.r_rdx
+#define REG_CS(a) a.r_cs
+#define REG_IP(a) a.r_rip
+#define REG_DI(a) a.r_rdi
+#define REG_SI(a) a.r_rsi
 #endif
 
 
 
-#ifdef __LINUX__
-enum {
-	TRACE_SYSCALL = PTRACE_SYSCALL,
-	TRACE_TRACEME = PTRACE_TRACEME,
-	TRACE_O_TRACEFORK = PTRACE_O_TRACEFORK,
-	TRACE_GETREGS = PTRACE_GETREGS,
-	TRACE_SETREGS = PTRACE_SETREGS,
-	TRACE_KILL = PTRACE_KILL
-}ptrace_types;
-
-#endif
-#ifdef __FREEBSD__
-enum {
-	TRACE_SYSCALL = PT_SYSCALL,
-	TRACE_TRACEME = PT_TRACE_ME,
-	TRACE_O_TRACEFORK = 0,
-	TRACE_GETREGS = PT_GETREGS,
-	TRACE_SETREGS = PT_SETREGS,
-	TRACE_KILL = PT_KILL
-}ptrace_types;
-
-#endif
 
 int PTRC_TraceMe(void);
 int PTRC_TraceContinue(pid_t pid,int sig, char *addr);

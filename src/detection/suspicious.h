@@ -99,9 +99,10 @@ static ST_SysCallSuspicious ST_SysCallSuspiciousTable [] = {
         { SYS_fork,            	"fork",         SYSCALL_LEVEL_HIGH },
         { SYS_setuid,          	"setuid",         SYSCALL_LEVEL_HIGH },
         { SYS_reboot,      	"reboot",         SYSCALL_LEVEL_HIGH },
-        { SYS_write,           	"write",         SYSCALL_LEVEL_HIGH },
+        { SYS_write,           	"write",         SYSCALL_LEVEL_MEDIUM },
         { SYS_exit,            	"exit",         SYSCALL_LEVEL_HIGH },
         { SYS_open,            	"open",         SYSCALL_LEVEL_HIGH },
+        { SYS_chmod,           	"chmod",         SYSCALL_LEVEL_HIGH },
         { 0,                   	"none",         SYSCALL_LEVEL_INTERNAL}
 };
 #endif
