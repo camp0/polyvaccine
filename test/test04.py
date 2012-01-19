@@ -3,70 +3,54 @@ __copyright__ = "Copyright (C) 2011 by Luis Campo Giralte"
 __revision__ = "$Id$"
 __version__ = "0.1"
 
+import dbus
+import time
 import ctypes
 import sys
 sys.path.append("../src/detection/")
 import polydetector as d 
 import unittest
 import testrunner
+import subprocess
+import platform
 
 class Test_01(unittest.TestCase):
 
     	def setUp(self):
-		d.SYSU_Init()	
+		pass
+		#d.SYSU_Init()	
 	def tearDown(self):
-		d.SYSU_Destroy()	
+		pass
+		#d.SYSU_Destroy()	
 
 	def test_01_1(self):
-		uri = "GET /dashboard HTTP/1.1"
-		#ret = d.SYSU_AnalyzeSegmentMemory(uri,len(uri),0)
-		ret = 0 
-		self.assertEqual(ret,0)
+                "Test the pvde by sending 5 exploits "
+                pp = subprocess.Popen(["../src/detection/pvde"])
 
-	def test_01_2(self):
-		"Testing exploit axiagen.c with bindshell code on port 4141"
-		ex = "FROM:\r\nEHLO:\r\nCNIP:\r\nCNPO:\r\nCNHO: " \
-    			"\xb8\x96\x05\x08\xb9\x96\x05\x08\xba\x96\x05\x08\xbb\x96\x05\x08" \
-    			"\xbc\x96\x05\x08\xbd\x96\x05\x08\xbe\x96\x05\x08\xbf\x96\x05\x08" \
-    			"\xc0\x96\x05\x08" \
-    			"\x33\xc9\x83\xe9\xeb\xd9\xee\xd9\x74\x24\xf4\x5b\x81\x73\x13\xdc" \
-    			"\xc8\x06\xb7\x83\xeb\xfc\xe2\xf4\xed\x13\x55\xf4\x8f\xa2\x04\xdd" \
-    			"\xba\x90\x9f\x3e\x3d\x05\x86\x21\x9f\x9a\x60\xdf\xcc\xe5\x60\xe4" \
-    			"\x55\x29\x6c\xd1\x84\x98\x57\xe1\x55\x29\xcb\x37\x6c\xae\xd7\x54" \
-    			"\x11\x48\x54\xe5\x8a\x8b\x8f\x56\x6c\xae\xcb\x37\x4f\xa2\x04\xee" \
-    			"\x6c\xf7\xcb\x37\x95\xb1\xff\x07\xd7\x9a\x6e\x98\xf3\xbb\x6e\xdf" \
-    			"\xf3\xaa\x6f\xd9\x55\x2b\x54\xe4\x55\x29\xcb\x37" \
-    			"\r\nPASS:\r\n";
-		#ret = d.SYSU_AnalyzeSegmentMemory(ex,len(ex),0)
-		ret = 1
-		self.assertEqual(ret,1)	
+                time.sleep(1)
+                bus = dbus.SessionBus()
+                s = bus.get_object('polyvaccine.detector', '/polyvaccine/detector')
+                d = dbus.Interface(s,dbus_interface='polyvaccine.detector')
+		time.sleep(1)
 
-	def test_01_3(self):
-		"Testing generic x86 syscall for 32 bits opcodes "
-		ex = "\x90\x90\x90\x90\x90\xcd\x80\x90\x90"
+		arch = platform.architecture()[0]
+		if("32" in arch):
+			for i in xrange(0,5):
+				subprocess.Popen(["../src/detection/sendexploit","6"])
+				time.sleep(0.01)	
+		elif("64" in arch):
+			for i in xrange(0,5):
+				subprocess.Popen(["../src/detection/sendexploit","9"])
+				time.sleep(0.01)
+		value = d.ShellcodesDetected()
+                pp.kill()
+                pp.wait()
+		self.assertEqual(value,5)
 
-		ex = "\x8d\x4c\x24\x04\x83\xe4\xf0\xff\x71\xfc\x55\x89\xe5\x56\x51\x83\xec\x20\x8d" \
-		"\x4d\xea\xbe\x04\x00\x00\x00\xba\x0e\x00\x00\x00\x89\xf0\x53\xbb\x01\x00\x00" \
-		"\x00\xcd\x80\x5b\x89\xf0\x53\xbb\x01\x00\x00\x00\xcd\x80\x5b\x89\xf0\x53\xbb" \
-		"\x01\x00\x00\x00\xcd\x80\x5b\x89\xf0\x53\xbb\x01\x00\x00\x00\xcd\x80\x5b\x89" \
-		"\xf0\x53\xbb\x01\x00\x00\x00\xcd\x80\x5b\xb8\x01\x00\x00\x00\x53\xbb\x00\x00" \
-		"\x00\x00\xcd\x80\x5b\x83\xc4\x20\x59\x5e\xc9\x8d\x61\xfc\xc3"
 
-		#int size_bucle_1 = 110;
-
-		print len(ex)	
-		ret = d.SYSU_AnalyzeSegmentMemory(ex,len(ex),0)
-		self.assertEqual(ret,1)	
-	
-	def test_01_4(self):
-		"Testing generic x86 syscall for 64 bits opcodes "
-		ex = "\x90\x90\x90\x90\x90\x0f\x55\x90\x90"
-		value = 2	
-		self.assertEqual(value,1)	
-	
 	
 if __name__ == '__main__':
-	print "Testing opcodes"
+	print "Testing the detection engine"
 	suite=unittest.TestSuite()
     	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
 	result=testrunner.BasicTestRunner().run(suite)

@@ -41,6 +41,11 @@
 #define REG_BX(a) a.rbx
 #define REG_CX(a) a.rcx
 #define REG_DX(a) a.rdx
+#define REG_CS(a) a.cs
+#define REG_IP(a) a.rip
+#define REG_DI(a) a.rdi
+#define REG_SI(a) a.rsi
+
 #else
 #define REG_AX(a) a.orig_eax 
 #define REG_BX(a) a.ebx

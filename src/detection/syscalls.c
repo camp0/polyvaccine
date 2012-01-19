@@ -419,7 +419,6 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 			if(nod) {
 				syscall_name = nod->name;
 				nod->matchs++;
-				printf("syscall_name = %s \n",syscall_name);
 
 				sus = (ST_SysCallSuspicious*)g_hash_table_lookup(tracer->syscalls,GINT_TO_POINTER(syscall));
 				if(sus != NULL) {
@@ -447,7 +446,9 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 					if (sus->level == SYSCALL_LEVEL_MEDIUM) {
 						WARNING("Medium suspicious syscall %s on memory\n",syscall_name);
 					}
-                                }
+                                }else{
+					WARNING("Unsupported syscall number %d\n",syscall);
+				}
                         }
 //                        SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, 0, 0);
 			PTRC_TraceSyscall(child_pid,0);
