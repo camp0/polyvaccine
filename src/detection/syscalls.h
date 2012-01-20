@@ -43,6 +43,7 @@
 #include <sys/user.h>
 #include <sys/mman.h>
 #include "context.h"
+#include "pvtrace.h"
 
 #ifndef TRUE
 #define TRUE 1

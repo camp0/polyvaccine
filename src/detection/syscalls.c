@@ -402,6 +402,7 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 	PTRC_TraceSyscall(child_pid,SIGUSR1);
 //	SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, TRACE_O_TRACEFORK, (void*)SIGUSR1);
 	SYSU_DestroySuspiciousSyscalls();
+	DEBUG_TRACER("Parent(%d)ready for child execution\n",getpid());
         alarm(3);
         while(1) {
                 struct ST_SysCallFlow *scf;
@@ -593,7 +594,6 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, int offset) {
 
 			/* copy the jmp address to the next offset */ 
                         memcpy(tracer->executable_segment + (init_regs_size + 1) ,&(ctx->virtualeip) ,4);
-
                         if((ctx->virtualeip > ctx->size)||(ctx->virtualeip < 0)) {
                                 ctx->virtualeip = ctx->size;
 				DEBUG_TRACER("Avoid overflow execution,virtualeip(%d)size(%d)\n",ctx->virtualeip,ctx->size);
@@ -607,11 +607,13 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, int offset) {
 		ret = SYSU_TraceProcess(tracer,child_pid);
                 if (ret == 1) {
                         munmap(tracer->executable_segment,tracer->executable_segment_size);
+			free(tracer->segment_with_opcodes);
                         ctx->memory = NULL;
                         return 1;
                 }
         }
         munmap(tracer->executable_segment,tracer->executable_segment_size);
+	free(tracer->segment_with_opcodes);
         ctx->memory = NULL;
 	DEBUG0("End segment execution\n");
         return 0;

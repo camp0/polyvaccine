@@ -47,7 +47,7 @@ void HTAZ_Init() {
         _http.total_http_segments = 0;
 	_http.total_suspicious_segments = 0;
 	_http.total_valid_segments = 0;
-	_http.on_suspicious_header_break = FALSE;
+	_http.on_suspicious_header_break = TRUE;
 	_http.on_suspicious_parameter_break = TRUE;
 	_http.analyze_post_data = FALSE;
 	_http.show_unknown_http = FALSE;

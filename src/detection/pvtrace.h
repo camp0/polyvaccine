@@ -36,7 +36,7 @@
 #include <sys/types.h>
 
 #ifdef __LINUX__
-#ifdef __WORDSIZE == 64
+#if __WORDSIZE == 64
 #define REG_AX(a) a.orig_rax
 #define REG_BX(a) a.rbx
 #define REG_CX(a) a.rcx
@@ -45,12 +45,15 @@
 #define REG_IP(a) a.rip
 #define REG_DI(a) a.rdi
 #define REG_SI(a) a.rsi
-
 #else
 #define REG_AX(a) a.orig_eax 
 #define REG_BX(a) a.ebx
 #define REG_CX(a) a.ecx
 #define REG_DX(a) a.edx
+#define REG_CS(a) a.xcs
+#define REG_IP(a) a.eip
+#define REG_DI(a) a.edi
+#define REG_SI(a) a.esi
 #endif
 #endif // __LINUX__
 #ifdef __FREEBSD__
@@ -63,8 +66,6 @@
 #define REG_DI(a) a.r_rdi
 #define REG_SI(a) a.r_rsi
 #endif
-
-
 
 
 int PTRC_TraceMe(void);
