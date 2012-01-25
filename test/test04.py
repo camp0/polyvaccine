@@ -8,6 +8,8 @@ import time
 import ctypes
 import sys
 sys.path.append("../src/detection/")
+sys.path.append("../src/core/")
+import polyvaccine as pv
 import polydetector as d 
 import unittest
 import testrunner
@@ -48,10 +50,42 @@ class Test_01(unittest.TestCase):
 		self.assertEqual(value,5)
 
 
-	
+class Test_02(unittest.TestCase):
+
+	def setUp(self):
+		pass
+
+	def tearDown(self):
+		pass
+
+	def test_01_2(self):
+		"Test the pvde and the pvfe together"
+                pvde = subprocess.Popen(["../src/detection/pvde"])
+                time.sleep(0.5)
+                bus = dbus.SessionBus()
+                s = bus.get_object('polyvaccine.detector', '/polyvaccine/detector')
+                pvde_d = dbus.Interface(s,dbus_interface='polyvaccine.detector')
+		time.sleep(0.5)
+
+                pvfe = subprocess.Popen(["../src/core/pvfe","-i","./pcapfiles/http_slashdot.pcap","-p 80"])
+                time.sleep(0.5)
+                s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
+                pvfe_d = dbus.Interface(s,dbus_interface='polyvaccine.filter')
+		time.sleep(0.5)
+		value1 = pvde_d.ShellcodesDetected()
+		value2 = pvde_d.ExecutedSegments()
+		time.sleep(1)
+		pvfe.kill()
+		pvfe.wait()
+		pvde.kill()
+		pvde.wait()
+		self.assertEqual(value1,0)
+		self.assertEqual(value2,1)
+
 if __name__ == '__main__':
 	print "Testing the detection engine"
 	suite=unittest.TestSuite()
     	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
+    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_02))
 	result=testrunner.BasicTestRunner().run(suite)
 	

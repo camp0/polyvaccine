@@ -10,12 +10,12 @@ INCLUDES =      -I../opcodes/ \
 BUILT_SOURCES = $(srcdir)/polyvaccine_wrap.c
 
 libpolyvaccine_la_SOURCES =	system.c memory.c memorypool.c privatecallbacks.c flowpool.c \
-				connection.c packetdecoder.c authorized.c \
-				httpanalyzer.c httpcache.c polyengine.c 
+				connection.c packetdecoder.c authorized.c trustoffset.c \
+				httpanalyzer.c cache.c polyengine.c 
 
-noinst_HEADERS =	httpvalues.h flowpool.h connection.h httpcache.h polyengine.h \
+noinst_HEADERS =	httpvalues.h flowpool.h connection.h cache.h polyengine.h \
 			packetdecoder.h packetcontext.h httpflow.h authorized.h privatecallbacks.h \
-			httpanalyzer.h memory.h memorypool.h system.h 
+			httpanalyzer.h memory.h memorypool.h system.h trustoffset.h 
 
 libpolyvaccine_la_LIBADD = ../opcodes/libopcodes.la ../bus/libpolybus.la $(DEPS_LIBS) 
 libpolyvaccine_la_LDFLAGS = -version-info 0:0:0 $(DEPS_LIBS) `pkg-config --libs glib-2.0 dbus-1 libpcre`

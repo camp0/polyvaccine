@@ -47,13 +47,14 @@ void HTAZ_Init() {
         _http.total_http_segments = 0;
 	_http.total_suspicious_segments = 0;
 	_http.total_valid_segments = 0;
-	_http.on_suspicious_header_break = TRUE;
-	_http.on_suspicious_parameter_break = TRUE;
+	_http.on_suspicious_header_break = FALSE;
+	_http.on_suspicious_parameter_break = FALSE;
 	_http.analyze_post_data = FALSE;
 	_http.show_unknown_http = FALSE;
 
 	_http.expr_header = pcre_compile((char*)HTTP_HEADER_PARAM, PCRE_DOTALL, &_http.errstr, &erroffset, 0);
 	_http.pe_header = NULL;
+	_http.t_off = TROF_Init(); // Init the stack offsets
 
 	_http.methods = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
 	_http.parameters = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
@@ -102,6 +103,7 @@ void HTAZ_PrintfStats() {
  * HTAZ_Destroy - Destroy the fields created by the init function
  */
 void HTAZ_Destroy() {
+	TROF_Destroy(_http.t_off);
 	g_hash_table_destroy(_http.methods);
 	g_hash_table_destroy(_http.parameters);
 	pcre_free(_http.expr_header);
@@ -112,14 +114,14 @@ void HTAZ_Destroy() {
  * HTAZ_AnalyzeHttpRequest - Analyze the HTTP segment in order to evaluate if the fields exist on the http cache.
  * also tryes to find suspicious opcodes on the fields if it dont exist on the http cache.
  *
- * @param c The ST_HttpCache.
+ * @param c The ST_Cache.
  * @param f The ST_HttpFlow to analyze.
  *
  */
 
-int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
+int HTAZ_AnalyzeHttpRequest(ST_Cache *c,ST_HttpFlow *f){
 	ST_MemorySegment *seg = f->memhttp;
-	ST_HttpNode *nod = NULL;
+	ST_CacheNode *nod = NULL;
 	int ret,i,process_bytes;
 	int have_data = FALSE;
 	ST_HttpField *h_field = NULL;
@@ -141,6 +143,8 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 		offset = 0;
 		methodlen = _http.ovector[3]-_http.ovector[2];
 		urilen = _http.ovector[1]-_http.ovector[0];
+
+                TROF_Reset(_http.t_off); // Reset the trust offsets candidates
 
 		_http.total_http_bytes += seg->virtual_size;	
 		_http.total_http_segments ++;
@@ -164,7 +168,7 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 		}
 		snprintf(uri,urilen+1,"%s",&(seg->mem[offset]));
 		DEBUG0("flow(0x%x) HTTP uri(%s)offset(%d)length(%d)\n",f,uri,offset,urilen);
-		nod = HTCC_GetHeaderFromCache(c,uri);
+		nod = CACH_GetHeaderFromCache(c,uri);
 		if (nod ==NULL ) { // The uri is not in the cache we should analyze
 			int suspicious_opcodes = CO_CountSuspiciousOpcodes(uri,urilen);
 			if(suspicious_opcodes>1) {
@@ -180,6 +184,9 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 					return 1;
 				}
 			} 	
+		}else{
+			// The header is on the cache, marked the trust offsets
+			TROF_AddTrustOffset(_http.t_off,0,process_bytes);
 		}
 		process_bytes += urilen+2;
 		char *init = &seg->mem[urilen+2];
@@ -211,7 +218,7 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 							if(_http.show_unknown_http)
 								WARNING("Unknown parameter(%s)offset(%d)\n",http_line,process_bytes);
 						}
-						nod = HTCC_GetParameterFromCache(c,http_line);
+						nod = CACH_GetParameterFromCache(c,http_line);
 						if(nod == NULL) { // The parameter value is not in the cache
 							int suspicious_opcodes = CO_CountSuspiciousOpcodes(parameter,parameter_length);
 							if(suspicious_opcodes>1) {
@@ -223,6 +230,9 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
 									return 1;
 								}
 							}
+						}else{
+			                        	// The parameter is on the cache, marked the trust offsets
+                        				TROF_AddTrustOffset(_http.t_off,process_bytes,http_line_length+process_bytes);
 						}
 					}
 				}
@@ -276,9 +286,9 @@ int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f){
  *
  */
 
-void HTAZ_AnalyzeDummyHttpRequest(ST_HttpCache *c, ST_HttpFlow *f){
+void HTAZ_AnalyzeDummyHttpRequest(ST_Cache *c, ST_HttpFlow *f){
         ST_MemorySegment *seg = f->memhttp;
-        ST_HttpNode *nod = NULL;
+        ST_CacheNode *nod = NULL;
         int ret,i;
         ST_HttpField *h_field = NULL;
         ST_HttpField *p_field = NULL;
@@ -307,7 +317,7 @@ void HTAZ_AnalyzeDummyHttpRequest(ST_HttpCache *c, ST_HttpFlow *f){
                 snprintf(uri,urilen+1,"%s",&(seg->mem[offset]));
                 DEBUG0("authorized flow(0x%x) HTTP uri(%s)offset(%d)\n",f,uri,offset);
 		/* Adds the uri to the http cache */
-                HTCC_AddHeaderToCache(c,uri,HTTP_NODE_TYPE_DYNAMIC);
+                CACH_AddHeaderToCache(c,uri,NODE_TYPE_DYNAMIC);
 		
 		/* analyze the parameters of the http request */
                 char *init = &seg->mem[urilen+2];
@@ -328,7 +338,7 @@ void HTAZ_AnalyzeDummyHttpRequest(ST_HttpCache *c, ST_HttpFlow *f){
                                                 snprintf(parameter,(pend-init)+1,"%s",init);
                                                 DEBUG0("authorized flow(0x%x) HTTP parameter(%s)\n",f,http_line);
 						/* Adds the parameter to the httpcache */
-						HTCC_AddParameterToCache(c,http_line,HTTP_NODE_TYPE_DYNAMIC);
+						CACH_AddParameterToCache(c,http_line,NODE_TYPE_DYNAMIC);
                                         }
                                 }
                         }else{
@@ -381,3 +391,6 @@ int32_t HTAZ_GetNumberSuspiciousHTTPParameters(){
 int32_t HTAZ_GetNumberSuspiciousSegments() { return _http.total_suspicious_segments;}
 int32_t HTAZ_GetNumberValidSegments() { return _http.total_valid_segments;}
 
+ST_TrustOffsets *HTAZ_GetTrustOffsets(void){
+	return _http.t_off;
+}

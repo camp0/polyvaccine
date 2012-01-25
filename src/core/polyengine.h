@@ -39,9 +39,10 @@
 #include "connection.h"
 #include "flowpool.h"
 #include "memorypool.h"
-#include "httpcache.h"
+#include "cache.h"
 #include "system.h"
 #include "privatecallbacks.h"
+#include "trustoffset.h"
 #include "authorized.h"
 #include "banner.h"
 
@@ -63,7 +64,7 @@ struct ST_PolyEngine {
 	ST_Connection *conn;
 	ST_FlowPool *flowpool;
 	ST_MemoryPool *memorypool;
-	ST_HttpCache *httpcache;
+	ST_Cache *httpcache;
 	ST_AuthorizedHost *hosts;
 	GString *source;
 	pcap_t *pcap;

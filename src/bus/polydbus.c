@@ -285,16 +285,12 @@ void PODS_Method_Instrospect(DBusConnection *conn,DBusMessage *msg, void *data) 
 
         /* xml header instropection format */
         xml_data = g_string_new (instrospect_header);
-
         /* Now for every interface we publish their methods, signals and properties */
 	
 	while(item!= NULL) {	
                 interfaces = (ST_Interface*)item->data;
-                //interfaces = (ST_Interface*)&ST_PublicInterfaces[i];
 
                 /* Now the methods supported by the interface of the agent */
-                //printf("(%d)Checking interface '%s' (methods:%d)(signals:%d)props(%d)\n",i,
-                //      interfaces->name,interfaces->total_methods,interfaces->total_signals,interfaces->total_properties);
                 g_string_append_printf (xml_data," \n<interface name=\"%s\">\n  ",interfaces->name);
 
                 current = &interfaces->methods[0];
@@ -320,7 +316,6 @@ void PODS_Method_Instrospect(DBusConnection *conn,DBusMessage *msg, void *data) 
                 /* now check for signals */
                 /* TODO not implemented jet */
 		current = &interfaces->signals[0];
-		
 		
                 /* now check for properties */
                 current = &interfaces->properties[0];
@@ -366,18 +361,24 @@ void PODS_Method_Instrospect(DBusConnection *conn,DBusMessage *msg, void *data) 
  * @param interfacename
  * @param name
  * @param ptr
+ * @param off
  * @param length
  * @param hash
  * @param seq
  *
  */
 void PODS_SendSuspiciousSegment(DBusConnection *conn,char *objectname,char *interfacename,char *name,unsigned char *ptr,int length,
-	unsigned long hash, u_int32_t seq) {
+	int *start_off,int *end_off,unsigned long hash, u_int32_t seq) {
 	DBusMessage *msg;
-	DBusMessageIter iter,dataIter;
+	DBusMessageIter iter,dataIter,s_iter,e_iter;
 	dbus_int32_t len = length;
 	dbus_uint32_t dhash = hash;
 	dbus_uint32_t dseq = seq;
+	dbus_int32_t d_start_offset[8];
+	dbus_int32_t d_end_offset[8];
+	dbus_int32_t *s_off = d_start_offset;
+	dbus_int32_t *e_off = d_end_offset;
+	int i;
 
    	msg = dbus_message_new_signal(objectname,interfacename,name);
    	if (msg == NULL) {
@@ -390,6 +391,7 @@ void PODS_SendSuspiciousSegment(DBusConnection *conn,char *objectname,char *inte
          * 1 - arrray with the buffer and its lenght.
          * 2 - the hash of the connection flow.
          * 3 - the sequence number.
+	 * 4 - the trusted offset list.
          */
         dbus_message_iter_init_append(msg,&iter);
         dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, DBUS_TYPE_BYTE_AS_STRING, &dataIter);
@@ -398,6 +400,21 @@ void PODS_SendSuspiciousSegment(DBusConnection *conn,char *objectname,char *inte
 
         dbus_message_iter_append_basic(&iter,DBUS_TYPE_UINT32,&dhash);
         dbus_message_iter_append_basic(&iter,DBUS_TYPE_UINT32,&dseq);
+
+	for (i = 0;i<8; i++) {
+		d_start_offset[i] = start_off[i];
+		d_end_offset[i] = end_off[i];
+	}
+
+        dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "ii", &s_iter);
+	dbus_message_iter_append_fixed_array(&s_iter,DBUS_TYPE_INT32,&s_off,8);
+	dbus_message_iter_close_container(&iter,&s_iter);
+
+        dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "ii", &e_iter);
+	dbus_message_iter_append_fixed_array(&e_iter,DBUS_TYPE_INT32,&e_off,8);
+	dbus_message_iter_close_container(&iter,&e_iter);
+
+	DEBUG0("sending %d bytes to execute\n",len);
 
    	if (!dbus_connection_send(conn, msg, NULL)) {
       		fprintf(stderr, "Out Of Memory!\n");

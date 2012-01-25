@@ -7,9 +7,9 @@ temp_includes.append("../opcodes")
 temp_includes.append("../bus")
 temp_includes.append("../../.")
 
-source_files = ['polyvaccine_wrap.c', 'httpcache.c','polyengine.c','flowpool.c','connection.c']
+source_files = ['polyvaccine_wrap.c', 'cache.c','polyengine.c','flowpool.c','connection.c']
 source_files = source_files + ['privatecallbacks.c','packetdecoder.c','memory.c','memorypool.c','httpanalyzer.c','system.c']
-source_files = source_files + ['../bus/polydbus.c','../opcodes/counter.c','authorized.c']
+source_files = source_files + ['../bus/polydbus.c','../opcodes/counter.c','authorized.c','trustoffset.c']
 
 polyvaccine_module = Extension('_polyvaccine',
 	sources = source_files,

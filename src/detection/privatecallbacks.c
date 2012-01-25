@@ -26,6 +26,7 @@
 #include "callbacks.h"
 #include <stdio.h>
 #include <glib.h>
+#include "../core/trustoffset.h"
 
 /* Used for the Property Dbus interface */
 void __CMD_GenericPropertyGetter(DBusConnection *conn,DBusMessage *msg,int type, void *value) {
@@ -73,13 +74,18 @@ void PRCA_Signaling_AnalyzeSegment(DBusConnection *conn,DBusMessage *msg, void *
 	DBusMessageIter args;
 	unsigned char *buffer;
 	int ret,i;
-	dbus_int32_t length,value; 
+	dbus_int32_t length,value,s_ret,e_ret; 
 	DBusError error;
+	ST_TrustOffsets t_off;
 	unsigned char *array = p->buffer;
 	dbus_uint32_t hash;
 	dbus_uint32_t seq;
 	dbus_int32_t veredict;
-
+	dbus_int32_t *d_start_off;
+	dbus_int32_t *d_end_off;
+	int start_offset[8];
+	int end_offset[8];
+	
 	dbus_error_init(&error);
 
 	memset(p->buffer,0,MAX_DBUS_SEGMENT_BUFFER);
@@ -89,23 +95,38 @@ void PRCA_Signaling_AnalyzeSegment(DBusConnection *conn,DBusMessage *msg, void *
 	 * 1 - array byte (the suspicious buffer)
 	 * 2 - hash of the flow.
 	 * 3 - sequence number of the flow
+	 * 4 - start and end trusted offsets for execution.
 	 */
+
 	dbus_message_get_args(msg,&error,
 		DBUS_TYPE_ARRAY,DBUS_TYPE_BYTE,&array,&length,
 		DBUS_TYPE_UINT32,&hash,
 		DBUS_TYPE_UINT32,&seq,
+		DBUS_TYPE_ARRAY,DBUS_TYPE_INT32,&d_start_off,&s_ret,
+		DBUS_TYPE_ARRAY,DBUS_TYPE_INT32,&d_end_off,&e_ret,
 		DBUS_TYPE_INVALID);
 
-	DEBUG0("receive buffer lenght(%d)hash(%lu)seq(%lu)\n",
-		length,hash,seq);
+	DEBUG0("receive buffer lenght(%d)hash(%lu)seq(%lu)s_off_len(%d)e_off_len(%d)\n",
+		length,hash,seq,s_ret,e_ret);
 
+	TROF_SetStartOffsets(&t_off,d_start_off);
+	TROF_SetEndOffsets(&t_off,d_end_off);
+
+/*	for (i = 0;i<8;i++) {
+		start_offset[i] = d_start_off[i];
+		end_offset[i] = d_end_off[i];
+	} 
+	for (i =0;i<8;i++) fprintf(stdout,"(%d)",t_off.offsets_start[i]);
+	fprintf(stdout,"\n");
+	for (i =0;i<8;i++) fprintf(stdout,"[%d]",t_off.offsets_end[i]);
+*/
 	if(p->show_received_payload) {
 		fprintf(stdout,"Payload received:\n");
 		printfhex(array,length);
 		fprintf(stdout,"\n");
 	}
-	
-	ret = SYSU_AnalyzeSegmentMemory(array,length,0);
+
+	ret = SYSU_AnalyzeSegmentMemory(array,length,&t_off);
 	if(ret)
 		p->shellcodes_detected++;
 	SYSU_DestroySuspiciousSyscalls();

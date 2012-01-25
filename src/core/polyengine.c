@@ -95,7 +95,7 @@ void POEG_Init() {
 	_polyEngine->conn = COMN_Init();
 	_polyEngine->flowpool = FLPO_Init();
 	_polyEngine->memorypool = MEPO_Init();
-	_polyEngine->httpcache = HTCC_Init();
+	_polyEngine->httpcache = CACH_Init();
 	_polyEngine->hosts = AUHT_Init();
 	COMN_SetFlowPool(_polyEngine->conn,_polyEngine->flowpool);
 	COMN_SetMemoryPool(_polyEngine->conn,_polyEngine->memorypool);
@@ -209,7 +209,7 @@ void POEG_StopAndExit() {
 	PKDE_PrintfStats();
         MEPO_Stats(_polyEngine->memorypool);
         FLPO_Stats(_polyEngine->flowpool);
-        HTCC_Stats(_polyEngine->httpcache);
+        CACH_Stats(_polyEngine->httpcache);
         HTAZ_PrintfStats();
 	POEG_Destroy();
 	exit(0);
@@ -224,7 +224,7 @@ void POEG_Destroy() {
 	FLPO_Destroy(_polyEngine->flowpool);
 	MEPO_Destroy(_polyEngine->memorypool);
 	COMN_Destroy(_polyEngine->conn);
-	HTCC_Destroy(_polyEngine->httpcache);
+	CACH_Destroy(_polyEngine->httpcache);
 	AUHT_Destroy(_polyEngine->hosts);
 	PKCX_Destroy();
 	g_free(_polyEngine);
@@ -239,23 +239,23 @@ void POEG_Stats() {
 	
 	MEPO_Stats(_polyEngine->memorypool);
 	FLPO_Stats(_polyEngine->flowpool);
-	HTCC_Stats(_polyEngine->httpcache);
+	CACH_Stats(_polyEngine->httpcache);
 	HTAZ_PrintfStats();
 }
 
 /**
  * POEG_AddToHttpCache - Show statistics related to the ST_PolyEngine
  *
- * @param type the cache type (HTTP_NODE_TYPE_STATIC,HTTP_NODE_TYPE_DYNAMIC)
+ * @param type the cache type (NODE_TYPE_STATIC,NODE_TYPE_DYNAMIC)
  * @param value the parameter
  * 
  */
 void POEG_AddToHttpCache(int type,char *value){
 	if(_polyEngine->httpcache) {
-		if (type == HTTP_CACHE_HEADER )
-			HTCC_AddHeaderToCache(_polyEngine->httpcache,value,HTTP_NODE_TYPE_STATIC);
-		else if (type == HTTP_CACHE_PARAMETER) 
-			HTCC_AddParameterToCache(_polyEngine->httpcache,value,HTTP_NODE_TYPE_STATIC);
+		if (type == CACHE_HEADER )
+			CACH_AddHeaderToCache(_polyEngine->httpcache,value,NODE_TYPE_STATIC);
+		else if (type == CACHE_PARAMETER) 
+			CACH_AddParameterToCache(_polyEngine->httpcache,value,NODE_TYPE_STATIC);
 	}
 }
 
@@ -263,11 +263,12 @@ void POEG_AddToHttpCache(int type,char *value){
  * POEG_SendSuspiciousSegmentToExecute - Sends a suspicious segment to the detection engine. 
  *
  * @param seg the ST_MemorySegment.
+ * @param off the trusted offset list.
  * @param hash
  * @param seq
  * 
  */
-void POEG_SendSuspiciousSegmentToExecute(ST_MemorySegment *seg,unsigned long hash, uint32_t seq) {
+void POEG_SendSuspiciousSegmentToExecute(ST_MemorySegment *seg,ST_TrustOffsets *t_off,unsigned long hash, uint32_t seq) {
 
 	if(_polyEngine->bus == NULL) {
                 DEBUG0("Cannot send suspicious segment over dbus, no connection available\n");
@@ -277,7 +278,11 @@ void POEG_SendSuspiciousSegmentToExecute(ST_MemorySegment *seg,unsigned long has
 		POLYVACCINE_DETECTION_OBJECT,
 		POLYVACCINE_DETECTION_INTERFACE,
 		"Analyze",
-		seg->mem,seg->virtual_size,hash,seq);
+		seg->mem,
+		seg->virtual_size,
+		TROF_GetStartOffsets(t_off),
+		TROF_GetEndOffsets(t_off),
+		hash,seq);
 	return;
 }
 
@@ -311,6 +316,7 @@ void POEG_SetLearningMode() {
 void POEG_Run() {
 	ST_HttpFlow *flow;
 	ST_MemorySegment *memseg;
+	ST_TrustOffsets *trust_offsets = NULL;
 	register int i;
 	int nfds,usepcap,ret,update_timers;
         DBusWatch *local_watches[MAX_WATCHES];
@@ -417,7 +423,9 @@ void POEG_Run() {
 								}else{
 									ret = HTAZ_AnalyzeHttpRequest(_polyEngine->httpcache,flow);
 									if(ret) { // the segment is suspicious
+										trust_offsets =  HTAZ_GetTrustOffsets();
 										POEG_SendSuspiciousSegmentToExecute(flow->memhttp,
+											trust_offsets,		
 											hash,PKCX_GetTCPSequenceNumber());
 									}else{ // the segment is correct 
 										POEG_SendVerifiedSegment(hash,

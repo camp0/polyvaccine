@@ -44,6 +44,7 @@
 #include <sys/mman.h>
 #include "context.h"
 #include "pvtrace.h"
+#include "../core/trustoffset.h"
 
 #ifndef TRUE
 #define TRUE 1
@@ -183,6 +184,6 @@ void SYSU_Init(void);
 void SYSU_Destroy(void);
 void SYSU_ShowExecutionPath(int value);
 void SYSU_BlockDetectedSyscalls(int value);
-int SYSU_AnalyzeSegmentMemory(char *buffer, int size, int offset);
+int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off);
 
 #endif

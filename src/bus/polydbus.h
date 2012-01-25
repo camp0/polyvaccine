@@ -60,7 +60,7 @@ DBusWatch *PODS_GetWatchByIndex(int i);
 int PODS_GetEventsByIndex(int i);
 void PODS_Handler(DBusConnection *conn,short events, DBusWatch *watch);
 void PODS_SendSuspiciousSegment(DBusConnection *conn,char *objectname,char *interfacename,char *name,unsigned char *ptr,int length,
-	unsigned long hash, u_int32_t seq);
+	int *start_off, int *end_off,unsigned long hash, u_int32_t seq);
 void PODS_SendVerifiedSegment(DBusConnection *conn,char *objectname,char *interfacename, char *name,
 	unsigned long hash, u_int32_t seq,int veredict);
 

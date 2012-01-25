@@ -163,7 +163,7 @@ void SYSU_Stats() {
 
 	fprintf(stdout,"Tracer statistics\n");
 	fprintf(stdout,"\texecutions by tracer %d\n",ctx->incbytracer);
-	fprintf(stdout,"\texecutions by child %d\n",ctx->incbytracer);
+	fprintf(stdout,"\texecutions by child %d\n",ctx->incbychild);
         fprintf(stdout,"\tExecuted syscalls\n");
         g_hash_table_iter_init (&iter, tracer->syscalltable);
         while (g_hash_table_iter_next (&iter, &k, &v)) {
@@ -505,12 +505,13 @@ void sigsegv_handler(int sig, siginfo_t *info, void *data) {
 
 
 
-int SYSU_AnalyzeSegmentMemory(char *buffer, int size, int offset) {
+int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
 	void (*oldsig)(int);
         struct sigaction sact;
 	struct sigaction susr;
         pid_t child_pid,parent_pid;
         int ret,real_size,init_regs_size,jump_size;
+	int offset = 0;
 
         sigemptyset( &sact.sa_mask );
         sact.sa_flags = 0;
@@ -560,12 +561,25 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, int offset) {
 	tracer->segment_with_opcodes = malloc(tracer->executable_segment_size);
         memcpy(tracer->segment_with_opcodes,tracer->executable_segment,tracer->executable_segment_size);
 
+	ctx->t_off = t_off;
+	ctx->t_off->index = 0;
         ctx->memory = tracer->executable_segment;
 	parent_pid = getpid();
         ctx->parent_pid = getpid();
         ctx->size = tracer->executable_segment_size;
-	int counter = 0;
-        for (ctx->virtualeip = offset; ctx->virtualeip < ctx->size; ctx->virtualeip ++) {
+	int index = 0;
+
+	ctx->virtualeip = 0;
+	do {
+
+		// TODO check all the trusted offsets to avoid fork operations
+		if((t_off->offsets_start[index]==0)&&(t_off->offsets_end[index]>0) ){
+			DEBUG0("avoid offset %d due to is trusted (%d,%d)\n",
+				ctx->virtualeip,t_off->offsets_start[index],t_off->offsets_end[index]);
+			ctx->virtualeip = t_off->offsets_end[index]+1;
+			index++;	
+		}	
+
 		ctx->isptracechild = FALSE;
 		ctx->incbytracer++;
 		got_child_signal = 0;
@@ -611,7 +625,9 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, int offset) {
                         ctx->memory = NULL;
                         return 1;
                 }
-        }
+		ctx->virtualeip++;	
+	}while(ctx->virtualeip < ctx->size);
+	
         munmap(tracer->executable_segment,tracer->executable_segment_size);
 	free(tracer->segment_with_opcodes);
         ctx->memory = NULL;

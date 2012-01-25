@@ -1,7 +1,7 @@
 %module polyvaccine 
 
 %{
-#include "httpcache.h"
+#include "cache.h"
 #include "flowpool.h"
 #include "packetcontext.h"
 #include "memorypool.h"
@@ -17,7 +17,7 @@
 %apply char * { unsigned char*}
 %apply unsigned int { time_t }
 
-%include "httpcache.h"
+%include "cache.h"
 %include "flowpool.h"
 %include "memorypool.h"
 %include "memory.h"

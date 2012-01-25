@@ -119,7 +119,12 @@ void main(int argc, char **argv) {
 	POEG_SetSource(source);
 	POEG_SetSourcePort(port);
 	POEG_ShowUnknownHttp(show_unknown);
-	
+
+	/* for debugging and test */
+	POEG_AddToHttpCache(1,"Connection: keep-alive");	
+	POEG_AddToHttpCache(1,"DNT: 1");	
+	POEG_AddToHttpCache(1,"Accept-Language: es-ES,es;q=0.8");	
+
 	POEG_Start();
 	POEG_Run();
 

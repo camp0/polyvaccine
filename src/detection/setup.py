@@ -8,7 +8,7 @@ temp_includes.append("../bus")
 temp_includes.append("../../")
 
 source_files = [ 'polydetector_wrap.c','suspicious.c','syscalls.c','context.c','privatecallbacks.c','pvtrace.c','polydetector.c' ]
-source_files = source_files + ['../bus/polydbus.c','../core/system.c']
+source_files = source_files + ['../bus/polydbus.c','../core/system.c','../core/trustoffset.c']
 
 polydetector_module = Extension('_polydetector',
         sources= source_files,

@@ -22,41 +22,33 @@
  *
  */
 
-#ifndef _CONTEXT_H_
-#define _CONTEXT_H_
+#ifndef _TRUSTOFFSET_H_
+#define _TRUSTOFFSET_H_
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#include "../core/trustoffset.h"
+#include <sys/types.h>
+#include <glib.h>
 #include "debug.h"
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <sys/time.h>
 
-struct ST_SharedContext {
-	ST_TrustOffsets *t_off;
-	struct timeval total_latency;
-        int isptracechild;
-        pid_t child_pid;
-	pid_t parent_pid;
-        int signal;
-        int virtualeip;
-        int size;
-        int incbytracer;
-        int incbychild;
-	int status;
-	int request;
-	int cpu_execed;
-        void *memory;
+#define MAX_OFFSETS_ALLOCATED 8 
+
+struct ST_TrustOffsets {
+	int offsets_start[MAX_OFFSETS_ALLOCATED];
+	int offsets_end[MAX_OFFSETS_ALLOCATED];
+	int index;
 };
-typedef struct ST_SharedContext ST_SharedContext;
 
-ST_SharedContext *COXT_GetContext(void);
-ST_SharedContext *COXT_AttachContext(void);
-void COXT_FreeContext(ST_SharedContext *c);
-void COXT_Printf(ST_SharedContext *c);
+typedef struct ST_TrustOffsets ST_TrustOffsets;
 
+ST_TrustOffsets *TROF_Init(void);
+void TROF_Destroy(ST_TrustOffsets *t);
+void TROF_Reset(ST_TrustOffsets *t);
+void TROF_AddTrustOffset(ST_TrustOffsets *t, int start, int end);
+int *TROF_GetStartOffsets(ST_TrustOffsets *t);
+int *TROF_GetEndOffsets(ST_TrustOffsets *t);
+void TROF_SetStartOffsets(ST_TrustOffsets *t,int *s);
+void TROF_SetEndOffsets(ST_TrustOffsets *t, int *e);
 #endif

@@ -417,7 +417,7 @@ void PRCA_Method_GetHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void
         dbus_message_iter_init(reply, &iter);
         dbus_message_iter_init_append(reply, &iter);
 
-	l = g_hash_table_get_keys(p->httpcache->http_header_cache);
+	l = g_hash_table_get_keys(p->httpcache->header_cache);
 	while(l != NULL) {
 		/** TODO 
 		 * Dbus have a bug or some limit, so only 255 items of 
@@ -451,7 +451,7 @@ void PRCA_Method_GetHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, v
         dbus_message_iter_init(reply, &iter);
         dbus_message_iter_init_append(reply, &iter);
 
-        l = g_hash_table_get_keys(p->httpcache->http_parameter_cache);
+        l = g_hash_table_get_keys(p->httpcache->parameter_cache);
 
         while(l != NULL) {
 		 /** TODO 
@@ -489,7 +489,7 @@ void PRCA_Method_AddHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void
         else
                 dbus_message_iter_get_basic(&args, &value);
 
-	HTCC_AddHeaderToCache(p->httpcache,value,HTTP_NODE_TYPE_DYNAMIC);
+	CACH_AddHeaderToCache(p->httpcache,value,NODE_TYPE_DYNAMIC);
 
         __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,ret);
 	return;
@@ -511,7 +511,7 @@ void PRCA_Method_AddHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, v
         else
                 dbus_message_iter_get_basic(&args, &value);
 
-	HTCC_AddParameterToCache(p->httpcache,value,HTTP_NODE_TYPE_DYNAMIC);
+	CACH_AddParameterToCache(p->httpcache,value,NODE_TYPE_DYNAMIC);
 
         __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,ret);
         return;
@@ -522,7 +522,7 @@ void PRCA_Property_GetNumberHttpCacheHeaders(DBusConnection *conn,DBusMessage *m
         ST_PolyEngine *p = (ST_PolyEngine*)data;
         dbus_int32_t value = 0;
 
-        value = HTCC_GetNumberHttpHeaders(p->httpcache); 
+        value = CACH_GetNumberHeaders(p->httpcache); 
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
@@ -531,7 +531,7 @@ void PRCA_Property_GetNumberHttpCacheParameters (DBusConnection *conn,DBusMessag
         ST_PolyEngine *p = (ST_PolyEngine*)data;
         dbus_int32_t value = 0;
 
-        value = HTCC_GetNumberHttpParameters(p->httpcache);
+        value = CACH_GetNumberParameters(p->httpcache);
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }

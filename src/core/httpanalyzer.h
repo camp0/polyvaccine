@@ -31,7 +31,8 @@
 
 #include <pcre.h>
 #include "httpflow.h"
-#include "httpcache.h"
+#include "cache.h"
+#include "trustoffset.h"
 #include <sys/types.h>
 #include <glib.h>
 #include "debug.h"
@@ -45,6 +46,7 @@ struct ST_HttpAnalyzer{
         pcre *expr_header;
         pcre_extra *pe_header;
         const char *errstr;
+	ST_TrustOffsets *t_off;
         int ovector[OVECCOUNT];
 	/* configuration options */	
 	int on_suspicious_header_break;
@@ -65,10 +67,12 @@ typedef struct ST_HttpAnalyzer ST_HttpAnalyzer;
 
 void HTAZ_Init(void);
 void HTAZ_Destroy(void);
-int HTAZ_AnalyzeHttpRequest(ST_HttpCache *c,ST_HttpFlow *f);
-void HTAZ_AnalyzeDummyHttpRequest(ST_HttpCache *c, ST_HttpFlow *f);
+int HTAZ_AnalyzeHttpRequest(ST_Cache *c,ST_HttpFlow *f);
+void HTAZ_AnalyzeDummyHttpRequest(ST_Cache *c, ST_HttpFlow *f);
 void HTAZ_SetForceAnalyzeHttpPostData(int value);
 void HTAZ_ShowUnknownHttp(int value);
+
+ST_TrustOffsets *HTAZ_GetTrustOffsets(void);
 
 /* Service functions */
 int32_t HTAZ_GetNumberValidHTTPHeaders(void); 

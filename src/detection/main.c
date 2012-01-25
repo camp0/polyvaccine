@@ -106,7 +106,6 @@ void main(int argc, char **argv) {
 	if(show_received_payload == TRUE)
 		PODT_ShowReceivedPayload(show_received_payload);
 
-	printf("block_syscalls=%d\n",block_syscalls);
 	PODT_BlockDetectedSyscalls(block_syscalls);
 	PODT_ShowExecutionPath(show_execution_path);	
 	PODT_Run();

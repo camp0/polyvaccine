@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef _HTTPCACHE_H_
-#define _HTTPCACHE_H_
+#ifndef _CACHE_H_
+#define _CACHE_H_
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -34,25 +34,25 @@
 #include "debug.h"
 
 enum {
-	HTTP_NODE_TYPE_STATIC = 0,
-	HTTP_NODE_TYPE_DYNAMIC
+	NODE_TYPE_STATIC = 0,
+	NODE_TYPE_DYNAMIC
 };
 
 enum {
-	HTTP_CACHE_HEADER = 0,
-	HTTP_CACHE_PARAMETER 
+	CACHE_HEADER = 0,
+	CACHE_PARAMETER 
 };
 
-struct ST_HttpNode {
+struct ST_CacheNode {
 	int32_t matchs;
 	int type;
 };
 
-typedef struct ST_HttpNode ST_HttpNode;
+typedef struct ST_CacheNode ST_CacheNode;
 
-struct ST_HttpCache {
-	GHashTable *http_header_cache;
-	GHashTable *http_parameter_cache;
+struct ST_Cache {
+	GHashTable *header_cache;
+	GHashTable *parameter_cache;
 	int32_t header_hits;
 	int32_t header_fails;
 	int32_t parameter_hits;
@@ -62,17 +62,17 @@ struct ST_HttpCache {
 	int32_t parameter_suspicious_opcodes;
 };
 
-typedef struct ST_HttpCache ST_HttpCache;
+typedef struct ST_Cache ST_Cache;
 
-ST_HttpCache *HTCC_Init(void);
-void HTCC_Destroy(ST_HttpCache *c);
-void HTCC_AddHeaderToCache(ST_HttpCache *c,char *value,int type);
-void HTCC_AddParameterToCache(ST_HttpCache *c,char *value,int type);
-ST_HttpNode *HTCC_GetHeaderFromCache(ST_HttpCache *c,char *value);
-ST_HttpNode *HTCC_GetParameterFromCache(ST_HttpCache *c,char *value);
-void HTCC_Stats(ST_HttpCache *c);
+ST_Cache *CACH_Init(void);
+void CACH_Destroy(ST_Cache *c);
+void CACH_AddHeaderToCache(ST_Cache *c,char *value,int type);
+void CACH_AddParameterToCache(ST_Cache *c,char *value,int type);
+ST_CacheNode *CACH_GetHeaderFromCache(ST_Cache *c,char *value);
+ST_CacheNode *CACH_GetParameterFromCache(ST_Cache *c,char *value);
+void CACH_Stats(ST_Cache *c);
 
-int32_t HTCC_GetNumberHttpHeaders(ST_HttpCache *c);
-int32_t HTCC_GetNumberHttpParameters(ST_HttpCache *c);
+int32_t CACH_GetNumberHeaders(ST_Cache *c);
+int32_t CACH_GetNumberParameters(ST_Cache *c);
 
 #endif
