@@ -40,6 +40,7 @@ static ST_HttpAnalyzer _http;
 void HTAZ_Init() {
 	register int i;
 	int erroffset;
+	ST_HttpField *f;
 
         _http.suspicious_headers = 0;
         _http.suspicious_parameters = 0;
@@ -58,13 +59,22 @@ void HTAZ_Init() {
 
 	_http.methods = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
 	_http.parameters = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
-	for(i = 0;i<HTTP_HEADER_UNKNOWN;i++) {
-		g_hash_table_insert(_http.methods,g_strdup(ST_HttpTypeHeaders[i].name),&(ST_HttpTypeHeaders[i]));
-		DEBUG1("Adding HTTP (%s)(0x%x) header type\n",ST_HttpTypeHeaders[i].name,&(ST_HttpTypeHeaders[i]));
+
+	f = &ST_HttpTypeHeaders[0];
+	i = 0;
+	while((f->name!= NULL)) {
+		g_hash_table_insert(_http.methods,g_strdup(f->name),f);
+		DEBUG1("Adding HTTP (%s)(0x%x) header type\n",f->name,f);
+		i ++;
+		f = &ST_HttpTypeHeaders[i];
 	}	
-	for (i = 0;i<HTTP_MAX_FIELD;i++) {
-		g_hash_table_insert(_http.parameters,g_strdup(ST_HttpFields[i].name),&(ST_HttpFields[i]));
-		DEBUG1("Adding HTTP (%s)(0x%x) parameter type\n",ST_HttpFields[i].name,&(ST_HttpFields[i]));
+	f = &ST_HttpFields[0];
+	i = 0;
+	while((f->name!= NULL)) {
+		g_hash_table_insert(_http.parameters,g_strdup(f->name),f);
+		DEBUG1("Adding HTTP (%s)(0x%x) parameter type\n",f->name,f);
+		i++;
+		f = &ST_HttpFields[i];
 	}	
 }
 
@@ -82,6 +92,7 @@ void HTAZ_SetForceAnalyzeHttpPostData(int value){
  */
 void HTAZ_PrintfStats() {
 	register int i;
+	ST_HttpField *f;
 
 	fprintf(stdout,"HTTP analyzer statistics\n");
 	fprintf(stdout,"\ttotal segments %ld\n",_http.total_http_segments);
@@ -89,12 +100,21 @@ void HTAZ_PrintfStats() {
 	fprintf(stdout,"\ttotal suspicious segments %ld\n",_http.total_suspicious_segments);
 	fprintf(stdout,"\ttotal valid segments %ld\n",_http.total_valid_segments);
 	fprintf(stdout,"\tHeaders:\n");
-	for (i = 0;i<=HTTP_HEADER_UNKNOWN;i++) {
-		fprintf(stdout,"\t\t%s=%d\n",ST_HttpTypeHeaders[i].name,ST_HttpTypeHeaders[i].matchs);
-	}	
+
+        f = &ST_HttpTypeHeaders[0];
+        i = 0;
+        while((f->name!= NULL)) {
+		fprintf(stdout,"\t\t%s=%d\n",f->name,f->matchs);
+                i ++;
+                f = &ST_HttpTypeHeaders[i];
+        }
 	fprintf(stdout,"\tParameters:\n");
-	for (i = 0;i<HTTP_MAX_FIELD;i++) {
-		fprintf(stdout,"\t\t%s=%d\n",ST_HttpFields[i].name,ST_HttpFields[i].matchs);
+	f = &ST_HttpFields[0];
+	i = 0;
+	while((f->name!= NULL)) {
+		fprintf(stdout,"\t\t%s=%d\n",f->name,f->matchs);
+		i++;
+		f = &ST_HttpFields[i];
 	}	
 	return;
 }

@@ -65,6 +65,13 @@ static ST_HttpField ST_HttpTypeHeaders[] = {
                 .check_cache    =       TRUE
         },
         {
+                .nfield         =       HTTP_HEADER_OPTIONS,
+                .name           =       "OPTIONS",
+                .matchs         =       0,
+                .have_data      =       0,
+                .check_cache    =       TRUE
+        },
+        {
                 .nfield         =       HTTP_HEADER_HEAD,
                 .name           =      	"HEAD",
                 .matchs         =       0,
@@ -186,8 +193,7 @@ enum {
 	HTTP_FIELD_PROXY_CONNECTION,
 	HTTP_FIELD_CONTENT_FILTER_HELPER,
 
-	HTTP_FIELD_UNKNOWN, // just for counting pourposes
-	HTTP_MAX_FIELD
+	HTTP_FIELD_UNKNOWN // just for counting pourposes
 };
 
 /* Notas de Campos:
@@ -196,7 +202,7 @@ enum {
  * X-McProxyFilter: Usado por el Firewall de Mac Affee para ocultar info.
  *
  */ 
-static ST_HttpField ST_HttpFields [HTTP_MAX_FIELD] = {
+static ST_HttpField ST_HttpFields [] = {
 	{ HTTP_FIELD_CACHE_CONTROL,		"Cache-Control",	0,0,	TRUE },
 	{ HTTP_FIELD_CONNECTION,		"Connection",		0,0,	TRUE },
 	{ HTTP_FIELD_DATE,			"Date",			0,0,	TRUE },
@@ -264,8 +270,8 @@ static ST_HttpField ST_HttpFields [HTTP_MAX_FIELD] = {
 	{ HTTP_FIELD_USER_AGENT_2,		"user-agent",		0,0,	TRUE },
 	{ HTTP_FIELD_PROXY_CONNECTION,		"Proxy-Connection",	0,0,	TRUE },
 	{ HTTP_FIELD_CONTENT_FILTER_HELPER,	"Content-Filter-Helper",0,0,	TRUE },
-	{ HTTP_FIELD_UNKNOWN,			"Unknown parameter",	0,0,	TRUE }
-
+	{ HTTP_FIELD_UNKNOWN,			"Unknown parameter",	0,0,	TRUE },
+	{}
 };
 
 int HT_GetHeaderMethod(char *data) {
