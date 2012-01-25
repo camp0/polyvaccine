@@ -46,21 +46,67 @@ enum {
 	HTTP_HEADER_PUT,
 	HTTP_HEADER_DELETE,
 	HTTP_HEADER_TRACE,
-	HTTP_HEADER_UNKNOWN,
-	
-	HTTP_MAX_HEADER
+	HTTP_HEADER_UNKNOWN
 };
 
-static ST_HttpField ST_HttpTypeHeaders[HTTP_MAX_HEADER] = {
-	{ HTTP_HEADER_GET,		"GET",		0,0,	TRUE},
-	{ HTTP_HEADER_POST,		"POST",		0,1,	TRUE},
-	{ HTTP_HEADER_OPTIONS,		"OPTIONS",	0,0,	TRUE},
-	{ HTTP_HEADER_HEAD,		"HEAD",		0,0,	TRUE},
-	{ HTTP_HEADER_CONNECT,		"CONNECT",	0,0,	TRUE},
-	{ HTTP_HEADER_PUT,		"PUT",		0,0,	TRUE},
-	{ HTTP_HEADER_DELETE,		"DELETE",	0,0,	TRUE},
-	{ HTTP_HEADER_TRACE,		"TRACK",	0,0,	TRUE},
-	{ HTTP_HEADER_UNKNOWN,		"UNKNOWN",	0,0,	TRUE}
+static ST_HttpField ST_HttpTypeHeaders[] = {
+	{ 
+		.nfield		=	HTTP_HEADER_GET,		
+		.name		=	"GET",		
+		.matchs		=	0,
+		.have_data	=	0,
+		.check_cache	=	TRUE
+	},
+        {
+                .nfield         =       HTTP_HEADER_POST,
+                .name           =       "POST",
+                .matchs         =       0,
+                .have_data      =       TRUE,
+                .check_cache    =       TRUE
+        },
+        {
+                .nfield         =       HTTP_HEADER_HEAD,
+                .name           =      	"HEAD",
+                .matchs         =       0,
+                .have_data      =       0,
+                .check_cache    =       TRUE
+        },
+        {
+                .nfield         =       HTTP_HEADER_CONNECT,
+                .name           =       "CONNECT",
+                .matchs         =       0,
+                .have_data      =       0,
+                .check_cache    =       TRUE
+        },
+        {
+                .nfield         =       HTTP_HEADER_PUT,
+                .name           =       "PUT",
+                .matchs         =       0,
+                .have_data      =       0,
+                .check_cache    =       TRUE
+        },
+        {
+                .nfield         =       HTTP_HEADER_DELETE,
+                .name           =       "DELETE",
+                .matchs         =       0,
+                .have_data      =       0,
+                .check_cache    =       TRUE
+        },
+        {
+                .nfield         =       HTTP_HEADER_TRACE,
+                .name           =       "TRACE",
+                .matchs         =       0,
+                .have_data      =       0,
+                .check_cache    =       TRUE
+        },
+        {
+                .nfield         =       HTTP_HEADER_UNKNOWN,
+                .name           =       "UNKNOWN",
+                .matchs         =       0,
+                .have_data      =       0,
+                .check_cache    =       TRUE
+        },
+	{}
 };
 
 enum {
@@ -225,7 +271,7 @@ static ST_HttpField ST_HttpFields [HTTP_MAX_FIELD] = {
 int HT_GetHeaderMethod(char *data) {
 	register int i;
 
-	for (i = HTTP_HEADER_GET;i< HTTP_MAX_HEADER;i++)
+	for (i = HTTP_HEADER_GET;i< HTTP_HEADER_UNKNOWN;i++)
         	if(strncmp(ST_HttpTypeHeaders[i].name,data,strlen(ST_HttpTypeHeaders[i].name)) == 0) 
                 	return i;
 	return HTTP_HEADER_UNKNOWN;

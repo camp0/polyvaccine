@@ -104,7 +104,8 @@ int CO_CountSuspiciousOpcodes(char *data, int datasize) {
         return count;
 }
 
-
+// TODO this function should be optimized, by a tree or any other 
+// structure. check performance with valgrind
 int CO_CountSuspiciousOpcodesNew(char *data, int datasize) {
 	register int i;
 	register int j;

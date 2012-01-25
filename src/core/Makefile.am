@@ -15,7 +15,7 @@ libpolyvaccine_la_SOURCES =	system.c memory.c memorypool.c privatecallbacks.c fl
 
 noinst_HEADERS =	httpvalues.h flowpool.h connection.h cache.h polyengine.h \
 			packetdecoder.h packetcontext.h httpflow.h authorized.h privatecallbacks.h \
-			httpanalyzer.h memory.h memorypool.h system.h trustoffset.h 
+			httpanalyzer.h memory.h memorypool.h system.h trustoffset.h sipvalues.h 
 
 libpolyvaccine_la_LIBADD = ../opcodes/libopcodes.la ../bus/libpolybus.la $(DEPS_LIBS) 
 libpolyvaccine_la_LDFLAGS = -version-info 0:0:0 $(DEPS_LIBS) `pkg-config --libs glib-2.0 dbus-1 libpcre`
