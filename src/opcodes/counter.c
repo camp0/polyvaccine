@@ -27,6 +27,10 @@
 #include "indirect.h"
 #include "opcodes.h"
 
+void CO_Init(void){
+	return;
+}
+
 int CO_CountOperation(char *data,int datasize) {
 	register int i;
 
@@ -121,19 +125,25 @@ int CO_CountSuspiciousOpcodesNew(char *data, int datasize) {
 
         while(startoffset < endoffset) {
 		current_pointer = (char*)&data[startoffset];
-		for (i = 0;i <MAX_LOOKUP_ITEMS;i++) {
-			table = &ST_LookupOpcodeTable[i];
-			current_opcode = &table->opt[0];
-			for (j = 0;j< table->items; j++) {
-				opcode_length = current_opcode[j].len;
-				if(strncmp(current_pointer,current_opcode[j].opcode,opcode_length) == 0) {
-					if(current_opcode[j].op_table == NULL) {
+		table = &ST_LookupOpcodeTable[0];
+		i = 0;
+		while(table->name!= NULL){
+			current_opcode = &table->op_table[0];
+			j = 0;
+			while(current_opcode->opcode!= NULL){	
+				opcode_length = current_opcode->len;
+				if(strncmp(current_pointer,current_opcode->opcode,opcode_length) == 0) {
+					if(current_opcode->op_table == NULL) {
 						DEBUG0("Opcode '%s' detected;offset=%d;architecture %d\n",
-							current_opcode[j].instruction,startoffset,table->arch);
+							current_opcode->instruction,startoffset,table->arch);
 						return 1;
 					}
-				}	
-			}	
+				}
+				j++;	
+				current_opcode = &table->op_table[j];
+			}
+			i++;	
+			table = &ST_LookupOpcodeTable[i];
 		}
 		startoffset ++;
 	}			

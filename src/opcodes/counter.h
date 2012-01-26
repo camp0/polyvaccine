@@ -39,7 +39,7 @@
 
 #include "debug.h"
 
-//int CO_CountSuspiciousOpcodes(char *data,int datasize);
+void CO_Init(void);
 int CO_CountSuspiciousOpcodesNew(char *data,int datasize);
 
 #endif

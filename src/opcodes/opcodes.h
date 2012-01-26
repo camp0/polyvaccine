@@ -18,7 +18,7 @@
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
  * Boston, MA  02110-1301, USA.
  *
- * Written by Luis Campo Giralte <camp0@gmail.com> 2009 
+ * Written by Luis Campo Giralte <luis.camp0.2009@gmail.com> 2009 
  *
  */
 
@@ -40,42 +40,203 @@ struct ST_Opcode {
 typedef struct ST_Opcode ST_Opcode;
 
 struct ST_Lookup {
-	ST_Opcode *opt;
 	char *name;
-	int items;
+	ST_Opcode *op_table;
 	int arch; // IA32_OPCODE_TYPES,IA64_OPCODE_TYPES;
 };
 typedef struct ST_Lookup ST_Lookup;
 
 #define IA32_JUMPS 43 
 static ST_Opcode ST_Intel32_JumpOpcodes[IA32_JUMPS] = {
-	{ "\xe1",1,		"Loope rel8"	,0 ,NULL},		/* LOOPE rel8, LOOPZ rel8  */
-   	{ "\xe2",1,		"Loop rel8"	,0 ,NULL},         /* LOOP rel8 */
-   	{ "\xe0",1,		"Loopne rel8"	,0 ,NULL},         /* LOOPNE rel8, LOOPNZ rel8 */
-   	{ "\xe9",1,		"Jmp rel8"	,0 ,NULL},         /* jmp */
-	{ "\xeb",1,		"Jmp rel8"	,0 ,NULL},		/* JMP rel8 */
-   	{ "\xea",1,		"Jmp"		,0 ,NULL},         /* jmp */
-   	{ "\x9a",1,		"Call"		,0 ,NULL},         /* call puede ser con 4 o 6 de tamaño */
-	{ "\xe8",1,		"Call rel16"	,0 ,NULL},		/* CALL rel16 */
-	{ "\x9a",1,		"Call ptr16:16"	,0 ,NULL},		/* CALL ptr16:16 */
-	{ "\x77",1,		"Ja rel8"	,0 ,NULL},		/* JA rel8, JNBE rel8 */
-	{ "\x73",1,		"Jae rel8"	,0 ,NULL},		/* JAE rel8, JNB rel8, JNC rel8 */
-	{ "\x72",1,		"Jb rel8"	,0 ,NULL},		/* JB rel8 , JC rel8, JNAE rel8 */
-	{ "\x76",1,		"Jbe rel8"	,0 ,NULL},		/* JBE rel8 , JNA rel8 */
-	{ "\xe3",1,		"Jcxz rel8"	,0 ,NULL},		/* JCXZ rel8 ,JECXZ rel8 */
-	{ "\x74",1,		"Je rel8"	,0 ,NULL},		/* JE rel8, JZ rel8,  */
-	{ "\x7f",1,		"Jg rel8"	,0 ,NULL},		/* JG rel8, JNLE rel8 */
-	{ "\x7d",1,		"Jge rel8"	,0 ,NULL},		/* JGE rel8, JNL rel8 */
-	{ "\x7c",1,		"Jl rel8"	,0 ,NULL},		/* JL rel8, JNGE rel8  */
-	{ "\x7e",1,		"Jle rel8"	,0 ,NULL},		/* JLE rel8, JNG rel8 */
-	{ "\x75",1,		"Jne rel8"	,0 ,NULL},		/* JNE rel8, JNZ rel8 */
-	{ "\x71",1,		"Jno rel8"	,0 ,NULL},		/* JNO rel8 */
-	{ "\x7b",1,		"Jnp rel8"	,0 ,NULL},		/* JNP rel8, JPO rel8  */
-	{ "\x79",1,		"Jns rel8"	,0 ,NULL},		/* JNS rel8 */
-	{ "\x70",1,		"Jo rel8"	,0 ,NULL},		/* JO rel8 */
-	{ "\x7a",1,		"Jp rel8"	,0 ,NULL},		/* JP rel8, JPE rel8 */ 
-/* 26*/	{ "\x78",1,		"Js rel8"	,0 ,NULL},		/* JS rel8 */
-  	{ "\x0f\x87",2,		"Ja rel16"	,0 ,NULL},		/* JA rel16/32, JNBE rel16/32 */ 
+	{ 
+		.opcode 	=	"\xe1", 	/* LOOPE rel8, LOOPZ rel8  */
+		.len		=	1,		
+		.instruction	=	"Loope rel8, LOOPZ rel8",
+		.matchs		=	0, 
+		.op_table	=	NULL
+	},	
+   	{ 
+		.opcode		=	"\xe2",
+		.len		=	1,
+		.instruction	=	"Loop rel8",
+		.matchs		=	0,
+		.op_table	=	NULL
+	},         /* LOOP rel8 */
+   	{
+		.opcode		=	"\xe0" ,
+		.len		=	1 ,
+		.instruction	=	"Loopne rel8" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\xe9" ,
+		.len		=	1 ,
+		.instruction	=	"Jmp rel8" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\xeb" ,
+		.len		=	1 ,
+		.instruction	=	"Jmp rel8" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\xea" ,
+		.len		=	1 ,
+		.instruction	=	"Jmp" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\x9a" ,
+		.len		=	1 ,
+		.instruction	=	"Call" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\xe8" ,
+		.len		=	1 ,
+		.instruction	=	"Call rel16" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\x9a" ,
+		.len		=	1 ,
+		.instruction	=	"Call ptr16:16" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\x77" ,
+		.len		=	1 ,
+		.instruction	=	"Ja rel8, JNBE rel8" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\x73" ,
+		.len		=	1 ,
+		.instruction	=	"Jae rel8, JNB rel8, JNC rel8" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\x72" ,
+		.len		=	1 ,
+		.instruction	=	"Jb rel8, JC rel8, JNAE rel8" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\x76" ,
+		.len		=	1 ,
+		.instruction	=	"Jbe rel8, JNA rel8" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\xe3" , /* JCXZ rel8 ,JECXZ rel8 */
+		.len		=	1 ,
+		.instruction	=	"Jcxz rel8 ,JECXZ rel8" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\x74" ,
+		.len		=	1 ,
+		.instruction	=	"Je rel8, JZ rel8" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\x7f" ,
+		.len		=	1 ,
+		.instruction	=	"Jg rel8 , JNLE rel8" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\x7d" ,
+		.len		=	1 ,
+		.instruction	=	"Jge rel8, , JNL rel" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\x7c" ,
+		.len		=	1 ,
+		.instruction	=	"Jl rel8, , JNGE rel8" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\x7e" ,
+		.len		=	1 ,
+		.instruction	=	"Jle rel8, , JNG rel8" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\x75" ,
+		.len		=	1 ,
+		.instruction	=	"Jne rel8 , JNZ rel8" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{
+		.opcode		=	"\x71" ,
+		.len		=	1 ,
+		.instruction	=	"Jno rel8" ,
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{	
+                .opcode         =       "\x7b" ,
+                .len            =       1 ,
+                .instruction    =       "Jnp rel8 , JPO rel8" ,
+                .matchs         =       0,
+                .op_table       =       NULL
+	},
+	{
+                .opcode         =       "\x79" ,
+                .len            =       1 ,
+                .instruction    =       "Jns rel8 " ,
+                .matchs         =       0,
+                .op_table       =       NULL
+	},
+	{
+                .opcode         =       "\x70" ,
+                .len            =       1 ,
+                .instruction    =       "Jo rel8" ,
+                .matchs         =       0,
+                .op_table       =       NULL
+	},
+	{
+                .opcode         =       "\x7a" ,
+                .len            =       1 ,
+                .instruction    =       "Jp rel8 , JPE rel8" ,
+                .matchs         =       0,
+                .op_table       =       NULL
+	},
+	{
+                .opcode         =       "\x78" ,
+                .len            =       1 ,
+                .instruction    =       "Js rel8 " ,
+                .matchs         =       0,
+                .op_table       =       NULL
+	},
+	{	
+                .opcode         =       "\x0f\x87" ,
+                .len            =       2 ,
+                .instruction    =       "JA rel16/32, JNBE rel16/32 " ,
+                .matchs         =       0,
+                .op_table       =       NULL
+	},
   	{ "\x0f\x83",2,		"Jae rel16"	,0 ,NULL},		/* JAE rel16/32, JNB rel16/32, JNC rel16/32 */ 
   	{ "\x0f\x82",2,		"Jb rel16"	,0 ,NULL},		/* JB rel16/32, JC rel16, JNAE rel16/32 */ 
   	{ "\x0f\x86",2,		"Jbe rel16"	,0 ,NULL},		/* JBE rel16/32, JNA rel16/32 */ 
@@ -98,10 +259,21 @@ http://pdos.csail.mit.edu/6.828/2007/readings/i386/Jcc.htm
 */
 
 /* This table is for indirections */
-#define IA32_INDIRECT_OPCODES 58 
-static ST_Opcode ST_Intel32_IndirectOpcodes[IA32_INDIRECT_OPCODES] = {
-        { "\x03",1,	"mov (%ebx),%eax",	0,NULL }, /* 8b 03                   mov    (%ebx),%eax */
-        { "\x1b",1,	"mov (%ebx),%ebx",	0,NULL }, /* 8b 1b                   mov    (%ebx),%ebx */
+static ST_Opcode ST_Intel32_IndirectOpcodes[] = {
+        { 
+		.opcode		=	"\x03",
+		.len		=	1,
+		.instruction	=	"mov (%ebx),%eax", /* 8b 03                   mov    (%ebx),%eax */
+		.matchs		=	0,
+		.op_table	=	NULL 
+	}, 
+        { 
+		.opcode		=	"\x1b",
+		.len		=	1,
+		.instruction	=	"mov (%ebx),%ebx",/* 8b 1b                   mov    (%ebx),%ebx */	
+		.matchs		=	0,
+		.op_table	=	NULL 
+	}, 
         { "\x0b",1,	"mov (%ebx),%ecx",	0,NULL }, /* 8b 0b                   mov    (%ebx),%ecx */
         { "\x13",1,	"mov (%ebx),%edx",	0,NULL }, /* 8b 13                   mov    (%ebx),%edx */
         { "\x00",1,	"mov (%eax),%eax",	0,NULL }, /* 8b 00                   mov    (%eax),%eax */
@@ -157,47 +329,161 @@ static ST_Opcode ST_Intel32_IndirectOpcodes[IA32_INDIRECT_OPCODES] = {
         { "\x06",1,    }, /* 8b 06                   mov    (%esi),%eax */
         { "\x1e",1,    }, /* 8b 1e                   mov    (%esi),%ebx */
         { "\x0e",1,    }, /* 8b 0e                   mov    (%esi),%ecx */
-        { "\x16",1,    }  /* 8b 16                   mov    (%esi),%edx */
+        { "\x16",1,    },  /* 8b 16                   mov    (%esi),%edx */
+	{}
 };
 
-#define IA32_OPERATION_OPCODES 18
-static ST_Opcode ST_Intel32_OperationOpcodes[IA32_OPERATION_OPCODES] = {
-        { "\x8b",1,	"mov",	0,	&ST_Intel32_IndirectOpcodes }, /* mov */ /* 1000 1000 */
-        { "\x89",1,	"mov",	0,	&ST_Intel32_IndirectOpcodes }, /* mov */
-        { "\x01",1,	"add",	0,	&ST_Intel32_IndirectOpcodes }, /* add */
-        { "\x03",1,	"add",	0,	&ST_Intel32_IndirectOpcodes }, /* add */
-        { "\x29",1,	"sub",	0,	&ST_Intel32_IndirectOpcodes }, /* sub */
-        { "\x2b",1,	"sub",	0,	&ST_Intel32_IndirectOpcodes }, /* sub */
-        { "\x11",1,	"adc",	0,	&ST_Intel32_IndirectOpcodes }, /* adc */ /* 0001 0001 */
-        { "\x13",1,	"adc",	0,	&ST_Intel32_IndirectOpcodes }, /* adc */ /* 0001 0011 */
-        { "\x21",1,	"and",	0,	&ST_Intel32_IndirectOpcodes }, /* and */ /* 0010 0001 */
-/*10*/  { "\x23",1,    	"and",	0,	&ST_Intel32_IndirectOpcodes }, /* and */
-        { "\x87",1,	"xchg",	0,	&ST_Intel32_IndirectOpcodes }, /* xchg */
-        { "\x19",1,	"sbb",	0,	&ST_Intel32_IndirectOpcodes }, /* sbb */
-        { "\x1b",1,	"sbb",	0,	&ST_Intel32_IndirectOpcodes }, /* sbb */
+static ST_Opcode ST_Intel32_OperationOpcodes[] = {
+        { 
+		.opcode		=	"\x8b",
+		.len		=	1,
+		.instruction	=	"mov",/* mov */ /* 1000 1000 */	
+		.matchs		=	0,
+		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+	}, 
+        { 
+		.opcode		=	"\x89",
+		.len		=	1,
+		.instruction	=	"mov",
+		.matchs		=	0,	
+		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+	}, 
+        { 
+		.opcode		=	"\x01",
+		.len		=	1,
+		.instruction	=	"add",
+		.matchs		=	0,	
+		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+	}, 
+        { 
+		.opcode		=	"\x03",
+		.len		=	1,
+		.instruction	=	"add",
+		.matchs		=	0,
+		.op_table	=	&(ST_Intel32_IndirectOpcodes[0])
+	}, 
+        { 
+		.opcode		=	"\x29",
+		.len		=	1,	
+		.instruction	=	"sub",	
+		.matchs		=	0,
+		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+	}, /* sub */
+        { 
+		.opcode		=	"\x2b",
+		.len		=	1,
+		.instruction	=	"sub",	
+		.matchs		=	0,
+		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+	}, /* sub */
+        { 
+		.opcode		=	"\x11",
+		.len		=	1,	
+		.instruction	=	"adc",
+		.matchs		=	0,
+		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+	}, /* adc */ /* 0001 0001 */
+        { 
+		.opcode		=	"\x13",
+		.len		=	1,
+		.instruction	=	"adc",	
+		.matchs		=	0,
+		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+	}, /* adc */ /* 0001 0011 */
+        { 
+		.opcode		=	"\x21",
+		.len		=	1,
+		.instruction	=	"and",	
+		.matchs		=	0,
+		.op_table	=	&(ST_Intel32_IndirectOpcodes[0])
+	}, /* and */ /* 0010 0001 */
+	{ 
+		.opcode		=	"\x23",
+		.len		=	1,
+		.instruction	=    	"and",	
+		.matchs		=	0,
+		.op_table	=	&(ST_Intel32_IndirectOpcodes[0])
+	}, /* and */
+        { 
+		.opcode		=	"\x87",
+		.len		=	1,
+		.instruction	=	"xchg",	
+		.matchs		=	0,	
+		.op_table	=	&(ST_Intel32_IndirectOpcodes[0])
+	}, /* xchg */
+        { 
+		.opcode		=	"\x19",
+		.len		=	1,
+		.instruction	=	"sbb",
+		.matchs		=	0,
+		.op_table	=	&(ST_Intel32_IndirectOpcodes[0])
+	}, /* sbb */
+        { 
+		.opcode		=	"\x1b",
+		.len		=	1,
+		.instruction	=	"sbb",	
+		.matchs		=	0,
+		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+	}, /* sbb */
         { "\x0f\x0a",2,	"imul",	0,	&ST_Intel32_IndirectOpcodes }, /* 0f af 01                imul   (%ecx),%eax */
         { "\x09",1,	"or",	0,	&ST_Intel32_IndirectOpcodes }, /* or */
         { "\x0b",1,	"or",	0,	&ST_Intel32_IndirectOpcodes }, /* or */
         { "\x31",1,	"or",	0,	&ST_Intel32_IndirectOpcodes }, /* xor */
-        { "\x33",1,	"xor",	0,	&ST_Intel32_IndirectOpcodes } /* xor */
+        { 
+		.opcode		=	"\x33",
+		.len		=	1,	
+		.instruction	=	"xor",	
+		.matchs		=	0,	
+		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+	}, /* xor */
+	{}
 };
 
-#define IA32_SPECIAL_OPCODES 1
-static ST_Opcode ST_Intel32_specialOpcodes[IA32_SPECIAL_OPCODES] = {
-	{ "\xcd\x80",2,	"int80",	0,	NULL}
+static ST_Opcode ST_Intel32_specialOpcodes[] = {
+	{ 
+		.opcode		=	"\xcd\x80",
+		.len		=	2,
+		.instruction	=	"int80",	
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{}
 };
 
-#define IA64_SPECIAL_OPCODES 1
-static ST_Opcode ST_Intel64_specialOpcodes[IA64_SPECIAL_OPCODES] = {
-	{ "\x0f\x55",2,	"int80",	0,	NULL}
+static ST_Opcode ST_Intel64_specialOpcodes[] = {
+	{ 
+		.opcode		=	"\x0f\x55",
+		.len		=	2,	
+		.instruction	=	"int80",
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{}
 };
 
 /* Final lookup table */
-#define MAX_LOOKUP_ITEMS 3
-static ST_Lookup ST_LookupOpcodeTable [MAX_LOOKUP_ITEMS] = {
-	{&ST_Intel64_specialOpcodes,	"64 bits syscall", 	IA64_SPECIAL_OPCODES, 	IA64_OPCODE_TYPES },
-	{&ST_Intel32_specialOpcodes, 	"32 bits syscall",	IA32_SPECIAL_OPCODES, 	IA32_OPCODE_TYPES },	
-	{&ST_Intel32_JumpOpcodes,	"32 bits jumps",	IA32_JUMPS,		IA32_OPCODE_TYPES }
+static ST_Lookup ST_LookupOpcodeTable [] = {
+	{
+		.name		=	"64 bits syscall",
+		.op_table	= 	ST_Intel64_specialOpcodes,
+		.arch		=	IA64_OPCODE_TYPES
+	},
+	{
+		.name		=	"32 bits syscall",
+		.op_table	=	ST_Intel32_specialOpcodes,
+		.arch		=	IA32_OPCODE_TYPES
+	},
+	{
+		.name		=	"32 bits jumps",
+		.op_table	=	ST_Intel32_JumpOpcodes,
+		.arch		=	IA32_OPCODE_TYPES
+	},
+	{
+		.name		=	"operational 32 bits opcodes",
+		.op_table	=	ST_Intel32_OperationOpcodes,
+		.arch		=	IA32_OPCODE_TYPES
+	},
+	{}	
 };
 
 
