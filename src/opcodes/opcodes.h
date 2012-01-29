@@ -20,10 +20,21 @@
  *
  * Written by Luis Campo Giralte <luis.camp0.2009@gmail.com> 2009 
  *
+ * Notes:
+ * This file contains the opcodes that are candidates to be executed.
+ * The opcodes are classified on several groups as special, indirections, and so on.
+ * Notice that on the special opcode table there is no instructions such as getpc,
+ * instructions that get the program counter(should be included).
+ *
+ * The indirection opcode table contains all the posible indirection modes(or try to).
+ * Most of polymorphic exploits needs at least one instruction with a indirection in 
+ * order to decrypt their payload.
  */
 
 #ifndef _OPCODES_H_
 #define _OPCODES_H_
+
+#include <stdio.h>
 
 enum {
 	IA32_OPCODE_TYPES = 0,
@@ -46,8 +57,7 @@ struct ST_Lookup {
 };
 typedef struct ST_Lookup ST_Lookup;
 
-#define IA32_JUMPS 43 
-static ST_Opcode ST_Intel32_JumpOpcodes[IA32_JUMPS] = {
+static ST_Opcode ST_Intel32_JumpOpcodes[] = {
 	{ 
 		.opcode 	=	"\xe1", 	/* LOOPE rel8, LOOPZ rel8  */
 		.len		=	1,		
@@ -237,9 +247,27 @@ static ST_Opcode ST_Intel32_JumpOpcodes[IA32_JUMPS] = {
                 .matchs         =       0,
                 .op_table       =       NULL
 	},
-  	{ "\x0f\x83",2,		"Jae rel16"	,0 ,NULL},		/* JAE rel16/32, JNB rel16/32, JNC rel16/32 */ 
-  	{ "\x0f\x82",2,		"Jb rel16"	,0 ,NULL},		/* JB rel16/32, JC rel16, JNAE rel16/32 */ 
-  	{ "\x0f\x86",2,		"Jbe rel16"	,0 ,NULL},		/* JBE rel16/32, JNA rel16/32 */ 
+  	{ 
+		.opcode		=	"\x0f\x83",
+		.len		=	2,
+		.instruction	=	"Jae rel16",
+		.matchs		=	0 ,
+		.op_table	=	NULL
+	},		/* JAE rel16/32, JNB rel16/32, JNC rel16/32 */ 
+  	{ 
+		.opcode		=	"\x0f\x82",
+		.len		=	2,
+		.instruction	=	"Jb rel16",
+		.matchs		=	0 ,
+		.op_table	=	NULL
+	},		/* JB rel16/32, JC rel16, JNAE rel16/32 */ 
+  	{ 
+		.opcode		=	"\x0f\x86",
+		.len		=	2,
+		.instruction	=	"Jbe rel16",
+		.matchs		=	0 ,
+		.op_table	=	NULL
+	},		/* JBE rel16/32, JNA rel16/32 */ 
   	{ "\x0f\x84",2,		"Je rel16"	,0 ,NULL},		/* JE rel16/32, JZ rel16/32  */ 
   	{ "\x0f\x8f",2,		"Jg rel16"	,0 ,NULL},		/* JG rel16/32, JNLE rel16/32 */ 
   	{ "\x0f\x8d",2,		"Jge rel16"	,0 ,NULL},		/* JGE rel16/32, JNL rel16/32 */ 
@@ -252,84 +280,424 @@ static ST_Opcode ST_Intel32_JumpOpcodes[IA32_JUMPS] = {
   	{ "\x0f\x89",2,		"Jns rel16"	,0 ,NULL},		/* JNS rel16/32,  */ 
   	{ "\x0f\x80",2,		"Jo rel16"	,0 ,NULL},		/* JO rel16/32,  */ 
   	{ "\x0f\x8a",2,		"Jp rel16"	,0 ,NULL},		/* JP rel16/32, JPE rel16/32 */ 
-/* 43*/	{ "\x0f\x88",2,		"Js rel16"	,0 ,NULL}		/* JS rel16/32 */ 
+	{ 
+		.opcode		=	"\x0f\x88",
+		.len		=	2,
+		.instruction	=	"Js rel16",
+		.matchs		=	0 ,
+		.op_table 	=	NULL
+	},		/* JS rel16/32 */ 
+	{}
 };
-/* las instrucciones de salto en intel son:
-http://pdos.csail.mit.edu/6.828/2007/readings/i386/Jcc.htm
-*/
 
-/* This table is for indirections */
-static ST_Opcode ST_Intel32_IndirectOpcodes[] = {
+/* This table is for indirections  the same opcodes for 32 bits and 64 */
+static ST_Opcode ST_Intel_IndirectOpcodes[] = {
         { 
 		.opcode		=	"\x03",
 		.len		=	1,
-		.instruction	=	"mov (%ebx),%eax", /* 8b 03                   mov    (%ebx),%eax */
+		.instruction	=	"(%ebx),%eax", /* 8b 03                   mov    (%ebx),%eax */
 		.matchs		=	0,
 		.op_table	=	NULL 
 	}, 
         { 
 		.opcode		=	"\x1b",
 		.len		=	1,
-		.instruction	=	"mov (%ebx),%ebx",/* 8b 1b                   mov    (%ebx),%ebx */	
+		.instruction	=	"(%ebx),%ebx",/* 8b 1b                   mov    (%ebx),%ebx */	
 		.matchs		=	0,
 		.op_table	=	NULL 
 	}, 
-        { "\x0b",1,	"mov (%ebx),%ecx",	0,NULL }, /* 8b 0b                   mov    (%ebx),%ecx */
-        { "\x13",1,	"mov (%ebx),%edx",	0,NULL }, /* 8b 13                   mov    (%ebx),%edx */
-        { "\x00",1,	"mov (%eax),%eax",	0,NULL }, /* 8b 00                   mov    (%eax),%eax */
-        { "\x18",1,	"mov (%eax),%ebx",	0,NULL }, /* 8b 18                   mov    (%eax),%ebx */
-        { "\x08",1, 	"mov (%eax),%ecx",     	0,NULL }, /* 8b 08                   mov    (%eax),%ecx */
-        { "\x10",1, 	"",     0,NULL     }, /* 8b 10                   mov    (%eax),%edx */
-        { "\x01",1,  	"",     0,NULL    }, /* 8b 01                   mov    (%ecx),%eax */
-        { "\x19",1,  	"",     0,NULL    }, /* 8b 19                   mov    (%ecx),%ebx */
-        { "\x09",1, 	"",     0,NULL     }, /* 8b 09                   mov    (%ecx),%ecx */
-        { "\x11",1,   	"",     0,NULL   }, /* 8b 11                   mov    (%ecx),%edx */
-        { "\x02",1,   	"",     0,NULL   }, /* 8b 02                   mov    (%edx),%eax */
-        { "\x1a",1,	"",     0,NULL      }, /* 8b 1a                   mov    (%edx),%ebx */
-        { "\x0a",1,	"",     0,NULL      }, /* 8b 0a                   mov    (%edx),%ecx */
-        { "\x12",1,	"",     0,NULL      }, /* 8b 12                   mov    (%edx),%edx */
-        { "\x45",1,	"",     0,NULL      }, /* 8b 45 00                mov    0x0(%ebp),%eax */
-        { "\x5d",1,	"",     0,NULL      }, /* 8b 5d 00                mov    0x0(%ebp),%ebx */
-        { "\x4d",1,	"",     0,NULL      }, /* 8b 4d 00                mov    0x0(%ebp),%ecx */
-/*20*/  { "\x55",1,	"",     0,NULL      }, /* 8b 55 00                mov    0x0(%ebp),%edx */
-        { "\x24",1,	"",     0,NULL      }, /* 8b 04 24                mov    (%esp),%eax */
-        { "\x58",1,	"",     0,NULL      }, /* 31 58 0c                xor    %ebx,0xc(%eax) */
-        { "\x5b",1,	"",     0,NULL      }, /* 31 5b 0c                xor    %ebx,0xc(%ebx) */
-        { "\x51",1,	"",     0,NULL      }, /* 31 51 0c                xor    %edx,0xc(%ecx) */
-        { "\x61",1,	"",     0,NULL      }, /* 31 61 02                xor    %esp,0x2(%ecx) */
-        { "\x52",1,	"",     0,NULL      }, /* 31 52 0c                xor    %edx,0xc(%edx) */
-        { "\x62",1,	"",     0,NULL      }, /* 31 62 02                xor    %esp,0x2(%edx) */
-/*28*/  { "\x6a",1,	"",     0,NULL      }, /* 31 6a 02                xor    %ebp,0x2(%edx) */
-        { "\x44\x0d",2,"",     0,NULL  }, /* 8b 44 0d 00             mov    0x0(%ebp,%ecx,1),%eax */
-/*30*/  { "\x5c\x0d",2,"",     0,NULL  }, /* 8b 5c 0d 00             mov    0x0(%ebp,%ecx,1),%ebx */
-        { "\x4c\x0d",2,"",     0,NULL  }, /* 8b 4c 0d 00             mov    0x0(%ebp,%ecx,1),%ecx */
-        { "\x54\x0d",2,}, /* 8b 54 0d 00             mov    0x0(%ebp,%ecx,1),%edx */
-        { "\x04\x0c",2,}, /* 8b 04 0c                mov    (%esp,%ecx,1),%eax */
-        { "\x1c\x0c",2,}, /* 8b 1c 0c                mov    (%esp,%ecx,1),%ebx */
-        { "\x0c\x0c",2,}, /* 8b 0c 0c                mov    (%esp,%ecx,1),%ecx */
-        { "\x14\x0c",2,}, /* 8b 14 0c                mov    (%esp,%ecx,1),%edx */
-        { "\x54\x0c",2,}, /* 8b 54 0c 02             mov    0x2(%esp,%ecx,1),%edx */
-        { "\x04\x0a",2,}, /* 8b 04 0a                mov    (%edx,%ecx,1),%eax */
-        { "\x1c\x0a",2,}, /* 8b 1c 0a                mov    (%edx,%ecx,1),%ebx */
-/*40*/  { "\x0c\x0a",2,}, /* 8b 0c 0a                mov    (%edx,%ecx,1),%ecx */
-        { "\x14\x0a",2,}, /* 8b 14 0a                mov    (%edx,%ecx,1),%edx */
-        { "\x54\x0a",2,}, /* 8b 54 0a 02             mov    0x2(%edx,%ecx,1),%edx */
-        { "\x04\x0e",2,}, /* 8b 04 0e                mov    (%esi,%ecx,1),%eax */
-        { "\x1c\x0e",2,}, /* 8b 1c 0e                mov    (%esi,%ecx,1),%ebx */
-        { "\x0c\x0e",2,}, /* 8b 0c 0e                mov    (%esi,%ecx,1),%ecx */
-        { "\x14\x0e",2,}, /* 8b 14 0e                mov    (%esi,%ecx,1),%edx */
-        { "\x54\x0e",2,}, /* 8b 54 0e 02             mov    0x2(%esi,%ecx,1),%edx */
-        { "\x07",1,    }, /* 8b 07                   mov    (%edi),%eax */
-        { "\x1f",1,    }, /* 8b 1f                   mov    (%edi),%ebx */
-/*50*/  { "\x0f",1,    }, /* 8b 0f                   mov    (%edi),%ecx */
-        { "\x47",1,    }, /* 8b 47 02                mov    0x2(%edi),%eax */
-        { "\x5f",1,    }, /* 8b 5f 08                mov    0x8(%edi),%ebx */
-        { "\x4f",1,    }, /* 8b 4f 10                mov    0x10(%edi),%ecx */
-        { "\x57",1,    }, /* 8b 57 20                mov    0x20(%edi),%edx */
-        { "\x06",1,    }, /* 8b 06                   mov    (%esi),%eax */
-        { "\x1e",1,    }, /* 8b 1e                   mov    (%esi),%ebx */
-        { "\x0e",1,    }, /* 8b 0e                   mov    (%esi),%ecx */
-        { "\x16",1,    },  /* 8b 16                   mov    (%esi),%edx */
+        { 
+		.opcode		=	"\x0b",
+		.len		=	1,	
+		.instruction	=	"(%ebx),%ecx",/* 8b 0b                   mov    (%ebx),%ecx */	
+		.matchs		=	0,
+		.op_table	=	NULL 
+	}, 
+        { 
+		.opcode		=	"\x13",
+		.len		=	1,
+		.instruction	=	"(%ebx),%edx", /* 8b 13                   mov    (%ebx),%edx */
+		.matchs		=	0,
+		.op_table	=	NULL 
+	}, 
+        { 
+		.opcode		=	"\x00",
+		.len		=	1,
+		.instruction	=	"(%eax),%eax",/* 8b 00                   mov    (%eax),%eax */	
+		.matchs		=	0,
+		.op_table	=	NULL 
+	}, 
+        { 
+		.opcode		=	"\x18",
+		.len		=	1,
+		.instruction	=	"(%eax),%ebx", /* 8b 18                   mov    (%eax),%ebx */	
+		.matchs		=	0,
+		.op_table	=	NULL 
+	}, 
+        { 
+		.opcode		=	"\x08",
+		.len		=	1,
+		.instruction	= 	"(%eax),%ecx", /* 8b 08                   mov    (%eax),%ecx */
+		.matchs		=     	0,
+		.op_table	=	NULL 
+	},
+        { 
+		.opcode		=	"\x10",
+		.len		=	1, 
+		.instruction	=	"(%eax),%edx", /* 8b 10                   mov    (%eax),%edx */
+		.matchs		=     	0,
+		.op_table	=	NULL     
+	},
+        { 
+		.opcode		=	"\x01",
+		.len		=	1,
+		.instruction	=	"(%ecx),%eax", /* 8b 01                   mov    (%ecx),%eax */
+		.matchs		=	0,
+		.op_table	=	NULL    
+	},
+        { 
+		.opcode		=	"\x19",
+		.len		=	1,
+		.instruction	=  	"(%ecx),%ebx", /* 8b 19                   mov    (%ecx),%ebx */
+		.matchs		=	0,
+		.op_table	=	NULL    
+	},
+        { 
+		.opcode		=	"\x09",
+		.len		=	1,
+		.instruction	= 	"(%ecx),%ecx", /* 8b 09                   mov    (%ecx),%ecx */
+		.matchs		=	0,
+		.op_table	=	NULL     
+	},
+        { 
+		.opcode		=	"\x11",
+		.len		=	1,
+		.instruction	=	"(%ecx),%edx", /* 8b 11                   mov    (%ecx),%edx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x02",
+		.len		=	1,
+		.instruction	=   	"(%edx),%eax", /* 8b 02                   mov    (%edx),%eax */
+		.matchs		=	0,
+		.op_table	=	NULL   
+	},
+        { 
+		.opcode		=	"\x1a",
+		.len		=	1,
+		.instruction	=	"(%edx),%ebx", /* 8b 1a                   mov    (%edx),%ebx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x0a",
+		.len		=	1,
+		.instruction	=	"(%edx),%ecx", /* 8b 0a                   mov    (%edx),%ecx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x12",
+		.len		=	1,	
+		.instruction	=	"(%edx),%edx", /* 8b 12                   mov    (%edx),%edx */
+		.matchs		=	0,
+		.op_table	=	NULL      
+	},
+        { 
+		.opcode		=	"\x45",
+		.len		=	1,
+		.instruction	=	"0x0(%ebp),%eax", /* 8b 45 00                mov    0x0(%ebp),%eax */
+		.matchs		=	0,
+		.op_table	=	NULL
+	}, 
+        { 
+		.opcode		=	"\x5d",
+		.len		=	1,
+		.instruction	=	"0x0(%ebp),%ebx", /* 8b 5d 00                mov    0x0(%ebp),%ebx */
+		.matchs		=	0,
+		.op_table	=	NULL 
+	},
+        { 
+		.opcode		=	"\x4d",
+		.len		=	1,	
+		.instruction	=	"0x0(%ebp),%ecx", /* 8b 4d 00                mov    0x0(%ebp),%ecx */ 
+		.matchs		=	0,
+		.op_table	=	NULL      
+	},
+	{ 
+		.opcode		=	"\x55",
+		.len		=	1,
+		.instruction	=	"0x0(%ebp),%edx", /* 8b 55 00                mov    0x0(%ebp),%edx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	}, 
+        { 
+		.opcode		=	"\x24",
+		.len		=	1,
+		.instruction	=	"(%esp),%eax", /* 8b 04 24                mov    (%esp),%eax */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x58",
+		.len		=	1,
+		.instruction	=	"%ebx,0xc(%eax)", /* 31 58 0c                xor    %ebx,0xc(%eax) */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x5b",
+		.len		=	1,
+		.instruction	=	"%ebx,0xc(%ebx)", /* 31 5b 0c                xor    %ebx,0xc(%ebx) */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x51",
+		.len		=	1,
+		.instruction	=	"%edx,0xc(%ecx)", /* 31 51 0c                xor    %edx,0xc(%ecx) */
+		.matchs		=	0,
+		.op_table	=	NULL      
+	},
+        { 
+		.opcode		=	"\x61",
+		.len		=	1,
+		.instruction	=	"%esp,0x2(%ecx)", /* 31 61 02                xor    %esp,0x2(%ecx) */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x52",
+		.len		=	1,	
+		.instruction	=	"%edx,0xc(%edx)",    /* 31 52 0c                xor    %edx,0xc(%edx) */ 
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x62",
+		.len		=	1,
+		.instruction	=	"%esp,0x2(%edx)", /* 31 62 02                xor    %esp,0x2(%edx) */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{ 
+		.opcode		=	"\x6a",
+		.len		=	1,
+		.instruction	=	"%ebp,0x2(%edx)", /* 31 6a 02                xor    %ebp,0x2(%edx) */
+		.matchs		=	0,
+		.op_table	=	NULL      
+	},
+        { 
+		.opcode		=	"\x44\x0d",
+		.len		=	2,
+		.instruction	=	"0x0(%ebp,%ecx,1),%eax",/* 8b 44 0d 00             mov    0x0(%ebp,%ecx,1),%eax */ 
+		.matchs		=	0,
+		.op_table	=	NULL  
+	}, 
+	{ 
+		.opcode		=	"\x5c\x0d",
+		.len		=	2,
+		.instruction	=	"0x0(%ebp,%ecx,1),%ebx", /* 8b 5c 0d 00             mov    0x0(%ebp,%ecx,1),%ebx */
+		.matchs		=	0,
+		.op_table	=	NULL  
+	}, 
+        { 
+		.opcode		=	"\x4c\x0d",
+		.len		=	2,
+		.instruction	=	"0x0(%ebp,%ecx,1),%ecx", /* 8b 4c 0d 00             mov    0x0(%ebp,%ecx,1),%ecx */
+		.matchs		=	0,
+		.op_table	=	NULL  
+	},
+        { 
+		.opcode		=	"\x54\x0d",
+		.len		=	2,
+		.instruction	=	"0x0(%ebp,%ecx,1),%edx", /* 8b 54 0d 00             mov    0x0(%ebp,%ecx,1),%edx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x04\x0c",
+		.len		=	2,
+		.instruction	=	"(%esp,%ecx,1),%eax",  /* 8b 04 0c                mov    (%esp,%ecx,1),%eax */
+		.matchs		=	0,
+		.op_table	=	NULL
+	}, 
+        { 
+		.opcode		=	"\x1c\x0c",
+		.len		=	2,
+		.instruction	=	"(%esp,%ecx,1),%ebx", /* 8b 1c 0c                mov    (%esp,%ecx,1),%ebx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x0c\x0c",
+		.len		=	2,
+		.instruction	=	"(%esp,%ecx,1),%ecx", /* 8b 0c 0c                mov    (%esp,%ecx,1),%ecx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x14\x0c",
+		.len		=	2,
+		.instruction	=	"(%esp,%ecx,1),%edx",
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x54\x0c",
+		.len		=	2,
+		.instruction	=	"0x2(%esp,%ecx,1),%edx", /* 8b 54 0c 02             mov    0x2(%esp,%ecx,1),%edx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x04\x0a",
+		.len		=	2,
+		.instruction	=	"(%edx,%ecx,1),%eax", /* 8b 04 0a                mov    (%edx,%ecx,1),%eax */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x1c\x0a",
+		.len		=	2,
+		.instruction	=	"(%edx,%ecx,1),%ebx", /* 8b 1c 0a                mov    (%edx,%ecx,1),%ebx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{ 
+		.opcode		=	"\x0c\x0a",
+		.len		=	2,
+		.instruction	=	"(%edx,%ecx,1),%ecx", /* 8b 0c 0a                mov    (%edx,%ecx,1),%ecx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x14\x0a",
+		.len		=	2,
+		.instruction	=	"(%edx,%ecx,1),%edx", /* 8b 14 0a                mov    (%edx,%ecx,1),%edx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x54\x0a",
+		.len		=	2,
+		.instruction	=	"0x2(%edx,%ecx,1),%edx", /* 8b 54 0a 02             mov    0x2(%edx,%ecx,1),%edx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x04\x0e",
+		.len		=	2,
+		.instruction	=	"(%esi,%ecx,1),%eax", /* 8b 04 0e                mov    (%esi,%ecx,1),%eax */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x1c\x0e",
+		.len		=	2,
+		.instruction	=	"(%esi,%ecx,1),%ebx", /* 8b 1c 0e                mov    (%esi,%ecx,1),%ebx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x0c\x0e",
+		.len		=	2,
+		.instruction	=	"(%esi,%ecx,1),%ecx", /* 8b 0c 0e                mov    (%esi,%ecx,1),%ecx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x14\x0e",
+		.len		=	2,
+		.instruction	=	"(%esi,%ecx,1),%edx", /* 8b 14 0e                mov    (%esi,%ecx,1),%edx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x54\x0e",
+		.len		=	2,
+		.instruction	=	"0x2(%esi,%ecx,1),%edx", /* 8b 54 0e 02             mov    0x2(%esi,%ecx,1),%edx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x07",
+		.len		=	1,
+		.instruction	=	"(%edi),%eax", /* 8b 07                   mov    (%edi),%eax */
+		.matchs		=	0,
+		.op_table	=	NULL    
+	},
+        { 
+		.opcode		=	"\x1f",
+		.len		=	1,
+		.instruction	=	"(%edi),%ebx", /* 8b 1f                   mov    (%edi),%ebx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+	{ 
+		.opcode		=	"\x0f",
+		.len		=	1,
+		.instruction	=	"(%edi),%ecx", /* 8b 0f                   mov    (%edi),%ecx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x47",
+		.len		=	1,
+		.instruction	=	"0x2(%edi),%eax", /* 8b 47 02                mov    0x2(%edi),%eax */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x5f",
+		.len		=	1,
+		.instruction	=	"0x8(%edi),%ebx", /* 8b 5f 08                mov    0x8(%edi),%ebx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x4f",
+		.len		=	1,
+		.instruction	=	"0x10(%edi),%ecx", /* 8b 4f 10                mov    0x10(%edi),%ecx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x57",
+		.len		=	1,
+		.instruction	=	"0x20(%edi),%edx", /* 8b 57 20                mov    0x20(%edi),%edx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x06",
+		.len		=	1,
+		.instruction	=	"(%esi),%eax", /* 8b 06                   mov    (%esi),%eax */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x1e",
+		.len		=	1,
+		.instruction	=	"(%esi),%ebx", /* 8b 1e                   mov    (%esi),%ebx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x0e",
+		.len		=	1,
+		.instruction	=	"(%esi),%ecx",  /* 8b 0e                   mov    (%esi),%ecx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	},
+        { 
+		.opcode		=	"\x16",
+		.len		=	1,
+		.instruction	=	"(%esi),%edx", /* 8b 16                   mov    (%esi),%edx */
+		.matchs		=	0,
+		.op_table	=	NULL
+	}, 
 	{}
 };
 
@@ -339,102 +707,126 @@ static ST_Opcode ST_Intel32_OperationOpcodes[] = {
 		.len		=	1,
 		.instruction	=	"mov",/* mov */ /* 1000 1000 */	
 		.matchs		=	0,
-		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0]) 
 	}, 
         { 
 		.opcode		=	"\x89",
 		.len		=	1,
 		.instruction	=	"mov",
 		.matchs		=	0,	
-		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0]) 
 	}, 
         { 
 		.opcode		=	"\x01",
 		.len		=	1,
 		.instruction	=	"add",
 		.matchs		=	0,	
-		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0]) 
 	}, 
         { 
 		.opcode		=	"\x03",
 		.len		=	1,
 		.instruction	=	"add",
 		.matchs		=	0,
-		.op_table	=	&(ST_Intel32_IndirectOpcodes[0])
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0])
 	}, 
         { 
 		.opcode		=	"\x29",
 		.len		=	1,	
 		.instruction	=	"sub",	
 		.matchs		=	0,
-		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0]) 
 	}, /* sub */
         { 
 		.opcode		=	"\x2b",
 		.len		=	1,
 		.instruction	=	"sub",	
 		.matchs		=	0,
-		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0]) 
 	}, /* sub */
         { 
 		.opcode		=	"\x11",
 		.len		=	1,	
 		.instruction	=	"adc",
 		.matchs		=	0,
-		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0]) 
 	}, /* adc */ /* 0001 0001 */
         { 
 		.opcode		=	"\x13",
 		.len		=	1,
 		.instruction	=	"adc",	
 		.matchs		=	0,
-		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0]) 
 	}, /* adc */ /* 0001 0011 */
         { 
 		.opcode		=	"\x21",
 		.len		=	1,
 		.instruction	=	"and",	
 		.matchs		=	0,
-		.op_table	=	&(ST_Intel32_IndirectOpcodes[0])
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0])
 	}, /* and */ /* 0010 0001 */
 	{ 
 		.opcode		=	"\x23",
 		.len		=	1,
 		.instruction	=    	"and",	
 		.matchs		=	0,
-		.op_table	=	&(ST_Intel32_IndirectOpcodes[0])
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0])
 	}, /* and */
         { 
 		.opcode		=	"\x87",
 		.len		=	1,
 		.instruction	=	"xchg",	
 		.matchs		=	0,	
-		.op_table	=	&(ST_Intel32_IndirectOpcodes[0])
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0])
 	}, /* xchg */
         { 
 		.opcode		=	"\x19",
 		.len		=	1,
 		.instruction	=	"sbb",
 		.matchs		=	0,
-		.op_table	=	&(ST_Intel32_IndirectOpcodes[0])
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0])
 	}, /* sbb */
         { 
 		.opcode		=	"\x1b",
 		.len		=	1,
 		.instruction	=	"sbb",	
 		.matchs		=	0,
-		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0]) 
 	}, /* sbb */
-        { "\x0f\x0a",2,	"imul",	0,	&ST_Intel32_IndirectOpcodes }, /* 0f af 01                imul   (%ecx),%eax */
-        { "\x09",1,	"or",	0,	&ST_Intel32_IndirectOpcodes }, /* or */
-        { "\x0b",1,	"or",	0,	&ST_Intel32_IndirectOpcodes }, /* or */
-        { "\x31",1,	"or",	0,	&ST_Intel32_IndirectOpcodes }, /* xor */
+        { 
+		.opcode		=	"\x0f\x0a",
+		.len		=	2,
+		.instruction	=	"imul",	
+		.matchs		=	0,
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0]) 
+	}, /* 0f af 01                imul   (%ecx),%eax */
+        { 
+		.opcode		=	"\x09",
+		.len		=	1,
+		.instruction	=	"or",
+		.matchs		=	0,	
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0]) 
+	}, /* or */
+        { 
+		.opcode		=	"\x0b",
+		.len		=	1,
+		.instruction	=	"or",	
+		.matchs		=	0,
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0]) 
+	}, /* or */
+        { 
+		.opcode		=	"\x31",
+		.len		=	1,
+		.instruction	=	"or",	
+		.matchs		=	0,
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0]) 
+	}, /* xor */
         { 
 		.opcode		=	"\x33",
 		.len		=	1,	
 		.instruction	=	"xor",	
 		.matchs		=	0,	
-		.op_table	=	&(ST_Intel32_IndirectOpcodes[0]) 
+		.op_table	=	&(ST_Intel_IndirectOpcodes[0]) 
 	}, /* xor */
 	{}
 };
@@ -450,6 +842,136 @@ static ST_Opcode ST_Intel32_specialOpcodes[] = {
 	{}
 };
 
+static ST_Opcode ST_Intel64_OperationOpcodes[] = {
+        {
+                .opcode         =       "\x67\x8b",
+                .len            =       2,
+                .instruction    =       "mov",/* mov */ /* 1000 1000 */
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x67\x89",
+                .len            =       2,
+                .instruction    =       "mov",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x67\x01",
+                .len            =       2,
+                .instruction    =       "add",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x67\x03",
+                .len            =       2,
+                .instruction    =       "add",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x67\x29",
+                .len            =       2,
+                .instruction    =       "sub",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x67\x2b",
+                .len            =       2,
+                .instruction    =       "sub",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x67\x11",
+                .len            =       2,
+                .instruction    =       "adc",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x67\x13",
+                .len            =       2,
+                .instruction    =       "adc",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x67\x21",
+                .len            =       2,
+                .instruction    =       "and",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x67\x23",
+                .len            =       2,
+                .instruction    =       "and",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, /* and */
+        {
+                .opcode         =       "\x67\x87",
+                .len            =       2,
+                .instruction    =       "xchg",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, /* xchg */
+        {
+                .opcode         =       "\x67\x19",
+                .len            =       2,
+                .instruction    =       "sbb",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, /* sbb */
+        {
+                .opcode         =       "\x67\x1b",
+                .len            =       2,
+                .instruction    =       "sbb",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, /* sbb */
+        {
+                .opcode         =       "\x67\x0f\x0a",
+                .len            =       3,
+                .instruction    =       "imul",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, /* 0f af 01                imul   (%ecx),%eax */
+        {
+                .opcode         =       "\x67\x09",
+                .len            =       2,
+                .instruction    =       "or",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, /* or */
+        {
+                .opcode         =       "\x67\x0b",
+                .len            =       2,
+                .instruction    =       "or",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, /* or */
+        {
+                .opcode         =       "\x67\x31",
+                .len            =       2,
+                .instruction    =       "xor",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, /* xor */
+        {
+                .opcode         =       "\x67\x33",
+                .len            =       2,
+                .instruction    =       "xor",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, /* xor */
+        {}
+};
+
 static ST_Opcode ST_Intel64_specialOpcodes[] = {
 	{ 
 		.opcode		=	"\x0f\x55",
@@ -463,11 +985,19 @@ static ST_Opcode ST_Intel64_specialOpcodes[] = {
 
 /* Final lookup table */
 static ST_Lookup ST_LookupOpcodeTable [] = {
+#ifdef __LINUX__
+#if __WORDSIZE == 64
 	{
 		.name		=	"64 bits syscall",
 		.op_table	= 	ST_Intel64_specialOpcodes,
 		.arch		=	IA64_OPCODE_TYPES
 	},
+        {
+                .name           =       "operational 64 bits opcodes",
+                .op_table       =       ST_Intel64_OperationOpcodes,
+                .arch           =       IA64_OPCODE_TYPES
+        }
+#else 
 	{
 		.name		=	"32 bits syscall",
 		.op_table	=	ST_Intel32_specialOpcodes,
@@ -482,9 +1012,10 @@ static ST_Lookup ST_LookupOpcodeTable [] = {
 		.name		=	"operational 32 bits opcodes",
 		.op_table	=	ST_Intel32_OperationOpcodes,
 		.arch		=	IA32_OPCODE_TYPES
-	},
-	{}	
+	}
+#endif
+#endif
+	,{}	
 };
-
 
 #endif 

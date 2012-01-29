@@ -18,19 +18,36 @@
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
  * Boston, MA  02110-1301, USA.
  *
- * Written by Luis Campo Giralte <camp0@gmail.com> 2009 
+ * Written by Luis Campo Giralte <luis.camp0.2009@gmail.com> 2009 
  *
  */
 
 #include "counter.h"
-#include "jump.h"
-#include "indirect.h"
-#include "opcodes.h"
 
-void CO_Init(void){
+/* TODO 
+ * This function should be a big regular expresion with all the 
+ * possible opcodes, may be a special tree also could be a good idea
+ * but sometimes its better to reuse than create.
+ */
+ 
+void COSU_Init(void){
+	register int i;
+        ST_Lookup *table;
+
+	i = 0;
+	table = &(ST_LookupOpcodeTable[0]);
+	while(table->name!= NULL) {
+
+		DEBUG0("Using opcodes '%s';architecture %d\n",
+			table->name,table->arch); 
+
+		i++;
+		table = &(ST_LookupOpcodeTable[i]);
+	}
+	
 	return;
 }
-
+/****************************** OLD METHOD ********************
 int CO_CountOperation(char *data,int datasize) {
 	register int i;
 
@@ -40,10 +57,6 @@ int CO_CountOperation(char *data,int datasize) {
 	return FALSE;
 } 
 
-/**
- * This function should be implemented by a tree or other structure
- * @todo optimize
- */
 int CO_CountSuspiciousOpcodes(char *data, int datasize) {
         int startoffset,endoffset;
         int count;
@@ -63,14 +76,10 @@ int CO_CountSuspiciousOpcodes(char *data, int datasize) {
         ptr = data;
 			
         while(startoffset < endoffset) {
-//		ptr = &data[startoffset];
 		if(strncmp(ptr,"\xcd\x80",2) ==	0 ) {
 			printf("*");	
 			return 2;
 		}
-//		ptr++;
-//		startoffset++;
-//		continue;
 		if (jumpopcodes == 0 )
                         for (i = 0;i<IA32_JUMPS;i++)
                                 if (strncmp(ptr,ST_IntelJumps[i].opcode,ST_IntelJumps[i].len) == 0 ) {
@@ -84,10 +93,8 @@ int CO_CountSuspiciousOpcodes(char *data, int datasize) {
 			current_byte = 256 - abs(current_byte);
 					
 		if((current_byte > 0)&&(current_byte < 192)){ // es un byte de indireccion
-			//printf("Indirection Byte(0x%2.2x)(%d)\n",current_byte,current_byte);			
 			if (startoffset > 0) { // hay que mirar el byte anterior
 				if (CO_CountOperation(&ptr[startoffset-1],1) == TRUE) {
-			//		printf("OPCODE(0x%2.2x 0x%2.2x)(%d)offset(%d)\n",ptr[startoffset-1],ptr[startoffset],index_bytes,startoffset);
 					indirectopcodes ++;	
 					count ++;
 				} 
@@ -107,16 +114,18 @@ int CO_CountSuspiciousOpcodes(char *data, int datasize) {
         }
         return count;
 }
+*/
+
 
 // TODO this function should be optimized, by a tree or any other 
 // structure. check performance with valgrind
-int CO_CountSuspiciousOpcodesNew(char *data, int datasize) {
-	register int i;
-	register int j;
-        int startoffset,endoffset,count,opcode_length;
-	ST_Opcode *current_opcode;
+int COSU_CheckSuspiciousOpcodes(char *data, int datasize) {
+	register int i,j,k;
+        int startoffset,endoffset,count,opcode_length,len;
+	ST_Opcode *current_opcode,*indirect_opcode;
 	ST_Lookup *table;
 	char *current_pointer;
+	char *aux_pointer;
 
         startoffset = 0;
         endoffset = datasize;
@@ -137,6 +146,22 @@ int CO_CountSuspiciousOpcodesNew(char *data, int datasize) {
 						DEBUG0("Opcode '%s' detected;offset=%d;architecture %d\n",
 							current_opcode->instruction,startoffset,table->arch);
 						return 1;
+					}else{
+						k= 0;
+						indirect_opcode = &(current_opcode->op_table[0]);
+						aux_pointer = (current_pointer + opcode_length);
+						while(indirect_opcode->opcode!= NULL) {
+							 if(strncmp(aux_pointer,indirect_opcode->opcode,
+								indirect_opcode->len) == 0) {
+								DEBUG0("Opcode '%s %s' detected;offset=%d;architecture %d\n",
+									current_opcode->instruction,
+									indirect_opcode->instruction,
+									startoffset,table->arch);
+								return 1;
+							}
+							k++;
+							indirect_opcode = &(current_opcode->op_table[k]);
+						}		
 					}
 				}
 				j++;	

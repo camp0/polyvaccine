@@ -190,7 +190,7 @@ int HTAZ_AnalyzeHttpRequest(ST_Cache *c,ST_HttpFlow *f){
 		DEBUG0("flow(0x%x) HTTP uri(%s)offset(%d)length(%d)\n",f,uri,offset,urilen);
 		nod = CACH_GetHeaderFromCache(c,uri);
 		if (nod ==NULL ) { // The uri is not in the cache we should analyze
-			int suspicious_opcodes = CO_CountSuspiciousOpcodes(uri,urilen);
+			int suspicious_opcodes = COSU_CheckSuspiciousOpcodes(uri,urilen);
 			if(suspicious_opcodes>1) {
 				DEBUG0("flow(0x%x) uri(%s) have %d suspicious bytes\n",f,uri,suspicious_opcodes);
 				_http.suspicious_headers++;
@@ -240,7 +240,7 @@ int HTAZ_AnalyzeHttpRequest(ST_Cache *c,ST_HttpFlow *f){
 						}
 						nod = CACH_GetParameterFromCache(c,http_line);
 						if(nod == NULL) { // The parameter value is not in the cache
-							int suspicious_opcodes = CO_CountSuspiciousOpcodes(parameter,parameter_length);
+							int suspicious_opcodes = COSU_CheckSuspiciousOpcodes(parameter,parameter_length);
 							if(suspicious_opcodes>1) {
 								DEBUG1("flow(0x%x) parameter have %d suspicious bytes\n",f,suspicious_opcodes);
 								c->parameter_suspicious_opcodes ++;
@@ -269,7 +269,7 @@ int HTAZ_AnalyzeHttpRequest(ST_Cache *c,ST_HttpFlow *f){
                                                         return 1;
                                                 }	
 					}	
-					int suspicious_opcodes = CO_CountSuspiciousOpcodes(init,len);
+					int suspicious_opcodes = COSU_CheckSuspiciousOpcodes(init,len);
 					if(suspicious_opcodes>1) {
 						DEBUG1("flow(0x%x) POST data have %d suspicious bytes\n",f,suspicious_opcodes);
                                                 c->parameter_suspicious_opcodes ++;

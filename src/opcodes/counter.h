@@ -29,6 +29,9 @@
 #include <config.h>
 #endif
 
+#include <stdio.h>
+#include "opcodes.h"
+
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -39,7 +42,7 @@
 
 #include "debug.h"
 
-void CO_Init(void);
-int CO_CountSuspiciousOpcodesNew(char *data,int datasize);
+void COSU_Init(void);
+int COSU_CheckSuspiciousOpcodes(char *data,int datasize);
 
 #endif

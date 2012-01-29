@@ -7,7 +7,7 @@ INCLUDES =	-I../utils/
 
 libopcodes_la_SOURCES =	counter.c
 
-noinst_HEADERS =	indirect.h jump.h counter.h opcodes.h
+noinst_HEADERS =	counter.h opcodes.h
 
 libopcodes_la_LDFLAGS = -version-info 0:0:0 
 libopcodes_la_CPPFLAGS = -I$(PYTHON_CPPFLAGS)
