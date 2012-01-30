@@ -817,7 +817,7 @@ static ST_Opcode ST_Intel32_OperationOpcodes[] = {
         { 
 		.opcode		=	"\x31",
 		.len		=	1,
-		.instruction	=	"or",	
+		.instruction	=	"xor",	
 		.matchs		=	0,
 		.op_table	=	&(ST_Intel_IndirectOpcodes[0]) 
 	}, /* xor */
@@ -974,7 +974,7 @@ static ST_Opcode ST_Intel64_OperationOpcodes[] = {
 
 static ST_Opcode ST_Intel64_specialOpcodes[] = {
 	{ 
-		.opcode		=	"\x0f\x55",
+		.opcode		=	"\x0f\x05",
 		.len		=	2,	
 		.instruction	=	"int80",
 		.matchs		=	0,

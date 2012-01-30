@@ -55,7 +55,7 @@ static char *str_suspicious_syscalls_name [SYSCALL_LEVEL_MAX] = {"internal","low
 
 struct ST_SysCallSuspicious {
 	int number;
-	char name[MAX_SYSCALL_NAME];
+	char *name;
 	int level;
 };
 
@@ -81,14 +81,16 @@ typedef struct ST_SysCall ST_SysCall;
 static ST_SysCallSuspicious ST_SysCallSuspiciousTable [] = {
         { __NR_execve,          "execve",       SYSCALL_LEVEL_HIGH },
         { __NR_fork,            "fork",         SYSCALL_LEVEL_HIGH },
-        { __NR_setuid,          "setuid",         SYSCALL_LEVEL_HIGH },
+        { __NR_setuid,          "setuid",       SYSCALL_LEVEL_HIGH },
 #ifdef _ASM_X86_UNISTD_32_H
         { __NR_socketcall,      "socketcall",   SYSCALL_LEVEL_HIGH},
 #endif
         { __NR_write,           "write",        SYSCALL_LEVEL_MEDIUM },
         { __NR_exit,            "exit",         SYSCALL_LEVEL_HIGH },
         { __NR_open,            "open",         SYSCALL_LEVEL_HIGH},
-        { __NR_chmod,           "chmod",         SYSCALL_LEVEL_HIGH},
+        { __NR_chmod,           "chmod",        SYSCALL_LEVEL_HIGH},
+	{ __NR_iopl,		"iopl",		SYSCALL_LEVEL_HIGH },
+	{ __NR_ioperm,		"ioperm",	SYSCALL_LEVEL_HIGH},
         { 0,			"none",		SYSCALL_LEVEL_INTERNAL}
 };
 #endif

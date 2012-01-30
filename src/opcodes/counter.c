@@ -23,6 +23,7 @@
  */
 
 #include "counter.h"
+#include <pcre.h>
 
 /* TODO 
  * This function should be a big regular expresion with all the 
@@ -47,6 +48,70 @@ void COSU_Init(void){
 	
 	return;
 }
+
+#define REGEX_BUFFER 1024 * 32 
+
+void COSU_Init2(void) {
+	register int i,j,k,ii;
+	char *buffer;
+	unsigned char *ptr;
+	int buffersize;
+        ST_Opcode *current_opcode,*indirect_opcode;
+        ST_Lookup *table;
+	int opcode_length,len;
+	char opcode[32];
+	char opcode_aux[32];
+
+	buffer = malloc(REGEX_BUFFER);
+	bzero(buffer,REGEX_BUFFER);	
+	i = 0;
+        table = &ST_LookupOpcodeTable[0];
+	sprintf(buffer,"(");
+	while(table->name!= NULL){
+        	current_opcode = &table->op_table[0];
+                j = 0;
+                while(current_opcode->opcode!= NULL){
+                	opcode_length = current_opcode->len;
+			ptr = current_opcode->opcode;
+			bzero(&opcode,32);
+			for (ii = 0;ii<opcode_length;ii++) {
+				sprintf(opcode,"%s\\x%02x",opcode,*ptr);
+				ptr++;
+			}	
+			sprintf(buffer,"%s%s|",buffer,opcode);
+			if(current_opcode->op_table != NULL) {
+                                indirect_opcode = &(current_opcode->op_table[0]);
+				k = 0;
+				ptr = indirect_opcode->opcode;
+                                while(indirect_opcode->opcode!= NULL) {
+					bzero(&opcode_aux,32);
+					for (ii = 0;ii<indirect_opcode->len;ii++) {
+						sprintf(opcode_aux,"%s\\x%02x",opcode_aux,*ptr);
+						ptr++;
+					}	
+					sprintf(buffer,"%s%s%s|",buffer,opcode,opcode_aux);
+						
+					k++;
+                                	indirect_opcode = &(current_opcode->op_table[k]);
+				}		
+			}
+			j++;
+                        current_opcode = &table->op_table[j];
+		}
+                i++;
+                table = &ST_LookupOpcodeTable[i];
+	}
+	len = strlen(buffer);
+	buffer[len-1] = '\0';
+	sprintf(buffer,"%s)",buffer);
+	printf("regex=%s\n",buffer);
+	free(buffer);
+	return;
+}
+
+
+
+
 /****************************** OLD METHOD ********************
 int CO_CountOperation(char *data,int datasize) {
 	register int i;
