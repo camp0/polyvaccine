@@ -15,22 +15,30 @@ void main() {
 	int len = size_shellcode_64bits;
 	int ret;
 
-	printf("Init test\n");
 	COSU_Init();
-
-	ret = COSU_CheckSuspiciousOpcodes(buffer,len);
-	assert(ret == 1);	
+	printf("Init test\n");
 
 	ret = COSU_CheckSuspiciousOpcodes("\x90\x90\x90\x90",4);
 	assert(ret == 0);
-
+#ifdef __LINUX__
+#if __WORDSIZE == 64
+	ret = COSU_CheckSuspiciousOpcodes(buffer,len);
+	assert(ret == 1);	
+	
+	ret = COSU_CheckSuspiciousOpcodes("\x00\x00\x48\x2d\x22\x00\x00\x00",8);
+	assert(ret == 1);	
+#else
 	ret = COSU_CheckSuspiciousOpcodes("\xcd\xcd\xcd\x80\x90\x90\x90\x90",8);
 	assert(ret == 1);
-
+	
 	ret = COSU_CheckSuspiciousOpcodes("\x90\x90\x90\x90\x8b\x0b\x0a\x90",8); // 8b 0b es un mov indirect
 	assert(ret == 1);
-
+	
 	ret = COSU_CheckSuspiciousOpcodes("\x90\x90\x90\x90\x8b\x44\x0d\x90",8); // 8b 14 0a es un mov indirect
 	assert(ret == 1);	
-	printf("Tets done\n");
+#endif
+#endif
+	COSU_Stats();
+	COSU_Destroy();
+	printf("Tests done\n");
 }

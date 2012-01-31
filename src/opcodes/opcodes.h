@@ -29,6 +29,28 @@
  * The indirection opcode table contains all the posible indirection modes(or try to).
  * Most of polymorphic exploits needs at least one instruction with a indirection in 
  * order to decrypt their payload.
+ *  
+ * Depending on the plataform the opcodes haves
+ * some special opcodes(intel).
+ * 
+ *      Native 32 bits()
+ *      8b 06                	mov (%esi),%eax
+ *      8b 1e                	mov (%esi),%ebx
+ *      8b 0e                	mov (%esi),%ecx
+ *      8b 16                	mov (%esi),%edx
+ *      
+ *      64 bits but with backwards compatibility for 32 bits(ST_Intel64support32_OperationOpcodes)
+ *      67 8b 06                addr32 mov (%esi),%eax
+ *      67 8b 1e                addr32 mov (%esi),%ebx
+ *      67 8b 0e                addr32 mov (%esi),%ecx
+ *      67 8b 16                addr32 mov (%esi),%edx
+ *
+ *      Native 64 bits(ST_Intel64_OperationOpcodes)
+ *      48 8b 06                mov    (%rsi),%rax
+ *      48 8b 1e                mov    (%rsi),%rbx
+ *      48 8b 0e                mov    (%rsi),%rcx
+ *      48 8b 16                mov    (%rsi),%rdx
+ *
  */
 
 #ifndef _OPCODES_H_
@@ -268,7 +290,13 @@ static ST_Opcode ST_Intel32_JumpOpcodes[] = {
 		.matchs		=	0 ,
 		.op_table	=	NULL
 	},		/* JBE rel16/32, JNA rel16/32 */ 
-  	{ "\x0f\x84",2,		"Je rel16"	,0 ,NULL},		/* JE rel16/32, JZ rel16/32  */ 
+  	{ 
+		.opcode		=	"\x0f\x84",
+		.len		=	2,
+		.instruction	=	"Je rel16",
+		.matchs		=	0 ,
+		.op_table	=	NULL
+	},		/* JE rel16/32, JZ rel16/32  */ 
   	{ "\x0f\x8f",2,		"Jg rel16"	,0 ,NULL},		/* JG rel16/32, JNLE rel16/32 */ 
   	{ "\x0f\x8d",2,		"Jge rel16"	,0 ,NULL},		/* JGE rel16/32, JNL rel16/32 */ 
   	{ "\x0f\x8c",2,		"Jl rel16"	,0 ,NULL},		/* JL rel16/32, JNGE rel16/32 */ 
@@ -736,14 +764,22 @@ static ST_Opcode ST_Intel32_OperationOpcodes[] = {
 		.instruction	=	"sub",	
 		.matchs		=	0,
 		.op_table	=	&(ST_Intel_IndirectOpcodes[0]) 
-	}, /* sub */
+	}, 
         { 
 		.opcode		=	"\x2b",
 		.len		=	1,
 		.instruction	=	"sub",	
 		.matchs		=	0,
 		.op_table	=	&(ST_Intel_IndirectOpcodes[0]) 
-	}, /* sub */
+	},
+        { 
+                .opcode         =       "\x2d",
+                .len            =       1,
+                .instruction    =       "sub",  
+                .matchs         =       0,
+                .op_table       =      	NULL 
+                //.op_table       =       &(ST_Intel_IndirectOpcodes[0]) 
+        },
         { 
 		.opcode		=	"\x11",
 		.len		=	1,	
@@ -842,7 +878,7 @@ static ST_Opcode ST_Intel32_specialOpcodes[] = {
 	{}
 };
 
-static ST_Opcode ST_Intel64_OperationOpcodes[] = {
+static ST_Opcode ST_Intel64support32_OperationOpcodes[] = {
         {
                 .opcode         =       "\x67\x8b",
                 .len            =       2,
@@ -884,6 +920,14 @@ static ST_Opcode ST_Intel64_OperationOpcodes[] = {
                 .instruction    =       "sub",
                 .matchs         =       0,
                 .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x67\x2d",
+                .len            =       2,
+                .instruction    =       "sub",
+                .matchs         =       0,
+                .op_table       =       NULL
+                //.op_table       =       &(ST_Intel_IndirectOpcodes[0])
         },
         {
                 .opcode         =       "\x67\x11",
@@ -972,6 +1016,145 @@ static ST_Opcode ST_Intel64_OperationOpcodes[] = {
         {}
 };
 
+static ST_Opcode ST_Intel64_OperationOpcodes[] = {
+        {
+                .opcode         =       "\x48\x8b",
+                .len            =       2,
+                .instruction    =       "mov",/* mov */ /* 1000 1000 */
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x48\x89",
+                .len            =       2,
+                .instruction    =       "mov",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x48\x01",
+                .len            =       2,
+                .instruction    =       "add",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x48\x03",
+                .len            =       2,
+                .instruction    =       "add",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x48\x29",
+                .len            =       2,
+                .instruction    =       "sub",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x48\x2b",
+                .len            =       2,
+                .instruction    =       "sub",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x48\x2d",
+                .len            =       2,
+                .instruction    =       "sub",
+                .matchs         =       0,
+                .op_table       =       NULL
+                //.op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x48\x11",
+                .len            =       2,
+                .instruction    =       "adc",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x48\x13",
+                .len            =       2,
+                .instruction    =       "adc",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x48\x21",
+                .len            =       2,
+                .instruction    =       "and",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x48\x23",
+                .len            =       2,
+                .instruction    =       "and",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        },
+        {
+                .opcode         =       "\x48\x87",
+                .len            =       2,
+                .instruction    =       "xchg",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, 
+        {
+                .opcode         =       "\x48\x19",
+                .len            =       2,
+                .instruction    =       "sbb",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, 
+        {
+                .opcode         =       "\x48\x1b",
+                .len            =       2,
+                .instruction    =       "sbb",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, /* sbb */
+        {
+                .opcode         =       "\x48\x0f\x0a",
+                .len            =       3,
+                .instruction    =       "imul",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, /* 0f af 01                imul   (%ecx),%eax */
+        {
+                .opcode         =       "\x48\x09",
+                .len            =       2,
+                .instruction    =       "or",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, /* or */
+        {
+                .opcode         =       "\x48\x0b",
+                .len            =       2,
+                .instruction    =       "or",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, /* or */
+        {
+                .opcode         =       "\x48\x31",
+                .len            =       2,
+                .instruction    =       "xor",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, /* xor */
+        {
+                .opcode         =       "\x48\x33",
+                .len            =       2,
+                .instruction    =       "xor",
+                .matchs         =       0,
+                .op_table       =       &(ST_Intel_IndirectOpcodes[0])
+        }, /* xor */
+        {}
+};
+
+
 static ST_Opcode ST_Intel64_specialOpcodes[] = {
 	{ 
 		.opcode		=	"\x0f\x05",
@@ -992,6 +1175,11 @@ static ST_Lookup ST_LookupOpcodeTable [] = {
 		.op_table	= 	ST_Intel64_specialOpcodes,
 		.arch		=	IA64_OPCODE_TYPES
 	},
+        {
+                .name           =       "operational 64 bits with 32 bits support opcodes",
+                .op_table       =       ST_Intel64support32_OperationOpcodes,
+                .arch           =       IA64_OPCODE_TYPES
+        },
         {
                 .name           =       "operational 64 bits opcodes",
                 .op_table       =       ST_Intel64_OperationOpcodes,

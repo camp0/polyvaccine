@@ -23,7 +23,8 @@
  */
 
 #include "counter.h"
-#include <pcre.h>
+
+ST_OpcodeCounter op_count;
 
 /* TODO 
  * This function should be a big regular expresion with all the 
@@ -31,7 +32,7 @@
  * but sometimes its better to reuse than create.
  */
  
-void COSU_Init(void){
+void COSU_Init2(void){
 	register int i;
         ST_Lookup *table;
 
@@ -49,24 +50,23 @@ void COSU_Init(void){
 	return;
 }
 
-#define REGEX_BUFFER 1024 * 32 
-
-void COSU_Init2(void) {
+void COSU_Init(void) {
 	register int i,j,k,ii;
-	char *buffer;
 	unsigned char *ptr;
-	int buffersize;
+	int buffersize,erroffset;
         ST_Opcode *current_opcode,*indirect_opcode;
         ST_Lookup *table;
 	int opcode_length,len;
 	char opcode[32];
 	char opcode_aux[32];
+	char *errorstr;
 
-	buffer = malloc(REGEX_BUFFER);
-	bzero(buffer,REGEX_BUFFER);	
+	op_count.total_process = 0;
+	op_count.total_matchs = 0;
+	bzero(op_count.regular_expresion,REGEX_BUFFER);	
+	sprintf(op_count.regular_expresion,"(");
 	i = 0;
         table = &ST_LookupOpcodeTable[0];
-	sprintf(buffer,"(");
 	while(table->name!= NULL){
         	current_opcode = &table->op_table[0];
                 j = 0;
@@ -78,7 +78,7 @@ void COSU_Init2(void) {
 				sprintf(opcode,"%s\\x%02x",opcode,*ptr);
 				ptr++;
 			}	
-			sprintf(buffer,"%s%s|",buffer,opcode);
+			sprintf(op_count.regular_expresion,"%s%s|",op_count.regular_expresion,opcode);
 			if(current_opcode->op_table != NULL) {
                                 indirect_opcode = &(current_opcode->op_table[0]);
 				k = 0;
@@ -89,7 +89,7 @@ void COSU_Init2(void) {
 						sprintf(opcode_aux,"%s\\x%02x",opcode_aux,*ptr);
 						ptr++;
 					}	
-					sprintf(buffer,"%s%s%s|",buffer,opcode,opcode_aux);
+					sprintf(op_count.regular_expresion,"%s%s%s|",op_count.regular_expresion,opcode,opcode_aux);
 						
 					k++;
                                 	indirect_opcode = &(current_opcode->op_table[k]);
@@ -101,11 +101,12 @@ void COSU_Init2(void) {
                 i++;
                 table = &ST_LookupOpcodeTable[i];
 	}
-	len = strlen(buffer);
-	buffer[len-1] = '\0';
-	sprintf(buffer,"%s)",buffer);
-	printf("regex=%s\n",buffer);
-	free(buffer);
+	len = strlen(op_count.regular_expresion);
+	op_count.regular_expresion[len-1] = '\0';
+	sprintf(op_count.regular_expresion,"%s)",op_count.regular_expresion);
+
+	op_count.opcode_regex = pcre_compile((char*)op_count.regular_expresion, PCRE_DOTALL, &errorstr, &erroffset, 0);
+        op_count.opcode_regex_study = pcre_study(op_count.opcode_regex,0,&errorstr);
 	return;
 }
 
@@ -181,10 +182,48 @@ int CO_CountSuspiciousOpcodes(char *data, int datasize) {
 }
 */
 
+int COSU_CheckSuspiciousOpcodes(char *data, int datasize) {
+        int ret = 0;
+
+	op_count.total_process++;
+        ret = pcre_exec(op_count.opcode_regex, op_count.opcode_regex_study,(const char*)data, datasize, 0, 0, op_count.ovector, OVECCOUNT);
+        if (ret < 0) {
+                switch (ret) {
+                        case PCRE_ERROR_NOMATCH:
+      //      printf("String didn't match");
+                        break;
+
+                        default:
+     //       printf("Error while matching: %d\n", ret);
+                        break;
+                }
+                return 0;
+        }
+	op_count.total_matchs++;
+	return 1;
+
+}
+
+void COSU_Destroy(){
+	pcre_free(op_count.opcode_regex);
+	pcre_free(op_count.opcode_regex_study);
+	return;
+}
+
+void COSU_Stats(){
+        fprintf(stdout,"Opcode counter statistics\n");
+        fprintf(stdout,"\ttotal process %ld\n",op_count.total_process);
+        fprintf(stdout,"\ttotal matchs %ld\n",op_count.total_matchs);
+
+	return;
+}
+
+
+
 
 // TODO this function should be optimized, by a tree or any other 
 // structure. check performance with valgrind
-int COSU_CheckSuspiciousOpcodes(char *data, int datasize) {
+int COSU_CheckSuspiciousOpcodes2(char *data, int datasize) {
 	register int i,j,k;
         int startoffset,endoffset,count,opcode_length,len;
 	ST_Opcode *current_opcode,*indirect_opcode;

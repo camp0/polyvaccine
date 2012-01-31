@@ -76,6 +76,7 @@ void HTAZ_Init() {
 		i++;
 		f = &ST_HttpFields[i];
 	}	
+	COSU_Init();
 }
 
 

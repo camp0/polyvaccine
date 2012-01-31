@@ -8,6 +8,11 @@ indireciones:
 	mov ecx,[esi]
 	mov edx,[esi]
 
+	mov rax,[rsi]
+	mov rbx,[rsi]
+	mov rcx,[rsi]
+	mov rdx,[rsi]
+
 	ret	
 	mov edx,[edi]
 	mov ebx,[edi]
@@ -138,8 +143,15 @@ et1:
 
         add [eax],ecx
         add eax,[ecx]
+
         sub [eax],ecx
         sub eax,[ecx]
+
+        sub eax,0x11
+        sub rax,0x11
+
+        sub [rax],rcx
+        sub rax,[rcx]
 
         adc [eax],ecx
         adc eax,[ecx]

@@ -30,6 +30,7 @@
 #endif
 
 #include <stdio.h>
+#include <pcre.h>
 #include "opcodes.h"
 
 #ifndef TRUE
@@ -42,7 +43,23 @@
 
 #include "debug.h"
 
+#define OVECCOUNT 30
+#define REGEX_BUFFER 1024 * 32
+
+struct ST_OpcodeCounter{
+	char regular_expresion[REGEX_BUFFER];
+	int ovector[OVECCOUNT];
+	int32_t total_process;
+        int32_t total_matchs;
+	pcre *opcode_regex;
+	pcre_extra *opcode_regex_study;
+	char *errstr;
+};
+typedef struct ST_OpcodeCounter ST_OpcodeCounter;
+
 void COSU_Init(void);
 int COSU_CheckSuspiciousOpcodes(char *data,int datasize);
+void COSU_Destroy(void);
+void COSU_Stats(void);
 
 #endif
