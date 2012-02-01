@@ -36,6 +36,13 @@ void main() {
 	
 	ret = COSU_CheckSuspiciousOpcodes("\x90\x90\x90\x90\x8b\x44\x0d\x90",8); // 8b 14 0a es un mov indirect
 	assert(ret == 1);	
+
+	ret = COSU_CheckSuspiciousOpcodes(admmutate_1_32bits,size_admmutate_1_32bits);
+	assert(ret == 1);
+
+	ret = COSU_CheckSuspiciousOpcodes(fnstenv_1_32bits,size_fnstenv_1_32bits);
+	assert(ret == 1);
+
 #endif
 #endif
 	COSU_Stats();

@@ -297,7 +297,13 @@ static ST_Opcode ST_Intel32_JumpOpcodes[] = {
 		.matchs		=	0 ,
 		.op_table	=	NULL
 	},		/* JE rel16/32, JZ rel16/32  */ 
-  	{ "\x0f\x8f",2,		"Jg rel16"	,0 ,NULL},		/* JG rel16/32, JNLE rel16/32 */ 
+  	{ 
+		.opcode		=	"\x0f\x8f",
+		.len		=	2,
+		.instruction	=	"Jg rel16",
+		.matchs		=	0 ,
+		.op_table	=	NULL
+	},		/* JG rel16/32, JNLE rel16/32 */ 
   	{ "\x0f\x8d",2,		"Jge rel16"	,0 ,NULL},		/* JGE rel16/32, JNL rel16/32 */ 
   	{ "\x0f\x8c",2,		"Jl rel16"	,0 ,NULL},		/* JL rel16/32, JNGE rel16/32 */ 
   	{ "\x0f\x8e",2,		"Jle rel16"	,0 ,NULL},		/* JLE rel16/32, JNG rel16/32 */ 
@@ -1191,11 +1197,14 @@ static ST_Lookup ST_LookupOpcodeTable [] = {
 		.op_table	=	ST_Intel32_specialOpcodes,
 		.arch		=	IA32_OPCODE_TYPES
 	},
+/****** Jump opcodes apperas on metamorphic shellcodes but its a weak heuristic
+	better use indirections for autodecrypting code :D
 	{
 		.name		=	"32 bits jumps",
 		.op_table	=	ST_Intel32_JumpOpcodes,
 		.arch		=	IA32_OPCODE_TYPES
 	},
+******/
 	{
 		.name		=	"operational 32 bits opcodes",
 		.op_table	=	ST_Intel32_OperationOpcodes,

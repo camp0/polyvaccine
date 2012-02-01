@@ -18,7 +18,7 @@
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
  * Boston, MA  02110-1301, USA.
  *
- * Written by Luis Campo Giralte <camp0@gmail.com> 2009 
+ * Written by Luis Campo Giralte <luis.camp0.2009@gmail.com> 2009 
  *
  */
 #ifndef _BANNER_H_

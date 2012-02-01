@@ -184,7 +184,7 @@ int CO_CountSuspiciousOpcodes(char *data, int datasize) {
 
 int COSU_CheckSuspiciousOpcodes(char *data, int datasize) {
         int ret = 0;
-
+	printf("-----------------\n");
 	op_count.total_process++;
         ret = pcre_exec(op_count.opcode_regex, op_count.opcode_regex_study,(const char*)data, datasize, 0, 0, op_count.ovector, OVECCOUNT);
         if (ret < 0) {
@@ -200,6 +200,14 @@ int COSU_CheckSuspiciousOpcodes(char *data, int datasize) {
                 return 0;
         }
 	op_count.total_matchs++;
+//#ifdef DEBUG
+	int i;
+    	for (i = 0; i < ret; i++) {
+		int j = op_count.ovector[2*i+1];
+		int k = op_count.ovector[2*i];
+        	printf("%2d: %d %d %.*s\n", i,j,k ,j-k, data + op_count.ovector[2*i]);
+    	};
+//#endif
 	return 1;
 
 }
