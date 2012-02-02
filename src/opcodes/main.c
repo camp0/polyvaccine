@@ -8,24 +8,35 @@
 #include "../detection/examples.h"
 #include "../detection/examples64.h"
 
-unsigned char *ext="\x00\x00\xaa\bb";
-
 void main() {
-	unsigned char *buffer = shellcode_64bits;
-	int len = size_shellcode_64bits;
 	int ret;
 
 	COSU_Init();
 	printf("Init test\n");
 
+	printf("Test 1\n");
 	ret = COSU_CheckSuspiciousOpcodes("\x90\x90\x90\x90",4);
 	assert(ret == 0);
 #ifdef __LINUX__
 #if __WORDSIZE == 64
-	ret = COSU_CheckSuspiciousOpcodes(buffer,len);
+	printf("Test 2\n");
+	ret = COSU_CheckSuspiciousOpcodes(shellcode_64bits,size_shellcode_64bits);
 	assert(ret == 1);	
 	
+	printf("Test 3\n");
 	ret = COSU_CheckSuspiciousOpcodes("\x00\x00\x48\x2d\x22\x00\x00\x00",8);
+	assert(ret == 1);	
+	
+	printf("Test 4\n");
+	ret = COSU_CheckSuspiciousOpcodes("\x00\x00\x90\x90\x90\x0f\x05\x00",8);
+	assert(ret == 1);	
+	
+	printf("Test 5\n");
+	ret = COSU_CheckSuspiciousOpcodes(helloworld,size_helloworld);
+	assert(ret == 1);	
+	
+	printf("Test 6\n");
+	ret = COSU_CheckSuspiciousOpcodes(add_root_user_64bits,size_add_root_user_64bits);
 	assert(ret == 1);	
 #else
 	ret = COSU_CheckSuspiciousOpcodes("\xcd\xcd\xcd\x80\x90\x90\x90\x90",8);

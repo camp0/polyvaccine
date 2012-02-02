@@ -26,30 +26,6 @@
 
 ST_OpcodeCounter op_count;
 
-/* TODO 
- * This function should be a big regular expresion with all the 
- * possible opcodes, may be a special tree also could be a good idea
- * but sometimes its better to reuse than create.
- */
- 
-void COSU_Init2(void){
-	register int i;
-        ST_Lookup *table;
-
-	i = 0;
-	table = &(ST_LookupOpcodeTable[0]);
-	while(table->name!= NULL) {
-
-		DEBUG0("Using opcodes '%s';architecture %d\n",
-			table->name,table->arch); 
-
-		i++;
-		table = &(ST_LookupOpcodeTable[i]);
-	}
-	
-	return;
-}
-
 void COSU_Init(void) {
 	register int i,j,k,ii;
 	unsigned char *ptr;
@@ -113,78 +89,31 @@ void COSU_Init(void) {
 
 
 
-/****************************** OLD METHOD ********************
-int CO_CountOperation(char *data,int datasize) {
-	register int i;
+void printfhex(char *payload,int size) {
+        char buffer[10];
+        int i,fd;
+        const u_char *ptr;
+        int online = 0;
 
-	for(i = 0;i< IA32_OPERATION_OPCODES;i++)
-		if (strncmp(data,ST_OperationOpcodes[i].opcode,ST_OperationOpcodes[i].len) == 0)
-			return TRUE;
-	return FALSE;
-} 
-
-int CO_CountSuspiciousOpcodes(char *data, int datasize) {
-        int startoffset,endoffset;
-        int count;
-        char *ptr,*ptrant;
-        register int i,j;
-        int jumpopcodes = 0;
-        int indirectopcodes = 0;
-	int current_byte;
-	int prev_byte;
-	int prev_prev_byte;
-	int indirection16bits = 103;
-	int index_bytes;
-
-        startoffset = 0;
-        endoffset = datasize;
-        count = 0;
-        ptr = data;
-			
-        while(startoffset < endoffset) {
-		if(strncmp(ptr,"\xcd\x80",2) ==	0 ) {
-			printf("*");	
-			return 2;
-		}
-		if (jumpopcodes == 0 )
-                        for (i = 0;i<IA32_JUMPS;i++)
-                                if (strncmp(ptr,ST_IntelJumps[i].opcode,ST_IntelJumps[i].len) == 0 ) {
-                                        jumpopcodes ++;
-                                        break;
-                                }
-
-		index_bytes = 0;
-		current_byte = (char*)ptr[startoffset];
-		if (current_byte < 0)
-			current_byte = 256 - abs(current_byte);
-					
-		if((current_byte > 0)&&(current_byte < 192)){ // es un byte de indireccion
-			if (startoffset > 0) { // hay que mirar el byte anterior
-				if (CO_CountOperation(&ptr[startoffset-1],1) == TRUE) {
-					indirectopcodes ++;	
-					count ++;
-				} 
-			}
-		}
-
-		if ((jumpopcodes > 1)&&(indirectopcodes > 0)) {
-			count = jumpopcodes + indirectopcodes;
-			return count;
-		}
-
-		if (indirectopcodes > 1) 
-			return indirectopcodes;		
-			
-                startoffset++ ;
-		ptr++;
+        ptr = payload;
+        write(0,"\n",1);
+        for ( i= 0;i<size;i++) {
+                if ( online == 16 ) {
+                        write(0,"\n",1);
+                        online = 0;
+                }
+                online ++;
+                sprintf(buffer,"%02x ",*ptr);
+                write(0,buffer,strlen(buffer));
+                ptr++;
         }
-        return count;
+        write(0,"\n",1);
+        return;
 }
-*/
 
 int COSU_CheckSuspiciousOpcodes(char *data, int datasize) {
         int ret = 0;
-	printf("-----------------\n");
+
 	op_count.total_process++;
         ret = pcre_exec(op_count.opcode_regex, op_count.opcode_regex_study,(const char*)data, datasize, 0, 0, op_count.ovector, OVECCOUNT);
         if (ret < 0) {
@@ -200,14 +129,13 @@ int COSU_CheckSuspiciousOpcodes(char *data, int datasize) {
                 return 0;
         }
 	op_count.total_matchs++;
-//#ifdef DEBUG
-	int i;
-    	for (i = 0; i < ret; i++) {
-		int j = op_count.ovector[2*i+1];
-		int k = op_count.ovector[2*i];
-        	printf("%2d: %d %d %.*s\n", i,j,k ,j-k, data + op_count.ovector[2*i]);
-    	};
-//#endif
+#ifdef DEBUG
+	int offset = op_count.ovector[0];
+	int size = op_count.ovector[1]-offset;
+	char *opcode = data + offset;
+	printf("opcode detected on offset %d\n",offset);
+	printfhex(opcode,size);
+#endif
 	return 1;
 
 }
