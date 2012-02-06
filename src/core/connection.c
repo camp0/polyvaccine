@@ -23,7 +23,7 @@
  */
 
 #include "connection.h"
-#include "httpflow.h"
+#include "genericflow.h"
 
 /**
  * COMN_SetFlowPool - Sets the reference of the flowpool on the ST_Connection.
@@ -48,7 +48,7 @@ void COMN_SetMemoryPool(ST_Connection *conn,ST_MemoryPool *mempool){
 }
 
 
-gint flow_cmp(ST_HttpFlow *f1, ST_HttpFlow *f2) {
+gint flow_cmp(ST_GenericFlow *f1, ST_GenericFlow *f2) {
         if (f1->current_time.tv_sec > f2->current_time.tv_sec)
                 return 1;
         else
@@ -56,14 +56,14 @@ gint flow_cmp(ST_HttpFlow *f1, ST_HttpFlow *f2) {
 }
 
 /**
- * COMN_InsertConnection - Adds a ST_HttpFlow to the ST_Connection.
+ * COMN_InsertConnection - Adds a ST_GenericFlow to the ST_Connection.
  *
  * @param conn the ST_Connection 
  * @param flow 
  * @param hash 
  */
 
-void COMN_InsertConnection(ST_Connection *conn,ST_HttpFlow *flow,unsigned long *hash){
+void COMN_InsertConnection(ST_Connection *conn,ST_GenericFlow *flow,unsigned long *hash){
         struct in_addr a,b;
 
         a.s_addr = flow->saddr;
@@ -90,12 +90,12 @@ void COMN_InsertConnection(ST_Connection *conn,ST_HttpFlow *flow,unsigned long *
 void COMN_UpdateTimers(ST_Connection *conn,struct timeval *currenttime){
         GList *f_update = NULL;
         GList *current = NULL;
-        ST_HttpFlow *flow = NULL;
+        ST_GenericFlow *flow = NULL;
         //struct timeval *t = NULL;
 	ST_MemorySegment *seg = NULL;
 
         while((current = g_list_first(conn->timers)) != NULL) {
-                flow =(ST_HttpFlow*)current->data;
+                flow =(ST_GenericFlow*)current->data;
                 conn->timers = g_list_remove_link(conn->timers,current);
 
 //                DEBUG1("Checkin timer for flow(0x%x)secs(%d)curr(%d)\n",flow,flow->current_time.tv_sec,currenttime->tv_sec);
@@ -109,8 +109,8 @@ void COMN_UpdateTimers(ST_Connection *conn,struct timeval *currenttime){
                                 g_hash_table_remove(conn->table,GINT_TO_POINTER(h));
                         }
                         if((conn->flowpool)&&(conn->mempool)){
-				seg = flow->memhttp;
-				flow->memhttp = NULL;
+				seg = flow->memory;
+				flow->memory = NULL;
                                 DEBUG0("Releasing flow(0x%x)segment(0x%x) to flowpool(0x%x)memorypool(0x%x)\n",
 					flow,seg,conn->flowpool,conn->mempool);
 				MEPO_AddMemorySegment(conn->mempool,seg);
@@ -162,9 +162,9 @@ void COMN_ReleaseFlows(ST_Connection *conn){
 
         g_hash_table_iter_init (&iter, conn->table);
         while (g_hash_table_iter_next (&iter, &k, &v)) {
-                ST_HttpFlow *flow = (ST_HttpFlow*)v;
-                ST_MemorySegment *seg = flow->memhttp;
-                flow->memhttp = NULL;
+                ST_GenericFlow *flow = (ST_GenericFlow*)v;
+                ST_MemorySegment *seg = flow->memory;
+                flow->memory = NULL;
 		if(seg!= NULL)
                 	MEPO_AddMemorySegment(conn->mempool,seg);
                 FLPO_AddFlow(conn->flowpool,flow);
@@ -199,10 +199,10 @@ void COMN_Destroy(ST_Connection *conn) {
  * @param dport 
  * @param hash 
  *
- * @return ST_HttpFlow
+ * @return ST_GenericFlow
  * 
  */
-ST_HttpFlow *COMN_FindConnection(ST_Connection *conn,u_int32_t saddr,u_int16_t sport,u_int16_t protocol,u_int32_t daddr,u_int16_t dport,unsigned long *hash){
+ST_GenericFlow *COMN_FindConnection(ST_Connection *conn,u_int32_t saddr,u_int16_t sport,u_int16_t protocol,u_int32_t daddr,u_int16_t dport,unsigned long *hash){
         gpointer object;
         struct in_addr a,b;
 
@@ -216,7 +216,7 @@ ST_HttpFlow *COMN_FindConnection(ST_Connection *conn,u_int32_t saddr,u_int16_t s
         object = g_hash_table_lookup(conn->table,GINT_TO_POINTER(h));
         if (object != NULL){
 		(*hash) = h;
-                return (ST_HttpFlow*)object;
+                return (ST_GenericFlow*)object;
         }
 
         h = (daddr^dport^protocol^saddr^sport);
@@ -226,7 +226,7 @@ ST_HttpFlow *COMN_FindConnection(ST_Connection *conn,u_int32_t saddr,u_int16_t s
         object = g_hash_table_lookup(conn->table,GINT_TO_POINTER(h));
         if (object != NULL){
 		(*hash) = h;
-                return (ST_HttpFlow*)object;
+                return (ST_GenericFlow*)object;
         }
 
         return NULL;

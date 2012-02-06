@@ -30,7 +30,7 @@
 #endif
 
 #include <pcre.h>
-#include "httpflow.h"
+#include "genericflow.h"
 #include "cache.h"
 #include "trustoffset.h"
 #include <sys/types.h>
@@ -65,10 +65,11 @@ struct ST_HttpAnalyzer{
 
 typedef struct ST_HttpAnalyzer ST_HttpAnalyzer;
 
-void HTAZ_Init(void);
-void HTAZ_Destroy(void);
-int HTAZ_AnalyzeHttpRequest(ST_Cache *c,ST_HttpFlow *f);
-void HTAZ_AnalyzeDummyHttpRequest(ST_Cache *c, ST_HttpFlow *f);
+void *HTAZ_Init(void);
+void *HTAZ_Destroy(void);
+void *HTAZ_AnalyzeHttpRequest(ST_Cache *c,ST_GenericFlow *f, int *ret);
+void *HTAZ_Stats(void);
+void *HTAZ_AnalyzeDummyHttpRequest(ST_Cache *c, ST_GenericFlow *f);
 void HTAZ_SetForceAnalyzeHttpPostData(int value);
 void HTAZ_ShowUnknownHttp(int value);
 

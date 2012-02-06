@@ -49,7 +49,7 @@ ST_FlowPool *FLPO_Init() {
  */
 
 void FLPO_Stats(ST_FlowPool *p){
-	int32_t value = MAX_FLOWS_PER_POOL * sizeof(ST_HttpFlow);
+	int32_t value = MAX_FLOWS_PER_POOL * sizeof(ST_GenericFlow);
         char *unit = "Bytes";
 
         if((value / 1024)>0){
@@ -87,7 +87,7 @@ int FLPO_GetNumberFlows(ST_FlowPool *p){
  * FLPO_IncrementFlowPool - Increments the items of a ST_FlowPool 
  *
  * @param p the ST_FlowPool
- * @param value the number of new ST_HttpFlows to alloc
+ * @param value the number of new ST_GenericFlows to alloc
  */
 
 int FLPO_IncrementFlowPool(ST_FlowPool *p,int value){
@@ -97,9 +97,9 @@ int FLPO_IncrementFlowPool(ST_FlowPool *p,int value){
                 return FALSE;
 
         for (i = 0;i<value;i++){
-		ST_HttpFlow *f = g_new0(ST_HttpFlow,1);
-		f->memhttp = NULL;
-		HTFL_Reset(f);	
+		ST_GenericFlow *f = g_new0(ST_GenericFlow,1);
+		f->memory = NULL;
+		GEFW_Reset(f);	
                 p->flows = g_slist_prepend(p->flows,f);
 	}
         return TRUE;
@@ -109,11 +109,11 @@ int FLPO_IncrementFlowPool(ST_FlowPool *p,int value){
  * FLPO_DecrementFlowPool - Decrements the items of a ST_FlowPool 
  *
  * @param p the ST_FlowPool
- * @param value the number of new ST_HttpFlows to free 
+ * @param value the number of new ST_GenericFlows to free 
  */
 
 int FLPO_DecrementFlowPool(ST_FlowPool *p,int value) {
-	ST_HttpFlow *f;
+	ST_GenericFlow *f;
 	int i,r;
 
         if (value > g_slist_length(p->flows))
@@ -125,7 +125,7 @@ int FLPO_DecrementFlowPool(ST_FlowPool *p,int value) {
                 GSList *item = g_slist_nth(p->flows,0);
                 if (item != NULL) {
                         p->flows = g_slist_remove_link(p->flows,item);
-                        f = (ST_HttpFlow*)item->data;
+                        f = (ST_GenericFlow*)item->data;
                         g_free(f);
                 }
         }
@@ -133,34 +133,34 @@ int FLPO_DecrementFlowPool(ST_FlowPool *p,int value) {
 }
 
 /**
- * FLPO_AddFlow - Adds a ST_HttpFlow to a ST_FlowPool 
+ * FLPO_AddFlow - Adds a ST_GenericFlow to a ST_FlowPool 
  *
  * @param p the ST_FlowPool
  * @param flow e 
  */
 
-void FLPO_AddFlow(ST_FlowPool *p,ST_HttpFlow *flow){
-        HTFL_Reset(flow);
+void FLPO_AddFlow(ST_FlowPool *p,ST_GenericFlow *flow){
+        GEFW_Reset(flow);
         p->total_releases++;
         p->flows = g_slist_prepend(p->flows,flow);
 }
 
 /**
- * FLPO_GetFlow - Gets a ST_HttpFlow from a ST_FlowPool 
+ * FLPO_GetFlow - Gets a ST_GenericFlow from a ST_FlowPool 
  *
  * @param p the ST_FlowPool
  *
- * @return ST_HttpFlow  
+ * @return ST_GenericFlow  
  */
 
-ST_HttpFlow *FLPO_GetFlow(ST_FlowPool *p){
+ST_GenericFlow *FLPO_GetFlow(ST_FlowPool *p){
         GSList *item = NULL;
 
         item = g_slist_nth(p->flows,0);
         if (item!= NULL) {
                 p->flows = g_slist_remove_link(p->flows,item);
                 p->total_acquires++;
-                return (ST_HttpFlow*)item->data;
+                return (ST_GenericFlow*)item->data;
         }
         p->total_errors++;
         return NULL;

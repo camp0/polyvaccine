@@ -22,30 +22,44 @@
  *
  */
 
-#ifndef _FLOWPOOL_H_
-#define _FLOWPOOL_H_
+#ifndef _FORWARDER_H_
+#define _FORWARDER_H_
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <sys/types.h>
 #include <glib.h>
+#include "debug.h"
+#include "cache.h"
 #include "genericflow.h"
 
-#define MAX_FLOWS_PER_POOL 1024 * 256 
-
-struct ST_FlowPool {
-	GSList *flows;
-	int32_t total_releases;
-	int32_t total_acquires;
-	int32_t total_errors;
+struct ST_GenericAnalyzer{
+	int16_t port;
+	char name[32];
+	void (*init)();
+	void (*destroy)();
+	void (*stats)();
+	void (*analyze)(ST_Cache *c,ST_GenericFlow *f,int *ret);
+	void (*learn)(ST_Cache *c,ST_GenericFlow *f);
 };
+typedef struct ST_GenericAnalyzer ST_GenericAnalyzer;
 
-typedef struct ST_FlowPool ST_FlowPool;
+struct ST_Forwarder {
+	GHashTable *analyzers;
+};
+typedef struct ST_Forwarder ST_Forwarder;
 
-ST_FlowPool *FLPO_Init(void);
-void FLPO_Destroy(ST_FlowPool *p);
-void FLPO_AddFlow(ST_FlowPool *p,ST_GenericFlow *flow);
-ST_GenericFlow *FLPO_GetFlow(ST_FlowPool *p);	
-int FLPO_GetNumberFlows(ST_FlowPool *p);
-int FLPO_IncrementFlowPool(ST_FlowPool *p,int value);
-int FLPO_DecrementFlowPool(ST_FlowPool *p,int value);
-void FLPO_Stats(ST_FlowPool *p);
+ST_Forwarder *FORD_Init(void);
+void FORD_Destroy(ST_Forwarder *fw);
+void FORD_InitAnalyzers(ST_Forwarder *fw);
+void FORD_Stats(ST_Forwarder *fw);
+ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw,int16_t port);
+
+void FORD_AddAnalyzer(ST_Forwarder *fw,char *name,int16_t port,void (*init)(), 
+	void (*destroy)(),void (*stats)(),
+	void (*analyze)(ST_Cache *c,ST_GenericFlow *f,int *ret),
+	void (*learn)(ST_Cache *c,ST_GenericFlow *f));
+
 #endif

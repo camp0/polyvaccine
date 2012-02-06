@@ -25,8 +25,9 @@
 #include "polyengine.h"
 #include "polydbus.h"
 #include "callbacks.h"
-#include "httpflow.h"
+#include "genericflow.h"
 #include "connection.h"
+#include "httpanalyzer.h"
 
 static ST_PolyEngine *_polyEngine = NULL;
 
@@ -90,13 +91,14 @@ void POEG_Init() {
 	}
 	
 	PKCX_Init();
-	HTAZ_Init();
+//	HTAZ_Init();
 	SYIN_Init();
 	_polyEngine->conn = COMN_Init();
 	_polyEngine->flowpool = FLPO_Init();
 	_polyEngine->memorypool = MEPO_Init();
 	_polyEngine->httpcache = CACH_Init();
 	_polyEngine->hosts = AUHT_Init();
+	_polyEngine->forwarder = FORD_Init();
 	COMN_SetFlowPool(_polyEngine->conn,_polyEngine->flowpool);
 	COMN_SetMemoryPool(_polyEngine->conn,_polyEngine->memorypool);
 	DEBUG0("Initialized engine....\n");
@@ -104,6 +106,16 @@ void POEG_Init() {
 	DEBUG0("flowpool (0x%x)\n",_polyEngine->flowpool);
 	DEBUG0("memorypool (0x%x)\n",_polyEngine->memorypool);
 	DEBUG0("httpcache (0x%x)\n",_polyEngine->httpcache);
+
+	//Plugin the analyzers
+	FORD_AddAnalyzer(_polyEngine->forwarder,"Http Analyzer",80,
+		HTAZ_Init,
+		HTAZ_Destroy,
+		HTAZ_Stats,	
+		HTAZ_AnalyzeHttpRequest,
+		HTAZ_AnalyzeDummyHttpRequest);
+
+	FORD_InitAnalyzers(_polyEngine->forwarder);
 	return;
 }
 
@@ -210,7 +222,7 @@ void POEG_StopAndExit() {
         MEPO_Stats(_polyEngine->memorypool);
         FLPO_Stats(_polyEngine->flowpool);
         CACH_Stats(_polyEngine->httpcache);
-        HTAZ_PrintfStats();
+	FORD_Stats(_polyEngine->forwarder);
 	POEG_Destroy();
 	exit(0);
 }
@@ -226,6 +238,7 @@ void POEG_Destroy() {
 	COMN_Destroy(_polyEngine->conn);
 	CACH_Destroy(_polyEngine->httpcache);
 	AUHT_Destroy(_polyEngine->hosts);
+	FORD_Destroy(_polyEngine->forwarder);
 	PKCX_Destroy();
 	g_free(_polyEngine);
 	return;
@@ -240,7 +253,8 @@ void POEG_Stats() {
 	MEPO_Stats(_polyEngine->memorypool);
 	FLPO_Stats(_polyEngine->flowpool);
 	CACH_Stats(_polyEngine->httpcache);
-	HTAZ_PrintfStats();
+	FORD_Stats(_polyEngine->forwarder);
+	return;
 }
 
 /**
@@ -314,7 +328,8 @@ void POEG_SetLearningMode() {
 }
 
 void POEG_Run() {
-	ST_HttpFlow *flow;
+	ST_GenericFlow *flow;
+	ST_GenericAnalyzer *ga;
 	ST_MemorySegment *memseg;
 	ST_TrustOffsets *trust_offsets = NULL;
 	register int i;
@@ -373,7 +388,8 @@ void POEG_Run() {
                                 }
 			}else {
 				if(PKDE_Decode(header,pkt_data) == TRUE){
-					if(PKCX_GetTCPDstPort() == _polyEngine->defaultport ) {
+					ga = FORD_GetAnalyzer(_polyEngine->forwarder,PKCX_GetTCPDstPort());
+					if(ga != NULL) { 
 						int tcpsegment_size;
 						unsigned long hash;
 						/* Find a ST_HttpFlow object in order to evaluate it */
@@ -388,9 +404,10 @@ void POEG_Run() {
 						if (flow == NULL) {
 							flow = FLPO_GetFlow(_polyEngine->flowpool);
 							if (flow != NULL) {
-								HTLF_SetFlowId(flow,
+								GEFW_SetFlowId(flow,
 									PKCX_GetIPSrcAddr(),
 									PKCX_GetTCPSrcPort(),
+									PKCX_GetIPProtocol(),
 									PKCX_GetIPDstAddr(),
 									PKCX_GetTCPDstPort());	
 										
@@ -403,8 +420,8 @@ void POEG_Run() {
 									PKCX_GetTCPDstPort());
 								/* Check if the flow allready have a ST_MemorySegment attached */
 								memseg = MEPO_GetMemorySegment(_polyEngine->memorypool);
-								HTFL_SetMemorySegment(flow,memseg);
-								HTFL_SetArriveTime(flow,&currenttime);	
+								GEFW_SetMemorySegment(flow,memseg);
+								GEFW_SetArriveTime(flow,&currenttime);	
 							}else{
 								//WARNING("No flow pool allocated\n");
 								continue;
@@ -416,15 +433,16 @@ void POEG_Run() {
 						flow->total_packets++;
 						flow->total_bytes += tcpsegment_size;
 						if(tcpsegment_size > 0) {
-							MESG_AppendPayloadNew(flow->memhttp,PKCX_GetPayload(),tcpsegment_size);
+							MESG_AppendPayloadNew(flow->memory,PKCX_GetPayload(),tcpsegment_size);
 							if(PKCX_IsTCPPush() == 1) {
 								if(AUHT_IsAuthorized(_polyEngine->hosts,PKCX_GetSrcAddrDotNotation())) {
-									HTAZ_AnalyzeDummyHttpRequest(_polyEngine->httpcache,flow);	
+									ga->learn(_polyEngine->httpcache,flow);	
 								}else{
-									ret = HTAZ_AnalyzeHttpRequest(_polyEngine->httpcache,flow);
+									//ret = HTAZ_AnalyzeHttpRequest(_polyEngine->httpcache,flow);
+									ga->analyze(_polyEngine->httpcache,flow,&ret);
 									if(ret) { // the segment is suspicious
 										trust_offsets =  HTAZ_GetTrustOffsets();
-										POEG_SendSuspiciousSegmentToExecute(flow->memhttp,
+										POEG_SendSuspiciousSegmentToExecute(flow->memory,
 											trust_offsets,		
 											hash,PKCX_GetTCPSequenceNumber());
 									}else{ // the segment is correct 
@@ -433,10 +451,10 @@ void POEG_Run() {
 									}
 								}
 								/* Reset the virtual memory of the segment */
-								flow->memhttp->virtual_size = 0;
+								flow->memory->virtual_size = 0;
 							}	
 						}
-						HTFL_UpdateTime(flow,&currenttime);
+						GEFW_UpdateTime(flow,&currenttime);
 						}	
 					} // end of decode;
 				}

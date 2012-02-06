@@ -22,51 +22,53 @@
  *
  */
 
-#ifndef _HTTPFLOW_H_
-#define _HTTPFLOW_H_
+#ifndef _GENERICFLOW_H_
+#define _GENERICFLOW_H_
 
 #include "memory.h"
 #include <sys/types.h>
 
-struct ST_HttpFlow {
+struct ST_GenericFlow {
 	u_int32_t saddr;
 	u_int32_t daddr;
 	u_int16_t sport;
 	u_int16_t dport;
+	u_int16_t protocol;
 
 	int32_t total_bytes;
         int32_t total_packets;
 
 	struct timeval arrive_time;
 	struct timeval current_time;
-	ST_MemorySegment *memhttp;	
+	ST_MemorySegment *memory;	
 };
 
-typedef struct ST_HttpFlow ST_HttpFlow;
+typedef struct ST_GenericFlow ST_GenericFlow;
 
-static void HTLF_SetFlowId(ST_HttpFlow *f,u_int32_t saddr,u_int16_t sport,u_int32_t daddr,u_int16_t dport){
+static void GEFW_SetFlowId(ST_GenericFlow *f,u_int32_t saddr,u_int16_t sport,u_int16_t protocol,u_int32_t daddr,u_int16_t dport){
 	f->saddr = saddr;
 	f->sport = sport;
 	f->daddr = daddr;
 	f->dport = dport;
+	f->protocol = protocol;
 	return;
 }
-static void HTFL_Reset(ST_HttpFlow *f) { 
+static void GEFW_Reset(ST_GenericFlow *f) { 
 	f->total_bytes = 0;f->total_packets= 0;
 	f->arrive_time.tv_sec = 0;f->arrive_time.tv_usec = 0;
 	f->current_time.tv_sec = 0;f->current_time.tv_usec = 0;
-	f->memhttp = NULL; 
+	f->memory = NULL; 
 	return;
 };
 
-static void HTFL_SetMemorySegment(ST_HttpFlow *f,ST_MemorySegment *m) { f->memhttp = m;};
+static void GEFW_SetMemorySegment(ST_GenericFlow *f,ST_MemorySegment *m) { f->memory = m;};
 
-static void HTFL_SetArriveTime(ST_HttpFlow *f,struct timeval *t) { 
+static void GEFW_SetArriveTime(ST_GenericFlow *f,struct timeval *t) { 
 	f->arrive_time.tv_sec = t->tv_sec;f->arrive_time.tv_usec = t->tv_usec;
 	f->current_time.tv_sec = t->tv_sec;f->current_time.tv_usec = t->tv_usec; 
 };
 
-static void HTFL_UpdateTime(ST_HttpFlow *f,struct timeval *t) {
+static void GEFW_UpdateTime(ST_GenericFlow *f,struct timeval *t) {
 	f->current_time.tv_sec = t->tv_sec;f->current_time.tv_usec = t->tv_usec; 
 }
 

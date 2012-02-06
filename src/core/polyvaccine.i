@@ -6,7 +6,7 @@
 #include "packetcontext.h"
 #include "memorypool.h"
 #include "memory.h"
-#include "httpflow.h"
+#include "genericflow.h"
 #include "polyengine.h"
 %}
 
@@ -22,5 +22,5 @@
 %include "memorypool.h"
 %include "memory.h"
 %include "packetcontext.h"
-%include "httpflow.h"
+%include "genericflow.h"
 %include "polyengine.h"

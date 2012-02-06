@@ -40,6 +40,7 @@
 #include "flowpool.h"
 #include "memorypool.h"
 #include "cache.h"
+#include "forwarder.h"
 #include "system.h"
 #include "privatecallbacks.h"
 #include "trustoffset.h"
@@ -66,6 +67,7 @@ struct ST_PolyEngine {
 	ST_MemoryPool *memorypool;
 	ST_Cache *httpcache;
 	ST_AuthorizedHost *hosts;
+	ST_Forwarder *forwarder;
 	GString *source;
 	pcap_t *pcap;
 };
