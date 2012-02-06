@@ -40,6 +40,19 @@ static struct option long_options[] = {
 
 static char *short_options = "li:p:hVfu";
 
+static char *common_parameters [] = {
+	"Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+	"Keep-Alive: 300",
+	"Connection: keep-alive",
+	"DNT: 1",
+	"Accept-Language: es-ES,es;q=0.8",
+	"X-Requested-With: XMLHttpRequest",
+	"Accept-Encoding: gzip, deflate",
+	"User-Agent: Mozilla/5.0 (Ubuntu; X11; Linux i686; rv:8.0) Gecko/20100101 Firefox/8.0",
+	"Accept: image/png,image/*;q=0.8,*/*;q=0.5",
+	NULL
+};
+
 void sigquit(int signal) {
 	POEG_Stop();
 	POEG_StopAndExit();
@@ -63,10 +76,13 @@ void usage(char *prog){
         return;
 }
 
+
+
 void main(int argc, char **argv) {
-	int c,port,learning,option_index;
+	int i,c,port,learning,option_index;
 	char *source = NULL;
 	int force_post,show_unknown;
+	char *value;
 
 	force_post = FALSE;
 	show_unknown = FALSE;
@@ -121,9 +137,15 @@ void main(int argc, char **argv) {
 	POEG_ShowUnknownHttp(show_unknown);
 
 	/* for debugging and test */
-	POEG_AddToHttpCache(1,"Connection: keep-alive");	
-	POEG_AddToHttpCache(1,"DNT: 1");	
-	POEG_AddToHttpCache(1,"Accept-Language: es-ES,es;q=0.8");	
+	value = common_parameters[0];
+	i = 0;
+	while(value!= NULL) {
+		POEG_AddToHttpCache(1,value);
+		i ++;
+		value = common_parameters[i];
+	}	
+	POEG_AddToHttpCache(0,"POST / HTTP/1.1");
+	POEG_AddToHttpCache(0,"GET / HTTP/1.1");
 
 	POEG_Start();
 	POEG_Run();

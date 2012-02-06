@@ -360,7 +360,7 @@ void SYSU_NewExecutionProcess(ST_SharedContext *c) {
                 if((ctx->virtualeip >= ctx->size)||(ctx->virtualeip < 0)) {
                         DEBUG_TRACER("Child(%d) Overflow exit\n",getpid());
                         ctx->virtualeip = ctx->size;
-                        return;
+                        exit(0);
                 }
 		PTRC_TraceMe();
 //                SYSU_PTraceVoid(TRACE_TRACEME, 0, NULL, SIGUSR1);

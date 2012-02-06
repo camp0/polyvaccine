@@ -49,7 +49,7 @@ void *HTAZ_Init() {
 	_http.total_suspicious_segments = 0;
 	_http.total_valid_segments = 0;
 	_http.on_suspicious_header_break = FALSE;
-	_http.on_suspicious_parameter_break = FALSE;
+	_http.on_suspicious_parameter_break = FALSE; 
 	_http.analyze_post_data = FALSE;
 	_http.show_unknown_http = FALSE;
 
@@ -229,7 +229,7 @@ void *HTAZ_AnalyzeHttpRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 						int parameter_length = (pend-init)+1;
 					
 						snprintf(parameter,parameter_length,"%s",init);
-						DEBUG1("flow(0x%x) HTTP parameter(%s)value(%s)offset(%d)length(%d)\n",f,
+						DEBUG0("flow(0x%x) HTTP parameter(%s)value(%s)offset(%d)length(%d)\n",f,
 							parameter,http_line,process_bytes,http_line_length);
 
 						if(g_hash_table_lookup_extended(_http.parameters,(gchar*)parameter,NULL,&pointer) == TRUE){
@@ -244,7 +244,7 @@ void *HTAZ_AnalyzeHttpRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 						if(nod == NULL) { // The parameter value is not in the cache
 							int suspicious_opcodes = COSU_CheckSuspiciousOpcodes(parameter,parameter_length);
 							if(suspicious_opcodes>1) {
-								DEBUG1("flow(0x%x) parameter have %d suspicious bytes\n",f,suspicious_opcodes);
+								DEBUG0("flow(0x%x) parameter have %d suspicious bytes\n",f,suspicious_opcodes);
 								c->parameter_suspicious_opcodes ++;
 								_http.suspicious_parameters++;
 								if(_http.on_suspicious_parameter_break == TRUE){
@@ -264,7 +264,7 @@ void *HTAZ_AnalyzeHttpRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 				if(have_data == TRUE){ // The payload of a post request
 					int len = seg->virtual_size - process_bytes;
 					if(_http.analyze_post_data) { // the data of the post should be analyzed.
-						DEBUG1("flow(0x%x) POST data forced to be suspicious\n",f);
+						DEBUG0("flow(0x%x) POST data forced to be suspicious\n",f);
                                                 c->parameter_suspicious_opcodes ++;
                                                 _http.suspicious_parameters++;
                                                 if(_http.on_suspicious_parameter_break == TRUE){
@@ -275,7 +275,7 @@ void *HTAZ_AnalyzeHttpRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 					}	
 					int suspicious_opcodes = COSU_CheckSuspiciousOpcodes(init,len);
 					if(suspicious_opcodes>1) {
-						DEBUG1("flow(0x%x) POST data have %d suspicious bytes\n",f,suspicious_opcodes);
+						DEBUG0("flow(0x%x) POST data have %d suspicious bytes\n",f,suspicious_opcodes);
                                                 c->parameter_suspicious_opcodes ++;
                                                 _http.suspicious_parameters++;
                                                 if(_http.on_suspicious_parameter_break == TRUE){

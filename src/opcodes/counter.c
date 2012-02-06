@@ -96,7 +96,7 @@ void printfhex(char *payload,int size) {
         int online = 0;
 
         ptr = payload;
-        write(0,"\n",1);
+//        write(0,"\n",1);
         for ( i= 0;i<size;i++) {
                 if ( online == 16 ) {
                         write(0,"\n",1);
@@ -133,8 +133,8 @@ int COSU_CheckSuspiciousOpcodes(char *data, int datasize) {
 	int offset = op_count.ovector[0];
 	int size = op_count.ovector[1]-offset;
 	char *opcode = data + offset;
-	printf("opcode detected on offset %d\n",offset);
-	printfhex(opcode,size);
+	DEBUG0("opcode detected on offset %d\n",offset);
+//	printfhex(opcode,size);
 #endif
 	return 1;
 

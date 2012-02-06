@@ -38,12 +38,14 @@ def showPvfeHttpCache(i):
 	
 	cache = i.GetCacheHeaders()
 	print "Http cache headers"
-	for h in cache:
-		print h
+	if (cache != None):
+		for h in cache:
+			print h
 	print "Http cache parameters"
 	cache = i.GetCacheParameters()
-	for h in cache:
-		print h
+	if(cache!=None):
+		for h in cache:
+			print "\t",h
 
 def insertPvfeHttpCache(i,update=False):
         conn = MySQLdb.connect("localhost","pvuser", "pvuser","pvdata")
@@ -54,13 +56,15 @@ def insertPvfeHttpCache(i,update=False):
 		c.execute(q)
 
 	cache = i.GetCacheHeaders()
-	for h in cache:
-		sql = "insert into httpcache (value,type)values('%s',0)" % h
-		c.execute(sql)
+	if(cache != None):
+		for h in cache:
+			sql = "insert into httpcache (value,type)values('%s',0)" % h
+			c.execute(sql)
         cache = i.GetCacheParameters()
-        for h in cache:
-                sql = "insert into httpcache (value,type)values('%s',1)" % h
-                c.execute(sql)
+	if(cache != None):
+        	for h in cache:
+                	sql = "insert into httpcache (value,type)values('%s',1)" % h
+                	c.execute(sql)
 
 	conn.commit()		
         c.close()
@@ -126,9 +130,7 @@ def parseArguments():
                 else:
                         assert False, "unhandled option"
 
-	return create_database_model,load_database_model,insert_database_model,show_httpcache \
-	update_database_model,verbose 
-
+	return create_database_model,load_database_model,insert_database_model,show_httpcache,update_database_model,verbose
 
 	
 if __name__ == '__main__':
@@ -140,18 +142,18 @@ if __name__ == '__main__':
 		createDatabaseModel()
 	elif(insert_database_model):
 		bus = dbus.SessionBus()
-		s = bus.get_object('polyvaccine.engine', '/polyvaccine/engine')
-		d = dbus.Interface(s,dbus_interface='polyvaccine.engine.httpcache')
+		s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
+		d = dbus.Interface(s,dbus_interface='polyvaccine.filter.httpcache')
 		insertPvfeHttpCache(d)
 	elif(load_database_model):
 		bus = dbus.SessionBus()
-                s = bus.get_object('polyvaccine.engine', '/polyvaccine/engine')
-                d = dbus.Interface(s,dbus_interface='polyvaccine.engine.httpcache')
+                s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
+                d = dbus.Interface(s,dbus_interface='polyvaccine.filter.httpcache')
                 insertHttpCachePvfe(d)
 	else:		
 		bus = dbus.SessionBus()
-		s = bus.get_object('polyvaccine.engine', '/polyvaccine/engine')
-		d = dbus.Interface(s,dbus_interface='polyvaccine.engine.httpcache')
+		s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
+		d = dbus.Interface(s,dbus_interface='polyvaccine.filter.httpcache')
 		showPvfeHttpCache(d)
 
 	sys.exit(0)	
