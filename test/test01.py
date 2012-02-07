@@ -165,19 +165,19 @@ class Test_02(unittest.TestCase):
 		memory = p.MESG_InitWithSize(5) 
 		#memory = p.MEPO_GetMemorySegment(self.mp)
 
-		p.HTFL_SetMemorySegment(flow,memory);
+		p.GEFW_SetMemorySegment(flow,memory);
 
 		buf = "buuuuuuuuuuaaaaaaaaaaaaeeeeeeeeeeeee"
 		size = len(buf)
-		p.MESG_AppendPayloadNew(flow.memhttp,buf,size);
-		p.MESG_AppendPayloadNew(flow.memhttp,buf,size);
+		p.MESG_AppendPayloadNew(flow.memory,buf,size);
+		p.MESG_AppendPayloadNew(flow.memory,buf,size);
 	
 		# Now analyze the segment memory
 
 		# reset the memory
-		p.MESG_Reset(flow.memhttp)
-		flow.memhttp = None
-		p.HTFL_Reset(flow)
+		p.MESG_Reset(flow.memory)
+		flow.memory = None
+		p.GEFW_Reset(flow)
                 self.assertEqual(memory.virtual_size ,0)
                 self.assertEqual(memory.real_size ,size * 2)
 
@@ -194,30 +194,30 @@ class Test_02(unittest.TestCase):
 			flow = p.FLPO_GetFlow(self.fp)
 			mem = p.MEPO_GetMemorySegment(self.mp)	
 
-			p.HTFL_SetMemorySegment(flow,mem)
+			p.GEFW_SetMemorySegment(flow,mem)
 		
 			junk_len = 1024 * i
 			junk =  (("%%0%dX" % (junk_len * 2)) % random.getrandbits(junk_len * 8)).decode("hex")	
 
-			p.MESG_AppendPayloadNew(flow.memhttp,junk,junk_len)
+			p.MESG_AppendPayloadNew(flow.memory,junk,junk_len)
 
 			l.append(flow)
 
 		for i in xrange(1,10):
 			flow = l.pop(i)
-	                p.MESG_Reset(flow.memhttp)
-			memory = flow.memhttp
-       	         	flow.memhttp = None
-                	p.HTFL_Reset(flow)
+	                p.MESG_Reset(flow.memory)
+			memory = flow.memory
+       	         	flow.memory = None
+                	p.GEFW_Reset(flow)
 			p.MEPO_AddMemorySegment(self.mp,memory)
 			p.FLPO_AddFlow(self.fp,flow)	
 
 		l.reverse()
 		for flow in l:
-			p.MESG_Reset(flow.memhttp)
-			memory = flow.memhttp
-			flow.memhttp = None
-                	p.HTFL_Reset(flow)
+			p.MESG_Reset(flow.memory)
+			memory = flow.memory
+			flow.memory = None
+                	p.GEFW_Reset(flow)
 			p.MEPO_AddMemorySegment(self.mp,memory)
 			p.FLPO_AddFlow(self.fp,flow)	
 

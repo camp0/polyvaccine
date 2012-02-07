@@ -33,12 +33,13 @@ static struct option long_options[] = {
         {"port",  	required_argument, 	0, 'p'},
         {"force-post", 	no_argument, 		0, 'f'},
         {"unknown", 	no_argument, 		0, 'u'},
+        {"cache", 	no_argument, 		0, 'c'},
         {"help",    	no_argument, 		0, 'h'},
         {"version",    	no_argument, 		0, 'V'},
         {0, 0, 0, 0}
 };
 
-static char *short_options = "li:p:hVfu";
+static char *short_options = "li:p:hVfuc";
 
 static char *common_parameters [] = {
 	"Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7",
@@ -50,6 +51,11 @@ static char *common_parameters [] = {
 	"Accept-Encoding: gzip, deflate",
 	"User-Agent: Mozilla/5.0 (Ubuntu; X11; Linux i686; rv:8.0) Gecko/20100101 Firefox/8.0",
 	"Accept: image/png,image/*;q=0.8,*/*;q=0.5",
+	"Accept: */*",
+	"Accept: text/html, */*; q=0.01",
+	"Accept: text/plain, */*; q=0.01",
+	"Content-Type: text/html",
+	"Content-Encoding: gzip",
 	NULL
 };
 
@@ -68,6 +74,7 @@ void usage(char *prog){
         fprintf(stdout,"\t-f, --force-post                     Force the HTTP analyzer to analyze the post data content.\n");
 	fprintf(stdout,"\t-l, --learning                       Cache all the HTTP request on the HTTP cache.\n");
 	fprintf(stdout,"\t-u, --unknown                        Shows the unknown HTTP supported.\n");
+	fprintf(stdout,"\t-c, --cache                          Use common HTTP values on the cache to test cache effectivity.\n");
 	fprintf(stdout,"\n");
         fprintf(stdout,"\t-h, --help                           Display this information.\n");
         fprintf(stdout,"\t-V, --version                        Display this program's version number.\n");
@@ -81,12 +88,13 @@ void usage(char *prog){
 void main(int argc, char **argv) {
 	int i,c,port,learning,option_index;
 	char *source = NULL;
-	int force_post,show_unknown;
+	int force_post,show_unknown,use_cache;
 	char *value;
 
 	force_post = FALSE;
 	show_unknown = FALSE;
 	learning = FALSE;
+	use_cache = FALSE;
 	port = 80;
 	while((c = getopt_long(argc,argv,short_options,
                             long_options, &option_index)) != -1) {
@@ -96,6 +104,9 @@ void main(int argc, char **argv) {
              			break;
            		case 'p':
              			port = atoi(optarg);
+             			break;
+           		case 'c':
+             			use_cache = TRUE;	
              			break;
            		case 'u':
              			show_unknown = TRUE;
@@ -136,16 +147,17 @@ void main(int argc, char **argv) {
 	POEG_SetSourcePort(port);
 	POEG_ShowUnknownHttp(show_unknown);
 
-	/* for debugging and test */
-	value = common_parameters[0];
-	i = 0;
-	while(value!= NULL) {
-		POEG_AddToHttpCache(1,value);
-		i ++;
-		value = common_parameters[i];
-	}	
-	POEG_AddToHttpCache(0,"POST / HTTP/1.1");
-	POEG_AddToHttpCache(0,"GET / HTTP/1.1");
+	if(use_cache == TRUE) {
+		value = common_parameters[0];
+		i = 0;
+		while(value!= NULL) {
+			POEG_AddToHttpCache(1,value);
+			i ++;
+			value = common_parameters[i];
+		}	
+		POEG_AddToHttpCache(0,"POST / HTTP/1.1");
+		POEG_AddToHttpCache(0,"GET / HTTP/1.1");
+	}
 
 	POEG_Start();
 	POEG_Run();

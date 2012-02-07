@@ -91,7 +91,6 @@ void POEG_Init() {
 	}
 	
 	PKCX_Init();
-//	HTAZ_Init();
 	SYIN_Init();
 	_polyEngine->conn = COMN_Init();
 	_polyEngine->flowpool = FLPO_Init();
@@ -392,7 +391,7 @@ void POEG_Run() {
 					if(ga != NULL) { 
 						int tcpsegment_size;
 						unsigned long hash;
-						/* Find a ST_HttpFlow object in order to evaluate it */
+						/* Find a ST_GenericFlow object in order to evaluate it */
 						flow = COMN_FindConnection(_polyEngine->conn,
 							PKCX_GetIPSrcAddr(),
 							PKCX_GetTCPSrcPort(),
