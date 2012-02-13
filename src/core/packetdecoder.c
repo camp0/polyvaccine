@@ -100,7 +100,12 @@ int PKDE_Decode(struct pcap_pkthdr *hdr, unsigned char *packet) {
                                 break;
                         case IPPROTO_UDP:
                                 _pktdec._totalUdpPackets++;
-				return FALSE;
+                                have_l7 = TRUE;
+                                PKCX_SetUDPHeader((packet+offset));
+                                offset += PKCX_GetUDPHeaderLength();
+                                l7size = PKCX_GetUDPPayloadLength();
+                                next_proto = 0;
+				break;
                         case IPPROTO_ICMP:
                         case IPPROTO_IPV6:
 				_pktdec._totalIpv6Packets++;
@@ -113,10 +118,10 @@ int PKDE_Decode(struct pcap_pkthdr *hdr, unsigned char *packet) {
         PKCX_SetL7Payload((packet+offset),l7size);
 	DEBUG2("Decoding IPPacket: [%s:%d:%d:%s:%d] length %d\n",
 		PKCX_GetSrcAddrDotNotation(),
-		PKCX_GetTCPSrcPort(),
+		PKCX_GetSrcPort(),
 		PKCX_GetIPProtocol(),
 		PKCX_GetDstAddrDotNotation(),
-		PKCX_GetTCPDstPort(),l7size);
+		PKCX_GetDstPort(),l7size);
 
 	return TRUE;
 }

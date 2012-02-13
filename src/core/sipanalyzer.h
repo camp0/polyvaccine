@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef _HTTPANALYZER_H_
-#define _HTTPANALYZER_H_
+#ifndef _SIPANALYZER_H_
+#define _SIPANALYZER_H_
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -40,7 +40,7 @@
 
 #define OVECCOUNT 30
 
-struct ST_HTTPAnalyzer{
+struct ST_SIPAnalyzer{
 	GHashTable *methods;
 	GHashTable *parameters;
         pcre *expr_header;
@@ -51,37 +51,37 @@ struct ST_HTTPAnalyzer{
 	/* configuration options */	
 	int on_suspicious_header_break;
 	int on_suspicious_parameter_break;
-	int analyze_post_data;
-	int show_unknown_http;
+	int analyze_sdp_data;
+	int show_unknown_sip;
 	
 	/* statistics */
 	int32_t suspicious_headers;
 	int32_t suspicious_parameters;
 	int32_t total_suspicious_segments;
 	int32_t total_valid_segments;
-	int64_t total_http_bytes;
-	int64_t total_http_segments;
+	int64_t total_sip_bytes;
+	int64_t total_sip_segments;
 };
 
-typedef struct ST_HTTPAnalyzer ST_HTTPAnalyzer;
+typedef struct ST_SIPAnalyzer ST_SIPAnalyzer;
 
-void *HTAZ_Init(void);
-void *HTAZ_Destroy(void);
-void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f, int *ret);
-void *HTAZ_Stats(void);
-void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_GenericFlow *f);
-void HTAZ_SetForceAnalyzeHTTPPostData(int value);
-void HTAZ_ShowUnknownHTTP(int value);
+void *SPAZ_Init(void);
+void *SPAZ_Destroy(void);
+void *SPAZ_AnalyzeSIPRequest(ST_Cache *c,ST_GenericFlow *f, int *ret);
+void *SPAZ_Stats(void);
+void *SPAZ_AnalyzeDummySIPRequest(ST_Cache *c, ST_GenericFlow *f);
+void SPAZ_SetForceAnalyzeSIPSdpData(int value);
+void SPAZ_ShowUnknownSIP(int value);
 
-ST_TrustOffsets *HTAZ_GetTrustOffsets(void);
+ST_TrustOffsets *SPAZ_GetTrustOffsets(void);
 
 /* Service functions */
-int32_t HTAZ_GetNumberValidHTTPHeaders(void); 
-int32_t HTAZ_GetNumberUnknownHTTPHeaders(void); 
-int32_t HTAZ_GetNumberValidHTTPParameters(void);
-int32_t HTAZ_GetNumberUnknownHTTPParameters(void);
-int32_t HTAZ_GetNumberSuspiciousHTTPHeaders(void);
-int32_t HTAZ_GetNumberSuspiciousHTTPParameters(void);
-int32_t HTAZ_GetNumberSuspiciousSegments(void);
-int32_t HTAZ_GetNumberValidSegments(void);
+int32_t SPAZ_GetNumberValidSIPHeaders(void); 
+int32_t SPAZ_GetNumberUnknownSIPHeaders(void); 
+int32_t SPAZ_GetNumberValidSIPParameters(void);
+int32_t SPAZ_GetNumberUnknownSIPParameters(void);
+int32_t SPAZ_GetNumberSuspiciousSIPHeaders(void);
+int32_t SPAZ_GetNumberSuspiciousSIPParameters(void);
+int32_t SPAZ_GetNumberSuspiciousSegments(void);
+int32_t SPAZ_GetNumberValidSegments(void);
 #endif

@@ -24,7 +24,7 @@
 
 #include <stdio.h>
 #include <signal.h>
-#include "polyengine.h"
+#include "polyfilter.h"
 #include <getopt.h>
 
 static struct option long_options[] = {
@@ -45,9 +45,10 @@ static char *common_parameters [] = {
 	"Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7",
 	"Keep-Alive: 300",
 	"Connection: keep-alive",
+	"connection: Keep-Alive",
 	"DNT: 1",
 	"Accept-Language: es-ES,es;q=0.8",
-	"X-Requested-With: XMLHttpRequest",
+	"X-Requested-With: XMLHTTPRequest",
 	"Accept-Encoding: gzip, deflate",
 	"User-Agent: Mozilla/5.0 (Ubuntu; X11; Linux i686; rv:8.0) Gecko/20100101 Firefox/8.0",
 	"Accept: image/png,image/*;q=0.8,*/*;q=0.5",
@@ -60,8 +61,8 @@ static char *common_parameters [] = {
 };
 
 void sigquit(int signal) {
-	POEG_Stop();
-	POEG_StopAndExit();
+	POFR_Stop();
+	POFR_StopAndExit();
 	return;
 }
 
@@ -134,35 +135,35 @@ void main(int argc, char **argv) {
 		exit(0);
 	}
 
-	POEG_Init();
+	POFR_Init();
 
 	signal(SIGINT,sigquit);
 	//signal(SIGSEGV,sigquit);
 
 	if(learning)
-		POEG_SetLearningMode();
+		POFR_SetLearningMode();
 
-	POEG_SetForceAnalyzeHttpPostData(force_post);
-	POEG_SetSource(source);
-	POEG_SetSourcePort(port);
-	POEG_ShowUnknownHttp(show_unknown);
+	POFR_SetForceAnalyzeHTTPPostData(force_post);
+	POFR_SetSource(source);
+	POFR_SetSourcePort(port);
+	POFR_ShowUnknownHTTP(show_unknown);
 
 	if(use_cache == TRUE) {
 		value = common_parameters[0];
 		i = 0;
 		while(value!= NULL) {
-			POEG_AddToHttpCache(1,value);
+			POFR_AddToHTTPCache(1,value);
 			i ++;
 			value = common_parameters[i];
 		}	
-		POEG_AddToHttpCache(0,"POST / HTTP/1.1");
-		POEG_AddToHttpCache(0,"GET / HTTP/1.1");
+		POFR_AddToHTTPCache(0,"POST / HTTP/1.1");
+		POFR_AddToHTTPCache(0,"GET / HTTP/1.1");
 	}
 
-	POEG_Start();
-	POEG_Run();
+	POFR_Start();
+	POFR_Run();
 
-	POEG_Stop();
-	POEG_StopAndExit();
+	POFR_Stop();
+	POFR_StopAndExit();
 	return;
 }

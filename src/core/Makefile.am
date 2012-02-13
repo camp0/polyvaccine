@@ -11,11 +11,12 @@ BUILT_SOURCES = $(srcdir)/polyvaccine_wrap.c
 
 libpolyvaccine_la_SOURCES =	system.c memory.c memorypool.c privatecallbacks.c flowpool.c \
 				connection.c packetdecoder.c authorized.c trustoffset.c \
-				httpanalyzer.c cache.c forwarder.c polyengine.c 
+				httpanalyzer.c sipanalyzer.c cache.c forwarder.c polyfilter.c 
 
-noinst_HEADERS =	httpvalues.h flowpool.h connection.h cache.h polyengine.h forwarder.h \
+noinst_HEADERS =	httpvalues.h flowpool.h connection.h cache.h polyfilter.h forwarder.h \
 			packetdecoder.h packetcontext.h genericflow.h authorized.h privatecallbacks.h \
-			httpanalyzer.h memory.h memorypool.h system.h trustoffset.h sipvalues.h 
+			httpanalyzer.h memory.h memorypool.h system.h trustoffset.h sipvalues.h \
+			sipanalyzer.h 
 
 libpolyvaccine_la_LIBADD = ../opcodes/libopcodes.la ../bus/libpolybus.la $(DEPS_LIBS) 
 libpolyvaccine_la_LDFLAGS = -version-info 0:0:0 $(DEPS_LIBS) `pkg-config --libs glib-2.0 dbus-1 libpcre`

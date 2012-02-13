@@ -38,16 +38,18 @@
 struct ST_GenericAnalyzer{
 	int16_t port;
 	char name[32];
-	void (*init)();
-	void (*destroy)();
-	void (*stats)();
+	ST_Cache *cache;
+	void (*init)(void);
+	void (*destroy)(void);
+	void (*stats)(void);
 	void (*analyze)(ST_Cache *c,ST_GenericFlow *f,int *ret);
 	void (*learn)(ST_Cache *c,ST_GenericFlow *f);
 };
 typedef struct ST_GenericAnalyzer ST_GenericAnalyzer;
 
 struct ST_Forwarder {
-	GHashTable *analyzers;
+	GHashTable *tcp_analyzers;
+	GHashTable *udp_analyzers;
 };
 typedef struct ST_Forwarder ST_Forwarder;
 
@@ -55,10 +57,12 @@ ST_Forwarder *FORD_Init(void);
 void FORD_Destroy(ST_Forwarder *fw);
 void FORD_InitAnalyzers(ST_Forwarder *fw);
 void FORD_Stats(ST_Forwarder *fw);
-ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw,int16_t port);
+ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw,int16_t protocol,int16_t port);
 
-void FORD_AddAnalyzer(ST_Forwarder *fw,char *name,int16_t port,void (*init)(), 
-	void (*destroy)(),void (*stats)(),
+void FORD_AddAnalyzer(ST_Forwarder *fw,ST_Cache *cache,char *name,int16_t protocol, int16_t port,
+	void (*init)(void), 
+	void (*destroy)(void),
+	void (*stats)(void),
 	void (*analyze)(ST_Cache *c,ST_GenericFlow *f,int *ret),
 	void (*learn)(ST_Cache *c,ST_GenericFlow *f));
 

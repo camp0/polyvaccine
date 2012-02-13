@@ -40,7 +40,7 @@ def showPvfeHttpCache(i):
 	print "Http cache headers"
 	if (cache != None):
 		for h in cache:
-			print h
+			print "\t",h
 	print "Http cache parameters"
 	cache = i.GetCacheParameters()
 	if(cache!=None):
@@ -142,7 +142,11 @@ if __name__ == '__main__':
 		createDatabaseModel()
 	elif(insert_database_model):
 		bus = dbus.SessionBus()
-		s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
+		try:
+			s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
+		except:	
+			print "No Filter engine available on the bus"
+			sys.exit(-1)
 		d = dbus.Interface(s,dbus_interface='polyvaccine.filter.httpcache')
 		insertPvfeHttpCache(d)
 	elif(load_database_model):
@@ -152,7 +156,11 @@ if __name__ == '__main__':
                 insertHttpCachePvfe(d)
 	else:		
 		bus = dbus.SessionBus()
-		s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
+		try:
+			s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
+		except:
+			print "No Filter engine available on the bus"
+			sys.exit(-1)
 		d = dbus.Interface(s,dbus_interface='polyvaccine.filter.httpcache')
 		showPvfeHttpCache(d)
 

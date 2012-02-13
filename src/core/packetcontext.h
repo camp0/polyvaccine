@@ -43,6 +43,7 @@ struct ST_PacketContext {
 	struct ip *ip;
 #endif
 	struct tcphdr *tcp;
+	struct udphdr *udp;
 	unsigned char *payload;
 	int len;
 	struct timeval *now;
@@ -52,9 +53,10 @@ typedef struct ST_PacketContext ST_PacketContext;
 
 ST_PacketContext _pktctx;
 	
-static void PKCX_Init(void) { _pktctx.ip= NULL;_pktctx.tcp = NULL;_pktctx.payload = NULL;_pktctx.len=0;};
+static void PKCX_Init(void) { _pktctx.ip= NULL;_pktctx.tcp = NULL;_pktctx.udp = NULL;_pktctx.payload = NULL;_pktctx.len=0;};
 static void PKCX_Destroy(void) { return;};
 static void PKCX_SetTCPHeader(unsigned char *packet) { _pktctx.tcp = (struct tcphdr*)packet; };
+static void PKCX_SetUDPHeader(unsigned char *packet) { _pktctx.udp = (struct udphdr*)packet; };
 static void PKCX_SetL7Payload(unsigned char *packet,int length) {_pktctx.payload = packet;_pktctx.len = length;};
 
 #ifdef __LINUX__
@@ -97,6 +99,36 @@ static char* PKCX_GetDstAddrDotNotation(void) {
 }
 static u_int32_t PKCX_GetTCPSequenceNumber(void) { return ntohl(_pktctx.tcp->seq); }
 
+/* UDP Fields */
+static u_int16_t PKCX_GetUDPSrcPort(void) { return nthons(_pktctx.udp->source);}
+static u_int16_t PKCX_GetUDPDstPort(void) { return nthons(_pktctx.udp->dest);}
+static unsigned int PKCX_GetUDPPayloadLength(void) { return ntohs(_pktctx.udp->len) - sizeof(struct udphdr); }
+static unsigned int PKCX_GetUDPHeaderLength(void) { return ntohs(_pktctx.udp->len); }
+
+/* Generic fields */
+static u_int16_t PKCX_GetDstPort(void) { 
+	if(_pktctx.ip->protocol == IPPROTO_TCP)
+		return ntohs(_pktctx.tcp->dest);
+	else
+		if(_pktctx.ip->protocol == IPPROTO_UDP)
+			return ntohs(_pktctx.udp->dest);	
+	return 0;
+}
+
+static u_int16_t PKCX_GetSrcPort(void) {
+        if(_pktctx.ip->protocol == IPPROTO_TCP)
+                return ntohs(_pktctx.tcp->source);
+        else
+                if(_pktctx.ip->protocol == IPPROTO_UDP)
+                        return ntohs(_pktctx.udp->source);
+        return 0;
+}
+
+static u_int32_t PKCX_GetSequenceNumber(void) { 
+	if(_pktctx.ip->protocol == IPPROTO_TCP)
+		return ntohl(_pktctx.tcp->seq); 
+	return 0;
+}
 #endif // LINUX
 
 #ifdef __FREEBSD__

@@ -27,14 +27,14 @@
 
 #define CRLF "\r\n"
 
-struct ST_SipField {
+struct ST_SIPField {
 	int nfield;
 	char *name;
 	int32_t matchs;
 	int have_data;
 	int check_cache;
 };
-typedef struct ST_SipField ST_SipField;
+typedef struct ST_SIPField ST_SIPField;
 
 enum {
 	/* Header types */
@@ -47,7 +47,7 @@ enum {
 	SIP_HEADER_UNKNOWN
 };
 
-static ST_SipField ST_SipTypeHeaders[] = {
+static ST_SIPField ST_SIPTypeHeaders[] = {
 	{	
 		.nfield 	=	SIP_HEADER_REGISTER,
 		.name 		= 	"REGISTER",
@@ -145,7 +145,7 @@ enum {
 	SIP_FIELD_USER_AGENT,
 	SIP_FIELD_VIA,
 	SIP_FIELD_WARNING,
-	SIP_FIELD_WWW_AUTHENTICATE
+	SIP_FIELD_WWW_AUTHENTICATE,
 	/* Request headers */
 	/* Response headers */
 	/* Other headers */
@@ -153,7 +153,7 @@ enum {
 	SIP_FIELD_UNKNOWN // just for counting pourposes
 };
 
-static ST_HttpField ST_HttpFields [] = {
+static ST_SIPField ST_SIPFields [] = {
 	{
                 .nfield         =       SIP_FIELD_ACCEPT,
                 .name           =       "Accept",
@@ -442,7 +442,7 @@ static ST_HttpField ST_HttpFields [] = {
                 .check_cache    =       TRUE,
         },
         {
-                .nfield         =       SIP_FIELD_USER_VIA,
+                .nfield         =       SIP_FIELD_VIA,
                 .name           =       "Via",
                 .matchs         =       0,
                 .have_data      =       0,
@@ -465,13 +465,14 @@ static ST_HttpField ST_HttpFields [] = {
 	{}
 };
 
+/*
 int HT_GetHeaderMethod(char *data) {
 	register int i;
 
-	for (i = SIP_HEADER_GET;i< SIP_MAX_HEADER;i++)
+	for (i = SIP_HEADER_REGISTER;i< SIP_HEADER_UNKNOWN;i++)
         	if(strncmp(ST_HttpTypeHeaders[i].name,data,strlen(ST_HttpTypeHeaders[i].name)) == 0) 
                 	return i;
 	return SIP_HEADER_UNKNOWN;
 }
-
+*/
 #endif

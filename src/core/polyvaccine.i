@@ -7,7 +7,7 @@
 #include "memorypool.h"
 #include "memory.h"
 #include "genericflow.h"
-#include "polyengine.h"
+#include "polyfilter.h"
 %}
 
 %apply unsigned int { uint32_t }
@@ -23,4 +23,4 @@
 %include "memory.h"
 %include "packetcontext.h"
 %include "genericflow.h"
-%include "polyengine.h"
+%include "polyfilter.h"

@@ -88,7 +88,7 @@ void PODS_ExecuteCallback(GHashTable *h, DBusConnection *c,DBusMessage *msg,char
         const char *destination = dbus_message_get_destination(msg);
         const char *interface = dbus_message_get_interface(msg);
         const char *member = dbus_message_get_member(msg);
-        const char *path = dbus_message_get_path(msg);
+        const char VARIABLE_IS_NOT_USED *path = dbus_message_get_path(msg);
 
         DEBUG0("receive message from '%s' on object (0x%x)callback(%s)\n",interface,h,key);
         callback = (ST_Callback*)g_hash_table_lookup(h,(gchar*)key);

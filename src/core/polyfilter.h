@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef _POLYENGINE_H_
-#define _POLYENGINE_H_
+#ifndef _POLYFILTER_H_
+#define _POLYFILTER_H_
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -48,16 +48,16 @@
 #include "banner.h"
 
 enum {
-        POLYENGINE_STATE_STOP = 0,
-        POLYENGINE_STATE_RUNNING
-} polyengine_states;
+        POLYFILTER_STATE_STOP = 0,
+        POLYFILTER_STATE_RUNNING
+} polyfilter_states;
 
-static const char *polyengine_states_str [] = { "stop","running"};
+static const char *polyfilter_states_str [] = { "stop","running"};
 
 #define POLYVACCINE_FILTER_ENGINE_NAME "Polyvaccine filter engine"
 
-struct ST_PolyEngine {
-	int polyengine_status;
+struct ST_PolyFilter {
+	int polyfilter_status;
 	int pcapfd;
 	int is_pcap_file;
 	int defaultport;
@@ -66,35 +66,36 @@ struct ST_PolyEngine {
 	ST_FlowPool *flowpool;
 	ST_MemoryPool *memorypool;
 	ST_Cache *httpcache;
+	ST_Cache *sipcache;
 	ST_AuthorizedHost *hosts;
 	ST_Forwarder *forwarder;
 	GString *source;
 	pcap_t *pcap;
 };
 
-typedef struct ST_PolyEngine ST_PolyEngine;
+typedef struct ST_PolyFilter ST_PolyFilter;
 
-void POEG_Init(void);
-void POEG_Destroy(void);
+void POFR_Init(void);
+void POFR_Destroy(void);
 
-void POEG_SetSource(char *source);
-void POEG_SetSourcePort(int port);
-void POEG_SetForceAnalyzeHttpPostData(int value);
-void POEG_ShowUnknownHttp(int value);
+void POFR_SetSource(char *source);
+void POFR_SetSourcePort(int port);
+void POFR_SetForceAnalyzeHTTPPostData(int value);
+void POFR_ShowUnknownHTTP(int value);
 
-void POEG_Stats(void);
-void POEG_Start(void);
-void POEG_Stop(void);
-void POEG_StopAndExit(void);
-void POEG_Run(void);
+void POFR_Stats(void);
+void POFR_Start(void);
+void POFR_Stop(void);
+void POFR_StopAndExit(void);
+void POFR_Run(void);
 
 /* Service functions */
-void POEG_SetLearningMode(void);
-void POEG_AddToHttpCache(int type,char *value);
+void POFR_SetLearningMode(void);
+void POFR_AddToHTTPCache(int type,char *value);
 
-int32_t POEG_GetHttpHeaderCacheHits(void);
-int32_t POEG_GetHttpHeaderCacheFails(void);
-int32_t POEG_GetHttpParameterCacheHits(void);
-int32_t POEG_GetHttpParameterCacheFails(void);
+int32_t POFR_GetHTTPHeaderCacheHits(void);
+int32_t POFR_GetHTTPHeaderCacheFails(void);
+int32_t POFR_GetHTTPParameterCacheHits(void);
+int32_t POFR_GetHTTPParameterCacheFails(void);
 
 #endif

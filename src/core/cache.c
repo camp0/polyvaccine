@@ -142,10 +142,22 @@ ST_CacheNode *CACH_GetParameterFromCache(ST_Cache *c,char *value) {
 void CACH_Stats(ST_Cache *c) {
 	GHashTableIter iter;
 	gpointer k,v;
+	int h_effectiveness;
+	int p_effectiveness;
 
+	h_effectiveness = 0;
+	p_effectiveness = 0;
+	if((c->header_hits+c->header_fails)>0){
+		h_effectiveness = (c->header_hits*100)/(c->header_hits+c->header_fails);
+	}	
+	if((c->parameter_hits+c->parameter_fails)>0){
+		p_effectiveness = (c->parameter_hits*100)/(c->parameter_hits+c->parameter_fails);
+	}	
 	fprintf(stdout,"Cache(0x%x) statistics\n",c);
 	fprintf(stdout,"\tHeader hits = %d\n\tHeader fails = %d\n",c->header_hits,c->header_fails);
+	fprintf(stdout,"\tHeader effectiveness = %d\%\n",h_effectiveness);
 	fprintf(stdout,"\tParameter hits = %d\n\tParameter fails = %d\n",c->parameter_hits,c->parameter_fails);
+	fprintf(stdout,"\tParameter effectiveness = %d\%\n",p_effectiveness);
 	fprintf(stdout,"\tSuspicious Headers = %d\n\tSuspicious parameters = %d\n",
 		c->header_suspicious_opcodes,c->parameter_suspicious_opcodes);
 	fprintf(stdout,"\tCache Headers\n");

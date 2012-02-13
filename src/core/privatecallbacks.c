@@ -22,7 +22,7 @@
  *
  */
 
-#include "polyengine.h"
+#include "polyfilter.h"
 #include "callbacks.h"
 
 /* Used for the Property Dbus interface */
@@ -74,7 +74,7 @@ void PRCA_Method_StartEngine(DBusConnection *conn,DBusMessage *msg, void *data){
 
         reply = dbus_message_new_method_return(msg);
 
-	POEG_Start();
+	POFR_Start();
 	
         dbus_message_iter_init(reply, &args);
         dbus_message_iter_init_append(reply, &args);
@@ -97,7 +97,7 @@ void PRCA_Method_StopEngine(DBusConnection *conn,DBusMessage *msg, void *data){
 
         reply = dbus_message_new_method_return(msg);
 
-        POEG_Stop();
+        POFR_Stop();
 
         dbus_message_iter_init(reply, &args);
         dbus_message_iter_init_append(reply, &args);
@@ -129,7 +129,7 @@ void PRCA_Method_SetSource(DBusConnection *conn,DBusMessage *msg, void *data){
         else
                 dbus_message_iter_get_basic(&args, &param);
 
-	POEG_SetSource(param);
+	POFR_SetSource(param);
 
         dbus_message_iter_init(reply, &args);
         dbus_message_iter_init_append(reply, &args);
@@ -148,16 +148,16 @@ void PRCA_Method_SetSource(DBusConnection *conn,DBusMessage *msg, void *data){
 
 /* Properties */
 void PRCA_Property_GetState(DBusConnection *conn,DBusMessage *msg, void *data){
-	ST_PolyEngine *p = (ST_PolyEngine*)data;
-	int status = p->polyengine_status;
-	char *value = polyengine_states_str[status];	
+	ST_PolyFilter *p = (ST_PolyFilter*)data;
+	int status = p->polyfilter_status;
+	char *value = polyfilter_states_str[status];	
 
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_STRING,(void*)value);
         return;
 }
 
 void PRCA_Property_GetSource(DBusConnection *conn,DBusMessage *msg, void *data){
-	ST_PolyEngine *p = (ST_PolyEngine*)data;
+	ST_PolyFilter *p = (ST_PolyFilter*)data;
         char *value = p->source->str; 
 
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_STRING,(void*)value);
@@ -227,7 +227,7 @@ void PRCA_Property_GetNumberValidSegments(DBusConnection *conn,DBusMessage *msg,
 
 /* Functions for the connection manager */
 void PRCA_Property_GetTotalFlowsOnFlowPool(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p =(ST_PolyEngine*)data;
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
 	value = FLPO_GetNumberFlows(p->flowpool);
@@ -235,7 +235,7 @@ void PRCA_Property_GetTotalFlowsOnFlowPool(DBusConnection *conn,DBusMessage *msg
         return;
 }
 void PRCA_Property_GetTotalSegmentOnMemoryPool(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p =(ST_PolyEngine*)data;
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
 	value = MEPO_GetNumberMemorySegments(p->memorypool);
@@ -244,7 +244,7 @@ void PRCA_Property_GetTotalSegmentOnMemoryPool(DBusConnection *conn,DBusMessage 
 }
 
 void PRCA_Property_GetFlowPoolTotalReleases(DBusConnection *conn,DBusMessage *msg, void *data){
-	ST_PolyEngine *p =(ST_PolyEngine*)data;
+	ST_PolyFilter *p =(ST_PolyFilter*)data;
 	dbus_int32_t value = 0;
 
 	value = p->flowpool->total_releases;
@@ -253,7 +253,7 @@ void PRCA_Property_GetFlowPoolTotalReleases(DBusConnection *conn,DBusMessage *ms
 }
 
 void PRCA_Property_GetFlowPoolTotalAcquires(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p =(ST_PolyEngine*)data;
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = p->flowpool->total_acquires;
@@ -262,7 +262,7 @@ void PRCA_Property_GetFlowPoolTotalAcquires(DBusConnection *conn,DBusMessage *ms
 }
 
 void PRCA_Property_GetFlowPoolTotalErrors(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p =(ST_PolyEngine*)data;
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = p->flowpool->total_errors;
@@ -271,7 +271,7 @@ void PRCA_Property_GetFlowPoolTotalErrors(DBusConnection *conn,DBusMessage *msg,
 }
 
 void PRCA_Property_GetMemoryPoolTotalReleases(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p =(ST_PolyEngine*)data;
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = p->memorypool->total_releases;
@@ -280,7 +280,7 @@ void PRCA_Property_GetMemoryPoolTotalReleases(DBusConnection *conn,DBusMessage *
 }
 
 void PRCA_Property_GetMemoryPoolTotalAcquires(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p =(ST_PolyEngine*)data;
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = p->memorypool->total_acquires;
@@ -289,7 +289,7 @@ void PRCA_Property_GetMemoryPoolTotalAcquires(DBusConnection *conn,DBusMessage *
 }
 
 void PRCA_Property_GetMemoryPoolTotalErrors(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p =(ST_PolyEngine*)data;
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = p->memorypool->total_errors;
@@ -298,7 +298,7 @@ void PRCA_Property_GetMemoryPoolTotalErrors(DBusConnection *conn,DBusMessage *ms
 }
 
 void PRCA_Property_GetMemoryPoolTotalReleaseBytes(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p =(ST_PolyEngine*)data;
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int64_t value = 0;
 
         value = p->memorypool->total_release_bytes;
@@ -306,7 +306,7 @@ void PRCA_Property_GetMemoryPoolTotalReleaseBytes(DBusConnection *conn,DBusMessa
         return;
 }
 void PRCA_Property_GetMemoryPoolTotalAcquireBytes(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p =(ST_PolyEngine*)data;
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int64_t value = 0;
 
         value = p->memorypool->total_acquire_bytes;
@@ -315,7 +315,7 @@ void PRCA_Property_GetMemoryPoolTotalAcquireBytes(DBusConnection *conn,DBusMessa
 }
 
 void PRCA_Method_IncreaseMemoryPool(DBusConnection *conn,DBusMessage *msg, void *data){
-	ST_PolyEngine *p = (ST_PolyEngine*)data;
+	ST_PolyFilter *p = (ST_PolyFilter*)data;
         DBusMessageIter args;
 	dbus_int32_t param;
         DBusMessage *reply = NULL;
@@ -338,7 +338,7 @@ void PRCA_Method_IncreaseMemoryPool(DBusConnection *conn,DBusMessage *msg, void 
 }
 
 void PRCA_Method_DecreaseMemoryPool(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p = (ST_PolyEngine*)data;
+        ST_PolyFilter *p = (ST_PolyFilter*)data;
         DBusMessageIter args;
         dbus_int32_t param;
         DBusMessage *reply = NULL;
@@ -360,7 +360,7 @@ void PRCA_Method_DecreaseMemoryPool(DBusConnection *conn,DBusMessage *msg, void 
 }
 
 void PRCA_Method_IncreaseFlowPool(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p = (ST_PolyEngine*)data;
+        ST_PolyFilter *p = (ST_PolyFilter*)data;
         DBusMessageIter args;
         dbus_int32_t param;
         DBusMessage *reply = NULL;
@@ -381,7 +381,7 @@ void PRCA_Method_IncreaseFlowPool(DBusConnection *conn,DBusMessage *msg, void *d
         return;
 }
 void PRCA_Method_DecreaseFlowPool(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p = (ST_PolyEngine*)data;
+        ST_PolyFilter *p = (ST_PolyFilter*)data;
         DBusMessageIter args;
         dbus_int32_t param;
         DBusMessage *reply = NULL;
@@ -406,7 +406,7 @@ void PRCA_Method_DecreaseFlowPool(DBusConnection *conn,DBusMessage *msg, void *d
 /* Methods of the http cache */
 
 void PRCA_Method_GetHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p = (ST_PolyEngine*)data;
+        ST_PolyFilter *p = (ST_PolyFilter*)data;
 	GList *l = NULL; 
         DBusMessageIter iter;
         DBusMessage *reply = NULL;
@@ -439,7 +439,7 @@ void PRCA_Method_GetHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void
 }
 
 void PRCA_Method_GetHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p = (ST_PolyEngine*)data;
+        ST_PolyFilter *p = (ST_PolyFilter*)data;
 	GList *l = NULL;
         DBusMessageIter iter;
         dbus_int32_t param;
@@ -474,7 +474,7 @@ void PRCA_Method_GetHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, v
 }
 
 void PRCA_Method_AddHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p = (ST_PolyEngine*)data;
+        ST_PolyFilter *p = (ST_PolyFilter*)data;
         DBusMessageIter args;
         dbus_int32_t ret = 1;
         DBusMessage *reply = NULL;
@@ -496,7 +496,7 @@ void PRCA_Method_AddHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void
 }
 
 void PRCA_Method_AddHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p = (ST_PolyEngine*)data;
+        ST_PolyFilter *p = (ST_PolyFilter*)data;
         DBusMessageIter args;
         dbus_int32_t ret = 1;
         DBusMessage *reply = NULL;
@@ -519,7 +519,7 @@ void PRCA_Method_AddHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, v
 
 /* Properties of the http cache */
 void PRCA_Property_GetNumberHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p = (ST_PolyEngine*)data;
+        ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = CACH_GetNumberHeaders(p->httpcache); 
@@ -528,7 +528,7 @@ void PRCA_Property_GetNumberHttpCacheHeaders(DBusConnection *conn,DBusMessage *m
 }
 
 void PRCA_Property_GetNumberHttpCacheParameters (DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p = (ST_PolyEngine*)data;
+        ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = CACH_GetNumberParameters(p->httpcache);
@@ -537,7 +537,7 @@ void PRCA_Property_GetNumberHttpCacheParameters (DBusConnection *conn,DBusMessag
 }
 
 void PRCA_Property_GetNumberHttpHeaderHits(DBusConnection *conn,DBusMessage *msg, void *data){
-	ST_PolyEngine *p = (ST_PolyEngine*)data;
+	ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = p->httpcache->header_hits;
@@ -546,7 +546,7 @@ void PRCA_Property_GetNumberHttpHeaderHits(DBusConnection *conn,DBusMessage *msg
 }
 
 void PRCA_Property_GetNumberHttpHeaderFails(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p = (ST_PolyEngine*)data;
+        ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = p->httpcache->header_fails;
@@ -554,7 +554,7 @@ void PRCA_Property_GetNumberHttpHeaderFails(DBusConnection *conn,DBusMessage *ms
         return;
 }
 void PRCA_Property_GetNumberHttpParameterHits(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p = (ST_PolyEngine*)data;
+        ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = p->httpcache->parameter_hits;
@@ -563,7 +563,7 @@ void PRCA_Property_GetNumberHttpParameterHits(DBusConnection *conn,DBusMessage *
 }
 
 void PRCA_Property_GetNumberHttpParameterFails(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p = (ST_PolyEngine*)data;
+        ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = p->httpcache->parameter_fails;
@@ -572,7 +572,7 @@ void PRCA_Property_GetNumberHttpParameterFails(DBusConnection *conn,DBusMessage 
 }
 
 void PRCA_Method_AddAuthorizedHost(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyEngine *p = (ST_PolyEngine*)data;
+        ST_PolyFilter *p = (ST_PolyFilter*)data;
         DBusMessageIter args;
         dbus_int32_t param;
         DBusMessage *reply = NULL;

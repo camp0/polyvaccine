@@ -27,14 +27,14 @@
 
 #define CRLF "\r\n"
 
-struct ST_HttpField {
+struct ST_HTTPField {
 	int nfield;
 	char *name;
 	int32_t matchs;
 	int have_data;
 	int check_cache;
 };
-typedef struct ST_HttpField ST_HttpField;
+typedef struct ST_HTTPField ST_HTTPField;
 
 enum {
 	/* Header types */
@@ -49,7 +49,7 @@ enum {
 	HTTP_HEADER_UNKNOWN
 };
 
-static ST_HttpField ST_HttpTypeHeaders[] = {
+static ST_HTTPField ST_HTTPTypeHeaders[] = {
 	{ 
 		.nfield		=	HTTP_HEADER_GET,		
 		.name		=	"GET",		
@@ -202,7 +202,7 @@ enum {
  * X-McProxyFilter: Usado por el Firewall de Mac Affee para ocultar info.
  *
  */ 
-static ST_HttpField ST_HttpFields [] = {
+static ST_HTTPField ST_HTTPFields [] = {
 	{ HTTP_FIELD_CACHE_CONTROL,		"Cache-Control",	0,0,	TRUE },
 	{ HTTP_FIELD_CONNECTION,		"Connection",		0,0,	TRUE },
 	{ HTTP_FIELD_DATE,			"Date",			0,0,	TRUE },
@@ -278,7 +278,7 @@ int HT_GetHeaderMethod(char *data) {
 	register int i;
 
 	for (i = HTTP_HEADER_GET;i< HTTP_HEADER_UNKNOWN;i++)
-        	if(strncmp(ST_HttpTypeHeaders[i].name,data,strlen(ST_HttpTypeHeaders[i].name)) == 0) 
+        	if(strncmp(ST_HTTPTypeHeaders[i].name,data,strlen(ST_HTTPTypeHeaders[i].name)) == 0) 
                 	return i;
 	return HTTP_HEADER_UNKNOWN;
 }
