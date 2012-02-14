@@ -69,7 +69,7 @@ void COMN_InsertConnection(ST_Connection *conn,ST_GenericFlow *flow,unsigned lon
         a.s_addr = flow->saddr;
         b.s_addr = flow->daddr;
 
-        unsigned long h = (flow->saddr^flow->sport^6^flow->daddr^flow->dport);
+        unsigned long h = (flow->saddr^flow->sport^flow->protocol^flow->daddr^flow->dport);
 	(*hash) = h;
 
  //       DEBUG2("insert flow(0x%x) hash(%lu) [%s:%d:%d:%s:%d]\n",flow,h,
@@ -103,9 +103,9 @@ void COMN_UpdateTimers(ST_Connection *conn,struct timeval *currenttime){
                         /* The timer expires */
                         DEBUG0("Expire timer for flow(0x%x)secs(%d)curr(%d)\n",flow,flow->current_time.tv_sec,currenttime->tv_sec);
 
-                        unsigned long h = (flow->saddr^flow->sport^6^flow->daddr^flow->dport);
+                        unsigned long h = (flow->saddr^flow->sport^flow->protocol^flow->daddr^flow->dport);
                         if(g_hash_table_remove(conn->table,GINT_TO_POINTER(h)) == FALSE) {
-                                h = (flow->daddr^flow->dport^6^flow->saddr^flow->sport);
+                                h = (flow->daddr^flow->dport^flow->protocol^flow->saddr^flow->sport);
                                 g_hash_table_remove(conn->table,GINT_TO_POINTER(h));
                         }
                         if((conn->flowpool)&&(conn->mempool)){

@@ -82,7 +82,25 @@ void COSU_Init(void) {
 	sprintf(op_count.regular_expresion,"%s)",op_count.regular_expresion);
 
 	op_count.opcode_regex = pcre_compile((char*)op_count.regular_expresion, PCRE_DOTALL, &errorstr, &erroffset, 0);
-        op_count.opcode_regex_study = pcre_study(op_count.opcode_regex,0,&errorstr);
+
+#ifdef PCRE_HAVE_JIT
+        op_count.opcode_regex_study = pcre_study(op_count.opcode_regex,PCRE_STUDY_JIT_COMPILE,&errorstr);
+	if(op_count.opcode_regex_study == NULL){
+		WARNING("PCRE study with JIT support failed '%s'\n",errorstr);
+		return;
+	}
+	int jit = 0;
+	int ret;
+
+	ret = pcre_fullinfo(op_count.opcode_regex,op_count.opcode_regex_study, PCRE_INFO_JIT,&jit);
+    	if (ret != 0 || jit != 1) {
+		INFOMSG("PCRE JIT compiler does not support the expresion on the Opcoder\n");
+	}
+#else
+	op_count.opcode_regex_study = pcre_study(op_count.opcode_regex,0,&errorstr);
+	if(op_count.opcode_regex_study == NULL)
+		WARNING("pcre study failed '%s'\n",errorstr);
+#endif 
 	return;
 }
 
@@ -142,7 +160,11 @@ int COSU_CheckSuspiciousOpcodes(char *data, int datasize) {
 
 void COSU_Destroy(){
 	pcre_free(op_count.opcode_regex);
-	pcre_free(op_count.opcode_regex_study);
+#if PCRE_MAYOR == 8 && PCRE_MINOR >= 20
+        pcre_free_study(op_count.opcode_regex_study);
+#else
+        pcre_free(op_count.opcode_regex_study);
+#endif
 	return;
 }
 

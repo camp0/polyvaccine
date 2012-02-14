@@ -76,9 +76,53 @@ if test "$WITH_PCRE" != "no"; then
 fi
 
 AC_SUBST(PCRE_LIB)
-#dnl pcre 
-#AC_CHECK_LIB(pcre, main, ,AC_MSG_ERROR("Install perl regular expresion library"),)
-#AC_CHECK_HEADER(pcre.h, ,[AC_MSG_ERROR("pcre.h header not found.")],)
+    AC_MSG_CHECKING(for PCRE JIT support)
+    AC_TRY_COMPILE([ #include <pcre.h> ],
+        [
+        int jit = 0;
+        pcre_config(PCRE_CONFIG_JIT, &jit);
+        ],
+        [ pcre_jit_available=yes ], [ pcre_jit_available=no ]
+        )
+
+    if test "x$pcre_jit_available" = "xyes"; then
+       AC_MSG_RESULT(yes)
+       AC_DEFINE([PCRE_HAVE_JIT], [1], [Pcre with JIT compiler support enabled])
+
+       AC_MSG_CHECKING(for PCRE JIT support usability)
+       AC_TRY_COMPILE([ #include <pcre.h> ],
+           [
+           const char* regexstr = "(a|b|c|d)";
+           pcre *re;
+           const char *error;
+           pcre_extra *extra;
+           int err_offset;
+           re = pcre_compile(regexstr,0, &error, &err_offset,NULL);
+           extra = pcre_study(re, PCRE_STUDY_JIT_COMPILE, &error);
+           if (extra == NULL)
+               exit(EXIT_FAILURE);
+           int jit = 0;
+           int ret = pcre_fullinfo(re, extra, PCRE_INFO_JIT, &jit);
+           if (ret != 0 || jit != 1)
+               exit(EXIT_FAILURE);
+           exit(EXIT_SUCCESS);
+           ],
+           [ pcre_jit_works=yes ], [:]
+       )
+       if test "x$pcre_jit_works" != "xyes"; then
+           AC_MSG_RESULT(no)
+           echo
+           echo "   PCRE JIT support detection worked but testing it failed"
+           echo "   something odd is going on, please file a bug report."
+           echo
+           exit 1
+       else
+           AC_MSG_RESULT(yes)
+       fi
+    fi
+
+
+
 
 PKG_CHECK_MODULES(GLIB,[glib-2.0 >= 2.10.3],[],AC_MSG_ERROR($GLIB_PKG_ERRORS))
 
@@ -260,14 +304,19 @@ samples/exploits/sip/Makefile
 echo "
   Polyvaccine 
   ($PACKAGE_NAME) version $PACKAGE_VERSION
-  Platform.............: $host
-  Prefix...............: $prefix
-  Debug Build..........: $enable_debug
-  C Compiler...........: $CXX $CFLAGS $CPPFLAGS
-  Linker...............: $LD $LDFLAGS $LIBS
-  Doxygen..............: $enable_doxygen
-  Swig enable..........: $enable_swig
-  Protection Engine....: $NFQ_ENABLE
-  IPv6 support.........: $enable_ipv6
+  Platform................: $host
+  Prefix..................: $prefix
+  C preprocessor..........: $CPP
+  C Compiler..............: $CC
+  C preprocessor flags....: $CPPFLAGS
+  C compiler flags........: $CFLAGS
+  Linker flags............: $LDFLAGS 
+  Extra libraries.........: $LIBS 
+  Debug Build.............: $enable_debug
+  Doxygen.................: $enable_doxygen
+  Swig enable.............: $enable_swig
+  Protection Engine.......: $NFQ_ENABLE
+  IPv6 support............: $enable_ipv6
+  Pcre JIT support........: $pcre_jit_available
 "
 

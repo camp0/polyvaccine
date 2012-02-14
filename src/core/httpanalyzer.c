@@ -53,8 +53,24 @@ void *HTAZ_Init() {
 	_http.analyze_post_data = FALSE;
 	_http.show_unknown_http = FALSE;
 
-	_http.expr_header = pcre_compile((char*)HTTP_HEADER_PARAM, PCRE_DOTALL, &_http.errstr, &erroffset, 0);
-	_http.pe_header = NULL;
+	_http.expr_header = pcre_compile((char*)HTTP_HEADER_PARAM, PCRE_FIRSTLINE, &_http.errstr, &erroffset, 0);
+#ifdef PCRE_HAVE_JIT
+	_http.pe_header = pcre_study(_http.expr_header,PCRE_STUDY_JIT_COMPILE,&_http.errstr);
+        if(_http.pe_header == NULL){
+                WARNING("PCRE study with JIT support failed '%s'\n",_http.errstr);
+        }
+        int jit = 0;
+        int ret;
+
+        ret = pcre_fullinfo(_http.expr_header,_http.pe_header, PCRE_INFO_JIT,&jit);
+        if (ret != 0 || jit != 1) {
+                INFOMSG("PCRE JIT compiler does not support the expresion on the HTTP analyzer\n");
+        }
+#else
+	_http.pe_header = pcre_study(_http.expr_header,0,&_http.errstr);
+        if(_http.pe_header == NULL)
+                WARNING("PCRE study failed '%s'\n",_http.errstr);
+#endif
 	_http.t_off = TROF_Init(); // Init the stack offsets
 
 	_http.methods = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
@@ -129,7 +145,11 @@ void *HTAZ_Destroy() {
 	g_hash_table_destroy(_http.methods);
 	g_hash_table_destroy(_http.parameters);
 	pcre_free(_http.expr_header);
+#if PCRE_MAYOR == 8 && PCRE_MINOR >= 20
+	pcre_free_study(_http.pe_header);
+#else
 	pcre_free(_http.pe_header);
+#endif
 }
 
 /**

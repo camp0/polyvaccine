@@ -103,7 +103,7 @@ static u_int32_t PKCX_GetTCPSequenceNumber(void) { return ntohl(_pktctx.tcp->seq
 static u_int16_t PKCX_GetUDPSrcPort(void) { return nthons(_pktctx.udp->source);}
 static u_int16_t PKCX_GetUDPDstPort(void) { return nthons(_pktctx.udp->dest);}
 static unsigned int PKCX_GetUDPPayloadLength(void) { return ntohs(_pktctx.udp->len) - sizeof(struct udphdr); }
-static unsigned int PKCX_GetUDPHeaderLength(void) { return ntohs(_pktctx.udp->len); }
+static unsigned int PKCX_GetUDPHeaderLength(void) { return sizeof(struct udphdr); }
 
 /* Generic fields */
 static u_int16_t PKCX_GetDstPort(void) { 

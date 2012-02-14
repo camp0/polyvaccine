@@ -27,7 +27,7 @@
 #include "debug.h"
 
 #define SIP_URI_END "SIP/2.[0|1]"
-#define SIP_HEADER_PARAM "^(REGISTER|INVITE|ACK|CANCEL|BYE|OPTIONS).*" SIP_URI_END
+#define SIP_HEADER_PARAM "^(REGISTER|INVITE|ACK|CANCEL|BYE|OPTIONS|MESSAGE).*" SIP_URI_END
 
 #define MAX_SIP_LINE_LENGTH 2048
 #define MAX_URI_LENGTH 2048
@@ -53,8 +53,24 @@ void *SPAZ_Init() {
 	_sip.analyze_sdp_data = FALSE;
 	_sip.show_unknown_sip = FALSE;
 
-	_sip.expr_header = pcre_compile((char*)SIP_HEADER_PARAM, PCRE_DOTALL, &_sip.errstr, &erroffset, 0);
-	_sip.pe_header = NULL;
+	_sip.expr_header = pcre_compile((char*)SIP_HEADER_PARAM, PCRE_FIRSTLINE, &_sip.errstr, &erroffset, 0);
+#ifdef PCRE_HAVE_JIT
+        _sip.pe_header = pcre_study(_sip.expr_header,PCRE_STUDY_JIT_COMPILE,&_sip.errstr);
+        if(_sip.pe_header == NULL){
+                WARNING("PCRE study with JIT support failed '%s'.\n",_sip.errstr);
+        }
+        int jit = 0;
+        int ret;
+
+        ret = pcre_fullinfo(_sip.expr_header,_sip.pe_header, PCRE_INFO_JIT,&jit);
+        if (ret != 0 || jit != 1) {
+                INFOMSG("PCRE JIT compiler does not support the expresion on the SIP analyzer.\n");
+        }
+#else
+        _sip.pe_header = pcre_study(_sip.expr_header,0,&_sip.errstr);
+        if(_sip.pe_header == NULL)
+                WARNING("pcre study failed '%s'\n",_sip.errstr);
+#endif
 	_sip.t_off = TROF_Init(); // Init the stack offsets
 
 	_sip.methods = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
@@ -129,7 +145,12 @@ void *SPAZ_Destroy() {
 	g_hash_table_destroy(_sip.methods);
 	g_hash_table_destroy(_sip.parameters);
 	pcre_free(_sip.expr_header);
-	pcre_free(_sip.pe_header);
+#if PCRE_MAYOR == 8 && PCRE_MINOR >= 20
+        pcre_free_study(_sip.pe_header);
+#else
+        pcre_free(_sip.pe_header);
+#endif
+
 }
 
 /**
@@ -166,7 +187,9 @@ void *SPAZ_AnalyzeSIPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 		offset = 0;
 		methodlen = _sip.ovector[3]-_sip.ovector[2];
 		urilen = _sip.ovector[1]-_sip.ovector[0];
-                
+               
+		printf("ovector[1]=%d,ovector[0]=%d,ovector[2]=%d\n",
+			_sip.ovector[1],_sip.ovector[0],_sip.ovector[2]); 
 		TROF_Reset(_sip.t_off); // Reset the trust offsets candidates
 
 		_sip.total_sip_bytes += seg->virtual_size;	

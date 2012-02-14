@@ -44,6 +44,7 @@ enum {
 	SIP_HEADER_CANCEL,
 	SIP_HEADER_BYE,
 	SIP_HEADER_OPTIONS,
+	SIP_HEADER_MESSAGE,
 	SIP_HEADER_UNKNOWN
 };
 
@@ -86,6 +87,13 @@ static ST_SIPField ST_SIPTypeHeaders[] = {
         {
                 .nfield         =	SIP_HEADER_OPTIONS,
                 .name           =	"OPTIONS",
+                .matchs         =       0,
+                .have_data      =       0,
+                .check_cache    =       0,
+        },
+        {
+                .nfield         =       SIP_HEADER_MESSAGE,
+                .name           =       "MESSAGE",
                 .matchs         =       0,
                 .have_data      =       0,
                 .check_cache    =       0,
@@ -458,6 +466,14 @@ static ST_SIPField ST_SIPFields [] = {
         {
                 .nfield         =       SIP_FIELD_WWW_AUTHENTICATE,
                 .name           =       "WWW-Authenticate",
+                .matchs         =       0,
+                .have_data      =       0,
+                .check_cache    =       TRUE,
+        },
+	/* Last sip field */
+        {
+                .nfield         =       SIP_FIELD_UNKNOWN,
+                .name           =       "Unknown parameter",
                 .matchs         =       0,
                 .have_data      =       0,
                 .check_cache    =       TRUE,
