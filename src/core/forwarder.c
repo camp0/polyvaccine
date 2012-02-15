@@ -48,17 +48,40 @@ void FORD_InitAnalyzers(ST_Forwarder *fw){
 	g_hash_table_iter_init (&iter, fw->tcp_analyzers);
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
 		ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
-		fprintf(stdout,"\tTCP %s on port %d\n",ga->name,ga->port);
+		DEBUG0("TCP %s on port %d\n",ga->name,ga->port);
 		ga->init();
 	}
 	g_hash_table_iter_init (&iter, fw->udp_analyzers);
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
 		ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
-		fprintf(stdout,"\tUDP %s on port %d\n",ga->name,ga->port);
+		DEBUG0("UDP %s on port %d\n",ga->name,ga->port);
 		ga->init();
 	}
 	return;
 }
+
+/**
+ * FORD_ShowAnalyzers - Shows the plugged analyzers. 
+ *
+ * @param ST_Forwarder
+ */
+void FORD_ShowAnalyzers(ST_Forwarder *fw){
+        GHashTableIter iter;
+        gpointer k,v;
+
+        g_hash_table_iter_init (&iter, fw->tcp_analyzers);
+        while (g_hash_table_iter_next (&iter, &k, &v)) {
+                ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
+                fprintf(stdout,"\tTCP %s on port %d\n",ga->name,ga->port);
+        }
+        g_hash_table_iter_init (&iter, fw->udp_analyzers);
+        while (g_hash_table_iter_next (&iter, &k, &v)) {
+                ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
+                fprintf(stdout,"\tUDP %s on port %d\n",ga->name,ga->port);
+        }
+        return;
+}
+
 
 /**
  * FORD_InitAnalyzers - Executes the statistics of every analyzer. 

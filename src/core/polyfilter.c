@@ -125,6 +125,8 @@ void POFR_Init() {
 		(void*)SPAZ_Stats,	
 		(void*)SPAZ_AnalyzeSIPRequest,
 		(void*)SPAZ_AnalyzeDummySIPRequest);
+
+	FORD_InitAnalyzers(_polyFilter->forwarder);
 	return;
 }
 
@@ -365,7 +367,7 @@ void POFR_Run() {
         fprintf(stdout,"\tversion %s\n",SYIN_GetVersionName());
 	if(_polyFilter->hosts->all)
 		fprintf(stdout,"\tLearning mode active\n");
-	FORD_InitAnalyzers(_polyFilter->forwarder);
+	FORD_ShowAnalyzers(_polyFilter->forwarder);
 
 	update_timers = 1;
 	while (TRUE) {

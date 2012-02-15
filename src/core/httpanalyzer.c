@@ -27,7 +27,7 @@
 #include "debug.h"
 
 #define HTTP_URI_END "HTTP/1.[0|1]"
-#define HTTP_HEADER_PARAM "^(GET|POST|OPTIONS|HEAD|CONNECT).*" HTTP_URI_END
+#define HTTP_HEADER_PARAM "^(GET|POST|OPTIONS|HEAD|CONNECT|PUT|DELETE|TRACE).*" HTTP_URI_END
 
 #define MAX_HTTP_LINE_LENGTH 2048
 #define MAX_URI_LENGTH 2048
@@ -48,8 +48,8 @@ void *HTAZ_Init() {
         _http.total_http_segments = 0;
 	_http.total_suspicious_segments = 0;
 	_http.total_valid_segments = 0;
-	_http.on_suspicious_header_break = FALSE;
-	_http.on_suspicious_parameter_break = FALSE; 
+	_http.on_suspicious_header_break = TRUE;
+	_http.on_suspicious_parameter_break = TRUE; 
 	_http.analyze_post_data = FALSE;
 	_http.show_unknown_http = FALSE;
 
@@ -193,7 +193,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 		if (methodlen>15){
 			exit(-1);
 		} 
-		snprintf(method,methodlen+1,"%s",&(seg->mem[offset]));
+		memcpy(method,&(seg->mem[0]), methodlen);
 		if(g_hash_table_lookup_extended(_http.methods,(gchar*)method,NULL,&pointer) == TRUE){
 			h_field = (ST_HTTPField*)pointer;
 			h_field->matchs++;
@@ -208,7 +208,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 		if(urilen>MAX_URI_LENGTH) {
 			urilen = MAX_URI_LENGTH-1;
 		}
-		snprintf(uri,urilen+1,"%s",&(seg->mem[offset]));
+		memcpy(uri,&(seg->mem[0]),urilen);
 		DEBUG0("flow(0x%x) HTTP uri(%s)offset(%d)length(%d)\n",f,uri,offset,urilen);
 		nod = CACH_GetHeaderFromCache(c,uri);
 		if (nod ==NULL ) { // The uri is not in the cache we should analyze
@@ -241,15 +241,19 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 			if (ptrend != NULL) { // got it
 				http_line_length = (ptrend-init)+1;
 				ptrend = ptrend + 2; // from strlen(CRLF);
-				snprintf(http_line,http_line_length,"%s",init);
+			
+				memcpy(http_line,init,http_line_length);
+				http_line[http_line_length-1] = '\0';
 				if(strlen(http_line)>0) {
 					/* retrieve the parameter name of the http line */
 					char parameter[MAX_HTTP_LINE_LENGTH];
 					char *pend = strstr(init,":");
 					if(pend != NULL) {
 						int parameter_length = (pend-init)+1;
-					
-						snprintf(parameter,parameter_length,"%s",init);
+				
+						memcpy(parameter,init,parameter_length);
+						parameter[parameter_length-1] = '\0';	
+						//snprintf(parameter,parameter_length,"%s",init);
 						DEBUG0("flow(0x%x) HTTP parameter(%s)value(%s)offset(%d)length(%d)\n",f,
 							parameter,http_line,process_bytes,http_line_length);
 
@@ -361,7 +365,7 @@ void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_GenericFlow *f){
                 if(urilen>MAX_URI_LENGTH) {
                         urilen = MAX_URI_LENGTH-1;
                 }
-                snprintf(uri,urilen+1,"%s",&(seg->mem[offset]));
+		memcpy(uri,&(seg->mem[offset]),urilen+1);
                 DEBUG0("authorized flow(0x%x) HTTP uri(%s)offset(%d)\n",f,uri,offset);
 		/* Adds the uri to the http cache */
                 CACH_AddHeaderToCache(c,uri,NODE_TYPE_DYNAMIC);
@@ -376,13 +380,14 @@ void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_GenericFlow *f){
                         if (ptrend != NULL) { // got it
                                 http_line_length = (ptrend-init)+1;
                                 ptrend = ptrend + 2; // from strlen(CRLF);
-                                snprintf(http_line,http_line_length,"%s",init);
+				memcpy(http_line,init,http_line_length);
                                 if(strlen(http_line)>0) {
                                         /* retrieve the parameter name */
                                         char parameter[MAX_HTTP_LINE_LENGTH];
                                         char *pend = strstr(init,":");
                                         if(pend != NULL) {
-                                                snprintf(parameter,(pend-init)+1,"%s",init);
+						int parameter_length = (pend-init)+1;
+						memcpy(parameter,init,parameter_length);
                                                 DEBUG0("authorized flow(0x%x) HTTP parameter(%s)\n",f,http_line);
 						/* Adds the parameter to the httpcache */
 						CACH_AddParameterToCache(c,http_line,NODE_TYPE_DYNAMIC);

@@ -50,6 +50,7 @@ static char *common_parameters [] = {
 	"Accept-Language: es-ES,es;q=0.8",
 	"X-Requested-With: XMLHTTPRequest",
 	"Accept-Encoding: gzip, deflate",
+	"Accept-Encoding: gzip,deflate,sdch",
 	"User-Agent: Mozilla/5.0 (Ubuntu; X11; Linux i686; rv:8.0) Gecko/20100101 Firefox/8.0",
 	"Accept: image/png,image/*;q=0.8,*/*;q=0.5",
 	"Accept: */*",

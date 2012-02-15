@@ -41,5 +41,6 @@ MAINTAINERCLEANFILES = \
 
 $(srcdir)/polyvaccine_wrap.c: polyvaccine.i
 	$(SWIG) -python polyvaccine.i
+#	$(PYTHON) setup.py build_ext --inplace 
 	$(PYTHON) setup.py build_ext --inplace -DHAVE_CONFIG_H
 

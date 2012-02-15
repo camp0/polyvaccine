@@ -69,7 +69,7 @@ void *SPAZ_Init() {
 #else
         _sip.pe_header = pcre_study(_sip.expr_header,0,&_sip.errstr);
         if(_sip.pe_header == NULL)
-                WARNING("pcre study failed '%s'\n",_sip.errstr);
+                WARNING("PCRE study failed '%s'\n",_sip.errstr);
 #endif
 	_sip.t_off = TROF_Init(); // Init the stack offsets
 
@@ -197,7 +197,7 @@ void *SPAZ_AnalyzeSIPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 		if (methodlen>15){
 			exit(-1);
 		} 
-		snprintf(method,methodlen+1,"%s",&(seg->mem[offset]));
+		memcpy(method,&(seg->mem[0]), methodlen);
 		if(g_hash_table_lookup_extended(_sip.methods,(gchar*)method,NULL,&pointer) == TRUE){
 			h_field = (ST_SIPField*)pointer;
 			h_field->matchs++;
@@ -212,7 +212,7 @@ void *SPAZ_AnalyzeSIPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 		if(urilen>MAX_URI_LENGTH) {
 			urilen = MAX_URI_LENGTH-1;
 		}
-		snprintf(uri,urilen+1,"%s",&(seg->mem[offset]));
+		memcpy(uri,&(seg->mem[0]),urilen);
 		DEBUG0("flow(0x%x) SIP uri(%s)offset(%d)length(%d)\n",f,uri,offset,urilen);
 		nod = CACH_GetHeaderFromCache(c,uri);
 		if (nod ==NULL ) { // The uri is not in the cache we should analyze

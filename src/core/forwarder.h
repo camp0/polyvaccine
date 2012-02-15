@@ -56,6 +56,7 @@ typedef struct ST_Forwarder ST_Forwarder;
 ST_Forwarder *FORD_Init(void);
 void FORD_Destroy(ST_Forwarder *fw);
 void FORD_InitAnalyzers(ST_Forwarder *fw);
+void FORD_ShowAnalyzers(ST_Forwarder *fw);
 void FORD_Stats(ST_Forwarder *fw);
 ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw,int16_t protocol,int16_t port);
 
