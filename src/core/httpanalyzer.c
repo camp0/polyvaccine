@@ -194,6 +194,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 			exit(-1);
 		} 
 		memcpy(method,&(seg->mem[0]), methodlen);
+		method[methodlen] = '\0';
 		if(g_hash_table_lookup_extended(_http.methods,(gchar*)method,NULL,&pointer) == TRUE){
 			h_field = (ST_HTTPField*)pointer;
 			h_field->matchs++;
@@ -209,6 +210,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 			urilen = MAX_URI_LENGTH-1;
 		}
 		memcpy(uri,&(seg->mem[0]),urilen);
+		uri[urilen] = '\0';
 		DEBUG0("flow(0x%x) HTTP uri(%s)offset(%d)length(%d)\n",f,uri,offset,urilen);
 		nod = CACH_GetHeaderFromCache(c,uri);
 		if (nod ==NULL ) { // The uri is not in the cache we should analyze
