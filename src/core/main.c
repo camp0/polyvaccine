@@ -41,7 +41,16 @@ static struct option long_options[] = {
 
 static char *short_options = "li:p:hVfuc";
 
-static char *common_parameters [] = {
+static char *common_http_headers [] = {
+	"GET /index.phtml HTTP/1.1",
+	"GET /index.php HTTP/1.1",
+	"GET /index.html HTTP/1.1",
+	"GET / HTTP/1.1",
+	"POST / HTTP/1.1",	
+	NULL
+};
+
+static char *common_http_parameters [] = {
 	"Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7",
 	"Keep-Alive: 300",
 	"Connection: keep-alive",
@@ -150,15 +159,20 @@ void main(int argc, char **argv) {
 	POFR_ShowUnknownHTTP(show_unknown);
 
 	if(use_cache == TRUE) {
-		value = common_parameters[0];
+		value = common_http_parameters[0];
 		i = 0;
 		while(value!= NULL) {
 			POFR_AddToHTTPCache(1,value);
 			i ++;
-			value = common_parameters[i];
+			value = common_http_parameters[i];
 		}	
-		POFR_AddToHTTPCache(0,"POST / HTTP/1.1");
-		POFR_AddToHTTPCache(0,"GET / HTTP/1.1");
+		value = common_http_headers[0];
+		i = 0;
+		while(value!= NULL) {
+			POFR_AddToHTTPCache(0,value);
+			i ++;
+			value = common_http_headers[i];
+		}	
 	}
 
 	POFR_Start();

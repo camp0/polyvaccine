@@ -367,7 +367,8 @@ void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_GenericFlow *f){
                 if(urilen>MAX_URI_LENGTH) {
                         urilen = MAX_URI_LENGTH-1;
                 }
-		memcpy(uri,&(seg->mem[offset]),urilen+1);
+		memcpy(uri,&(seg->mem[0]),urilen);
+		uri[urilen] = '\0';
                 DEBUG0("authorized flow(0x%x) HTTP uri(%s)offset(%d)\n",f,uri,offset);
 		/* Adds the uri to the http cache */
                 CACH_AddHeaderToCache(c,uri,NODE_TYPE_DYNAMIC);
@@ -383,6 +384,7 @@ void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_GenericFlow *f){
                                 http_line_length = (ptrend-init)+1;
                                 ptrend = ptrend + 2; // from strlen(CRLF);
 				memcpy(http_line,init,http_line_length);
+				http_line[http_line_length-1] = '\0';
                                 if(strlen(http_line)>0) {
                                         /* retrieve the parameter name */
                                         char parameter[MAX_HTTP_LINE_LENGTH];
@@ -390,9 +392,16 @@ void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_GenericFlow *f){
                                         if(pend != NULL) {
 						int parameter_length = (pend-init)+1;
 						memcpy(parameter,init,parameter_length);
-                                                DEBUG0("authorized flow(0x%x) HTTP parameter(%s)\n",f,http_line);
-						/* Adds the parameter to the httpcache */
-						CACH_AddParameterToCache(c,http_line,NODE_TYPE_DYNAMIC);
+						parameter[parameter_length-1] = '\0';
+                                                if(g_hash_table_lookup_extended(_http.parameters,(gchar*)parameter,NULL,&pointer) == TRUE){
+                                                        p_field = (ST_HTTPField*)pointer;
+							if(p_field->check_cache == TRUE) {
+								/* The value could be cacheable so add to the cache */
+                                                		DEBUG0("authorized flow(0x%x) HTTP parameter(%s)\n",f,http_line);
+								/* Adds the parameter to the httpcache */
+								CACH_AddParameterToCache(c,http_line,NODE_TYPE_DYNAMIC);
+							}
+						}
                                         }
                                 }
                         }else{

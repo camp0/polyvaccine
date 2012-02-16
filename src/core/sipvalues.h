@@ -178,7 +178,7 @@ static ST_SIPField ST_SIPFields [] = {
         },
         {
                 .nfield         =       SIP_FIELD_ACCEPT_LANGUAGE,
-                .name           =       "Accept-Languaje",
+                .name           =       "Accept-Language",
                 .matchs         =       0,
                 .have_data      =       0,
                 .check_cache    =       TRUE,

@@ -261,7 +261,7 @@ static ST_HTTPField ST_HTTPFields [] = {
 	{ HTTP_FIELD_X_ICAP_VERSION,		"X-ICAP-Version",	0,0,	TRUE }, 
 	{ HTTP_FIELD_NPFREFR,			"NpfRefr",		0,0,	TRUE }, 
 	{ HTTP_FIELD_X_VERMEER_CONTENT_TYPE,	"X-Vermeer-Content-Type",0,0,	TRUE },
-	{ HTTP_FIELD_MIME_VERSION,		"MIME-Version",	0,0,	TRUE },
+	{ HTTP_FIELD_MIME_VERSION,		"MIME-Version",		0,0,	TRUE },
 	{ HTTP_FIELD_CONTENT_TYPE_1,		"Content-type",		0,0,	TRUE },
 	{ HTTP_FIELD_CONTENT_TYPE_2,		"content-type",		0,0,	TRUE },
 	{ HTTP_FIELD_CONTENT_LENGTH_1,		"Content-length",	0,0,	TRUE },
