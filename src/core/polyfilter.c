@@ -407,7 +407,8 @@ void POFR_Run() {
                                 POFR_Stop();
                                 usepcap = 0;
                                 if(_polyFilter->is_pcap_file == TRUE){
-                                        break;
+					fprintf(stdout,"Source analyze done.\n");
+                                        //break;
                                 }
 			}else {
 				if(PKDE_Decode(header,pkt_data) == TRUE){
@@ -480,7 +481,9 @@ void POFR_Run() {
 									}
 								}
 								/* Reset the virtual memory of the segment */
+								//MESG_Reset(flow->memory);
 								flow->memory->virtual_size = 0;
+								
 							}	
 						}
 						GEFW_UpdateTime(flow,&currenttime);

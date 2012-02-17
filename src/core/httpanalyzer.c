@@ -42,6 +42,7 @@ void *HTAZ_Init() {
 	int erroffset;
 	ST_HTTPField *f;
 
+	_http.total_http_invalid_decode = 0;
         _http.suspicious_headers = 0;
         _http.suspicious_parameters = 0;
         _http.total_http_bytes = 0;
@@ -117,6 +118,7 @@ void *HTAZ_Stats(void) {
 	fprintf(stdout,"\ttotal bytes %ld\n",_http.total_http_bytes);
 	fprintf(stdout,"\ttotal suspicious segments %ld\n",_http.total_suspicious_segments);
 	fprintf(stdout,"\ttotal valid segments %ld\n",_http.total_valid_segments);
+	fprintf(stdout,"\ttotal invalid decodes %ld\n",_http.total_http_invalid_decode);
 	fprintf(stdout,"\tHeaders:\n");
 
         f = &ST_HTTPTypeHeaders[0];
@@ -243,7 +245,11 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 			if (ptrend != NULL) { // got it
 				http_line_length = (ptrend-init)+1;
 				ptrend = ptrend + 2; // from strlen(CRLF);
-			
+		
+				if(http_line_length>MAX_HTTP_LINE_LENGTH){
+					http_line_length = MAX_HTTP_LINE_LENGTH;
+					_http.total_http_invalid_decode++;
+				}	
 				memcpy(http_line,init,http_line_length);
 				http_line[http_line_length-1] = '\0';
 				if(strlen(http_line)>0) {
@@ -252,7 +258,11 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 					char *pend = strstr(init,":");
 					if(pend != NULL) {
 						int parameter_length = (pend-init)+1;
-				
+			
+						if(parameter_length>MAX_HTTP_LINE_LENGTH) {
+							parameter_length = MAX_HTTP_LINE_LENGTH;
+							_http.total_http_invalid_decode++;
+						}	
 						memcpy(parameter,init,parameter_length);
 						parameter[parameter_length-1] = '\0';	
 						//snprintf(parameter,parameter_length,"%s",init);
@@ -286,7 +296,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 						}
 					}
 				}
-				process_bytes += http_line_length;
+				process_bytes += http_line_length+2;
 			}else{
 				if(have_data == TRUE){ // The payload of a post request
 					int len = seg->virtual_size - process_bytes;
@@ -318,6 +328,8 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 				break;
 			}
 			init = ptrend;
+			if(process_bytes+2 > seg->virtual_size)
+				break;
 		}	
 	}else{
 		if(_http.show_unknown_http)
@@ -383,6 +395,11 @@ void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_GenericFlow *f){
                         if (ptrend != NULL) { // got it
                                 http_line_length = (ptrend-init)+1;
                                 ptrend = ptrend + 2; // from strlen(CRLF);
+				
+				if(http_line_length>MAX_HTTP_LINE_LENGTH){
+                                        http_line_length = MAX_HTTP_LINE_LENGTH;
+                                        _http.total_http_invalid_decode++;
+                                }
 				memcpy(http_line,init,http_line_length);
 				http_line[http_line_length-1] = '\0';
                                 if(strlen(http_line)>0) {
@@ -391,6 +408,10 @@ void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_GenericFlow *f){
                                         char *pend = strstr(init,":");
                                         if(pend != NULL) {
 						int parameter_length = (pend-init)+1;
+                                                if(parameter_length>MAX_HTTP_LINE_LENGTH) {
+                                                        parameter_length = MAX_HTTP_LINE_LENGTH;
+                                                        _http.total_http_invalid_decode++;
+                                                }
 						memcpy(parameter,init,parameter_length);
 						parameter[parameter_length-1] = '\0';
                                                 if(g_hash_table_lookup_extended(_http.parameters,(gchar*)parameter,NULL,&pointer) == TRUE){

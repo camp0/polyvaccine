@@ -45,7 +45,7 @@ void PKDE_Init() {
 	_pktdec._totalTcpPackets = 0;
 	_pktdec._totalUdpPackets = 0;
 	_pktdec._totalUnknownPackets = 0;
-	_pktdec._totalHttpPackets = 0;
+	_pktdec._totalL7Packets = 0;
 	return;
 }
 
@@ -55,14 +55,14 @@ void PKDE_Destroy(){
 
 void PKDE_PrintfStats() {
         fprintf(stdout,"Packet decoder statistics\n");
-        fprintf(stdout,"\ttotal ethernet packets %ld\n",_pktdec._totalEthernetPackets);
-        fprintf(stdout,"\ttotal vlan packets %ld\n",_pktdec._totalEthernetVlanPackets);
-        fprintf(stdout,"\ttotal ip packets %ld\n",_pktdec._totalIpPackets);
-        fprintf(stdout,"\ttotal ipv6 packets %ld\n",_pktdec._totalIpv6Packets);
-        fprintf(stdout,"\ttotal tcp packets %ld\n",_pktdec._totalTcpPackets);
-        fprintf(stdout,"\ttotal udp packets %ld\n",_pktdec._totalUdpPackets);
-        fprintf(stdout,"\ttotal http packets %ld\n",_pktdec._totalHttpPackets);
-        fprintf(stdout,"\ttotal unknown packets %ld\n",_pktdec._totalUnknownPackets);
+        fprintf(stdout,"\ttotal Ethernet packets %ld\n",_pktdec._totalEthernetPackets);
+        fprintf(stdout,"\ttotal Vlan packets %ld\n",_pktdec._totalEthernetVlanPackets);
+        fprintf(stdout,"\ttotal IP packets %ld\n",_pktdec._totalIpPackets);
+        fprintf(stdout,"\ttotal IPv6 packets %ld\n",_pktdec._totalIpv6Packets);
+        fprintf(stdout,"\ttotal TCP packets %ld\n",_pktdec._totalTcpPackets);
+        fprintf(stdout,"\ttotal UDP packets %ld\n",_pktdec._totalUdpPackets);
+        fprintf(stdout,"\ttotal L7 packets %ld\n",_pktdec._totalL7Packets);
+        fprintf(stdout,"\ttotal Unknown packets %ld\n",_pktdec._totalUnknownPackets);
         return;
 }
 
@@ -116,6 +116,7 @@ int PKDE_Decode(struct pcap_pkthdr *hdr, unsigned char *packet) {
                 }
         }while(have_l7==FALSE);
         PKCX_SetL7Payload((packet+offset),l7size);
+	_pktdec._totalL7Packets++;
 	DEBUG1("Decoding IPPacket: [%s:%d:%d:%s:%d] length %d\n",
 		PKCX_GetSrcAddrDotNotation(),
 		PKCX_GetSrcPort(),

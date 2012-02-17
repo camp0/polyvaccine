@@ -67,4 +67,7 @@ void FORD_AddAnalyzer(ST_Forwarder *fw,ST_Cache *cache,char *name,int16_t protoc
 	void (*analyze)(ST_Cache *c,ST_GenericFlow *f,int *ret),
 	void (*learn)(ST_Cache *c,ST_GenericFlow *f));
 
+void FORD_ChangeAnalyzerToPlugOnPort(ST_Forwarder *fw,int16_t src_protocol, int16_t src_port,
+	int16_t dst_protocol,int16_t dst_port);
+
 #endif

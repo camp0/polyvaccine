@@ -58,7 +58,7 @@ struct ST_PacketDecoder {
         int64_t _totalTcpPackets;
         int64_t _totalUdpPackets;
         int64_t _totalUnknownPackets;
-	int64_t _totalHttpPackets;
+	int64_t _totalL7Packets;
 };
 
 typedef struct ST_PacketDecoder ST_PacketDecoder;

@@ -193,3 +193,26 @@ void FORD_AddAnalyzer(ST_Forwarder *fw, ST_Cache *cache, char *name,int16_t prot
 	return;
 }
 
+void FORD_ChangeAnalyzerToPlugOnPort(ST_Forwarder *fw,int16_t src_protocol, int16_t src_port,
+        int16_t dst_protocol,int16_t dst_port){
+
+	ST_GenericAnalyzer *ga = NULL;
+	GHashTable *t = NULL;
+
+	if(src_protocol == 6)
+		t = fw->tcp_analyzers;
+	else
+		t = fw->udp_analyzers;
+
+	ga = (ST_GenericAnalyzer*)g_hash_table_lookup(t,GINT_TO_POINTER(src_port));
+	if (ga != NULL) {
+		g_hash_table_remove(t,GINT_TO_POINTER(src_port));
+		ga->port = dst_port;
+		if(dst_protocol == 6)
+			t = fw->tcp_analyzers;
+		else
+			t = fw->udp_analyzers;
+		g_hash_table_insert(t,GINT_TO_POINTER(dst_port),ga);
+	}
+	return;
+}

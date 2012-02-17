@@ -57,6 +57,7 @@ struct ST_HTTPAnalyzer{
 	/* statistics */
 	int32_t suspicious_headers;
 	int32_t suspicious_parameters;
+	int32_t total_http_invalid_decode;
 	int32_t total_suspicious_segments;
 	int32_t total_valid_segments;
 	int64_t total_http_bytes;
