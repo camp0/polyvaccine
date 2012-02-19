@@ -60,7 +60,6 @@ struct ST_PolyFilter {
 	int polyfilter_status;
 	int pcapfd;
 	int is_pcap_file;
-	int defaultport;
 	DBusConnection *bus;
 	ST_Connection *conn;
 	ST_FlowPool *flowpool;
@@ -79,9 +78,6 @@ void POFR_Init(void);
 void POFR_Destroy(void);
 
 void POFR_SetSource(char *source);
-void POFR_SetSourcePort(int port);
-void POFR_SetForceAnalyzeHTTPPostData(int value);
-void POFR_ShowUnknownHTTP(int value);
 
 void POFR_Stats(void);
 void POFR_Start(void);
@@ -89,13 +85,20 @@ void POFR_Stop(void);
 void POFR_StopAndExit(void);
 void POFR_Run(void);
 
+
 /* Service functions */
 void POFR_SetLearningMode(void);
 void POFR_AddToHTTPCache(int type,char *value);
+void POFR_SetHTTPSourcePort(int port);
+void POFR_SetForceAnalyzeHTTPPostData(int value);
+void POFR_ShowUnknownHTTP(int value);
 
 int32_t POFR_GetHTTPHeaderCacheHits(void);
 int32_t POFR_GetHTTPHeaderCacheFails(void);
 int32_t POFR_GetHTTPParameterCacheHits(void);
 int32_t POFR_GetHTTPParameterCacheFails(void);
+
+/* SIP Functions */
+void POFR_SetSIPSourcePort(int port);
 
 #endif

@@ -47,7 +47,6 @@ void POFR_Init() {
 	_polyFilter->is_pcap_file = FALSE;
 	_polyFilter->pcapfd = 0;
 	_polyFilter->pcap = NULL;
-	_polyFilter->defaultport = 80;
 	_polyFilter->source = g_string_new("");
 	_polyFilter->bus = PODS_Connect(POLYVACCINE_FILTER_INTERFACE,(void*)_polyFilter);
 
@@ -119,7 +118,7 @@ void POFR_Init() {
 		(void*)HTAZ_AnalyzeDummyHTTPRequest);
 
 	FORD_AddAnalyzer(_polyFilter->forwarder,_polyFilter->sipcache,
-		"SIP Analyzer",IPPROTO_UDP,16402,
+		"SIP Analyzer",IPPROTO_UDP,5060,
 		(void*)SPAZ_Init,
 		(void*)SPAZ_Destroy,
 		(void*)SPAZ_Stats,	
@@ -153,13 +152,27 @@ void POFR_SetSource(char *source){
 }
 
 /**
- * POFR_SetSourcePort - Sets the source port of the webserver 
+ * POFR_SetHTTPSourcePort - Sets the source port of the webserver 
  *
  * @param port the new port to analyze 
  */
-void POFR_SetSourcePort(int port){
-        _polyFilter->defaultport = port;
+void POFR_SetHTTPSourcePort(int port){
+	FORD_ChangeAnalyzerToPlugOnPort(_polyFilter->forwarder,IPPROTO_TCP, 80,
+        	IPPROTO_TCP,port);
+	return;
 }
+
+/**
+ * POFR_SetSIPSourcePort - Sets the source port of the sipserver
+ *
+ * @param port the new port to analyze
+ */
+void POFR_SetSIPSourcePort(int port){
+        FORD_ChangeAnalyzerToPlugOnPort(_polyFilter->forwarder,IPPROTO_UDP, 5060,
+                IPPROTO_UDP,port);
+        return;
+}
+
 
 /**
  * POFR_SetForceAnalyzeHTTPPostData - Force to send to the pvde the post request with data. 
@@ -408,7 +421,7 @@ void POFR_Run() {
                                 usepcap = 0;
                                 if(_polyFilter->is_pcap_file == TRUE){
 					fprintf(stdout,"Source analyze done.\n");
-                                        //break;
+                                        break;
                                 }
 			}else {
 				if(PKDE_Decode(header,pkt_data) == TRUE){

@@ -30,7 +30,8 @@
 static struct option long_options[] = {
         {"learning",	no_argument,       	0, 'l'},
         {"interface",  	required_argument, 	0, 'i'},
-        {"port",  	required_argument, 	0, 'p'},
+        {"hport",  	required_argument, 	0, 'p'},
+        {"sport",  	required_argument, 	0, 's'},
         {"force-post", 	no_argument, 		0, 'f'},
         {"unknown", 	no_argument, 		0, 'u'},
         {"cache", 	no_argument, 		0, 'c'},
@@ -81,7 +82,8 @@ void usage(char *prog){
 	fprintf(stdout,"Usage: %s [option(s)]\n",prog);
         fprintf(stdout,"The options are:\n");
         fprintf(stdout,"\t-i, --interface=<device>             Device or pcapfile.\n");
-        fprintf(stdout,"\t-p, --port=<port number>             Web-server port number (80 default).\n");
+        fprintf(stdout,"\t-p, --hport=<port number>            Web-server port number (80 default).\n");
+        fprintf(stdout,"\t-s, --sport=<port number>            Sip-server port number (5060 default).\n");
         fprintf(stdout,"\t-f, --force-post                     Force the HTTP analyzer to analyze the post data content.\n");
 	fprintf(stdout,"\t-l, --learning                       Cache all the HTTP request on the HTTP cache.\n");
 	fprintf(stdout,"\t-u, --unknown                        Shows the unknown HTTP supported.\n");
@@ -97,7 +99,7 @@ void usage(char *prog){
 
 
 void main(int argc, char **argv) {
-	int i,c,port,learning,option_index;
+	int i,c,hport,sport,learning,option_index;
 	char *source = NULL;
 	int force_post,show_unknown,use_cache;
 	char *value;
@@ -106,7 +108,8 @@ void main(int argc, char **argv) {
 	show_unknown = FALSE;
 	learning = FALSE;
 	use_cache = FALSE;
-	port = 80;
+	hport = 80;
+	sport = 5060;
 	while((c = getopt_long(argc,argv,short_options,
                             long_options, &option_index)) != -1) {
         	switch (c) {
@@ -114,7 +117,10 @@ void main(int argc, char **argv) {
              			source = optarg;
              			break;
            		case 'p':
-             			port = atoi(optarg);
+             			hport = atoi(optarg);
+             			break;
+           		case 's':
+             			sport = atoi(optarg);
              			break;
            		case 'c':
              			use_cache = TRUE;	
@@ -153,9 +159,10 @@ void main(int argc, char **argv) {
 	if(learning)
 		POFR_SetLearningMode();
 
+	/* Configuring the Http options */
 	POFR_SetForceAnalyzeHTTPPostData(force_post);
 	POFR_SetSource(source);
-	POFR_SetSourcePort(port);
+	POFR_SetHTTPSourcePort(hport);
 	POFR_ShowUnknownHTTP(show_unknown);
 
 	if(use_cache == TRUE) {
