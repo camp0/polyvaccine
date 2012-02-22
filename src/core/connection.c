@@ -56,6 +56,33 @@ gint flow_cmp(ST_GenericFlow *f1, ST_GenericFlow *f2) {
 }
 
 /**
+ * COMN_ReleaseConnection - Release a ST_GenericFlow to the ST_Connection.
+ *
+ * @param conn the ST_Connection 
+ * @param flow 
+ */
+void COMN_ReleaseConnection(ST_Connection *conn,ST_GenericFlow *flow) {
+	ST_MemorySegment *seg = NULL;
+	unsigned long h = (flow->saddr^flow->sport^flow->protocol^flow->daddr^flow->dport);
+
+        if(g_hash_table_remove(conn->table,GINT_TO_POINTER(h)) == FALSE) {
+        	h = (flow->daddr^flow->dport^flow->protocol^flow->saddr^flow->sport);
+                g_hash_table_remove(conn->table,GINT_TO_POINTER(h));
+        }
+        seg = flow->memory;
+        flow->memory = NULL;
+
+	log4c_category_log(conn->logger, LOG4C_PRIORITY_DEBUG,		
+        	"Release flow(0x%x)segment(0x%x) to flowpool(0x%x)memorypool(0x%x)",
+        	flow,seg,conn->flowpool,conn->mempool);
+	if(seg != NULL)
+        	MEPO_AddMemorySegment(conn->mempool,seg);
+        FLPO_AddFlow(conn->flowpool,flow);
+	return;
+}
+
+
+/**
  * COMN_InsertConnection - Adds a ST_GenericFlow to the ST_Connection.
  *
  * @param conn the ST_Connection 
@@ -101,23 +128,11 @@ void COMN_UpdateTimers(ST_Connection *conn,struct timeval *currenttime){
 //                DEBUG1("Checkin timer for flow(0x%x)secs(%d)curr(%d)\n",flow,flow->current_time.tv_sec,currenttime->tv_sec);
                 if(flow->current_time.tv_sec + conn->inactivitytime <= currenttime->tv_sec) {
                         /* The timer expires */
-                        DEBUG0("Expire timer for flow(0x%x)secs(%d)curr(%d)\n",flow,flow->current_time.tv_sec,currenttime->tv_sec);
+			log4c_category_log(conn->logger, LOG4C_PRIORITY_DEBUG,
+                        	"Expire timer for flow(0x%x)secs(%d)curr(%d)",flow,flow->current_time.tv_sec,currenttime->tv_sec);
 
-                        unsigned long h = (flow->saddr^flow->sport^flow->protocol^flow->daddr^flow->dport);
-                        if(g_hash_table_remove(conn->table,GINT_TO_POINTER(h)) == FALSE) {
-                                h = (flow->daddr^flow->dport^flow->protocol^flow->saddr^flow->sport);
-                                g_hash_table_remove(conn->table,GINT_TO_POINTER(h));
-                        }
-                        if((conn->flowpool)&&(conn->mempool)){
-				seg = flow->memory;
-				flow->memory = NULL;
-                                DEBUG0("Releasing flow(0x%x)segment(0x%x) to flowpool(0x%x)memorypool(0x%x)\n",
-					flow,seg,conn->flowpool,conn->mempool);
-				MEPO_AddMemorySegment(conn->mempool,seg);
-				//flow->memhttp = NULL; // Deattach the reference to the flow	
-				FLPO_AddFlow(conn->flowpool,flow);
-				//printf("leay\n");
-                        }
+			COMN_ReleaseConnection(conn,flow);
+
                         conn->expiretimers++; 
                         continue;
                 }
@@ -145,6 +160,7 @@ ST_Connection *COMN_Init() {
 	conn->expiretimers = 0;
 	conn->flowpool = NULL;
 	conn->mempool = NULL;
+	conn->logger = log4c_category_get(POLYVACCINE_FILTER_CONNECTION_INTERFACE);
 	return conn;
 };
 
@@ -170,7 +186,8 @@ void COMN_ReleaseFlows(ST_Connection *conn){
                 FLPO_AddFlow(conn->flowpool,flow);
 		items++;
         }
-        DEBUG0("Releasing %d flows to flowpool(0x%x)memorypool(0x%x)\n",
+	log4c_category_log(conn->logger, LOG4C_PRIORITY_DEBUG,
+        	"Releasing %d flows to flowpool(0x%x)memorypool(0x%x)",
 		items,conn->flowpool,conn->mempool);
 	return;
 }

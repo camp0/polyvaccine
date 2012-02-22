@@ -27,6 +27,7 @@
 #include "callbacks.h"
 #include "genericflow.h"
 #include "connection.h"
+#include "tcpanalyzer.h"
 #include "httpanalyzer.h"
 #include "sipanalyzer.h"
 
@@ -45,10 +46,12 @@ void POFR_Init() {
 	PODS_Init();
 	_polyFilter->polyfilter_status = POLYFILTER_STATE_STOP;
 	_polyFilter->is_pcap_file = FALSE;
+	_polyFilter->when_pcap_done_exit = FALSE;
 	_polyFilter->pcapfd = 0;
 	_polyFilter->pcap = NULL;
 	_polyFilter->source = g_string_new("");
 	_polyFilter->bus = PODS_Connect(POLYVACCINE_FILTER_INTERFACE,(void*)_polyFilter);
+	_polyFilter->logger = NULL;
 
 	/* Only load the callbacks if dbus is running */ 
 	if(_polyFilter->bus != NULL) {
@@ -61,7 +64,8 @@ void POFR_Init() {
 			current = (ST_Callback*)&(interface->methods[0]);
 			j = 0;
 			while((current != NULL)&&(current->name != NULL)) {
-				DEBUG0("callback(0x%x)(%d) add method '%s' on interface '%s'\n",
+				log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,
+					"callback(0x%x)(%d) add method '%s' on interface '%s'\n",
 					current,j,current->name,interface->name);
 				PODS_AddPublicCallback(current);
 				j++;
@@ -70,7 +74,8 @@ void POFR_Init() {
 			j = 0;
 			current = (ST_Callback*)&(interface->signals[0]);
 			while((current != NULL)&&(current->name != NULL)) {
-				DEBUG0("callback(0x%x) add signal '%s' on interface '%s'\n",
+				log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,
+					"callback(0x%x) add signal '%s' on interface '%s'\n",
 					current,current[j].name,interface->name);
 				PODS_AddPublicCallback(current);
 				j++;
@@ -79,7 +84,8 @@ void POFR_Init() {
 			j = 0;
 			current = (ST_Callback*)&(interface->properties[0]);
 			while((current!=NULL)&&(current->name != NULL)){
-				DEBUG0("callback(0x%x)(%d) add properties '%s' on interface '%s'\n",
+				log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,
+					"callback(0x%x)(%d) add properties '%s' on interface '%s'\n",
 					current,j,current->name,interface->name);
 				PODS_AddPublicCallback(current);
 				j++;
@@ -92,6 +98,10 @@ void POFR_Init() {
 	
 	PKCX_Init();
 	SYIN_Init();
+	TCAZ_Init();
+	log4c_init();
+	_polyFilter->logger = log4c_category_get(POLYVACCINE_FILTER_INTERFACE);
+
 	_polyFilter->conn = COMN_Init();
 	_polyFilter->flowpool = FLPO_Init();
 	_polyFilter->memorypool = MEPO_Init();
@@ -101,12 +111,13 @@ void POFR_Init() {
 	_polyFilter->forwarder = FORD_Init();
 	COMN_SetFlowPool(_polyFilter->conn,_polyFilter->flowpool);
 	COMN_SetMemoryPool(_polyFilter->conn,_polyFilter->memorypool);
-	DEBUG0("Initialized engine....\n");
-	DEBUG0("connetion manager (0x%x)\n",_polyFilter->conn);
-	DEBUG0("flowpool (0x%x)\n",_polyFilter->flowpool);
-	DEBUG0("memorypool (0x%x)\n",_polyFilter->memorypool);
-	DEBUG0("httpcache (0x%x)\n",_polyFilter->httpcache);
-	DEBUG0("sipcache (0x%x)\n",_polyFilter->sipcache);
+
+	log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,"Initialized engine....");
+	log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,"connection manager (0x%x)",_polyFilter->conn);
+	log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,"flowpool (0x%x)",_polyFilter->flowpool);
+	log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,"memorypool (0x%x)",_polyFilter->memorypool);
+	log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,"httpcache (0x%x)",_polyFilter->httpcache);
+	log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,"sipcache (0x%x)",_polyFilter->sipcache);
 
 	// Plugin the analyzers
 	FORD_AddAnalyzer(_polyFilter->forwarder,_polyFilter->httpcache,
@@ -192,7 +203,8 @@ void POFR_SetForceAnalyzeHTTPPostData(int value){
 
 void POFR_Start() {
 	
-	DEBUG0("Trying to start the engine, status=%s\n",polyfilter_states_str[_polyFilter->polyfilter_status]);
+	log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_INFO,
+		"Trying to start the engine, status=%s",polyfilter_states_str[_polyFilter->polyfilter_status]);
 	if(_polyFilter->polyfilter_status == POLYFILTER_STATE_STOP) {
 		char errbuf[PCAP_ERRBUF_SIZE];
 
@@ -215,7 +227,7 @@ void POFR_Start() {
         	}
 		_polyFilter->pcapfd = pcap_get_selectable_fd(_polyFilter->pcap);
 		_polyFilter->polyfilter_status = POLYFILTER_STATE_RUNNING;
-                DEBUG0("Starting engine\n");
+                log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_INFO,"Starting engine");
 	}
 }
 
@@ -224,15 +236,16 @@ void POFR_Start() {
  */
 void POFR_Stop() {
 	
-	DEBUG0("Trying to stop the engine, status=%s\n",polyfilter_states_str[_polyFilter->polyfilter_status]);
+	log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_INFO,
+		"Trying to stop the engine, status=%s",polyfilter_states_str[_polyFilter->polyfilter_status]);
 	if(_polyFilter->polyfilter_status == POLYFILTER_STATE_RUNNING) {
 		// printf("pcap = 0x%x\n",_polyFilter->pcap);
 		//if(_polyFilter->pcap != NULL);
-		//	pcap_close(_polyFilter->pcap);
+		pcap_close(_polyFilter->pcap);
 		_polyFilter->pcap = NULL;
 		_polyFilter->pcapfd = -1;
 		_polyFilter->polyfilter_status = POLYFILTER_STATE_STOP;
-                DEBUG0("Stoping engine\n");
+                log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_INFO,"Stoping engine");
 	}
 }
 
@@ -243,6 +256,7 @@ void POFR_StopAndExit() {
 	POFR_Stop();
 	COMN_ReleaseFlows(_polyFilter->conn);
 	PKDE_PrintfStats();
+	TCAZ_Stats();
         MEPO_Stats(_polyFilter->memorypool);
         FLPO_Stats(_polyFilter->flowpool);
         CACH_Stats(_polyFilter->httpcache);
@@ -257,7 +271,8 @@ void POFR_StopAndExit() {
  */
 void POFR_Destroy() {
 	PODS_Destroy();
-	g_string_free(_polyFilter->source,1);
+	log4c_fini();
+	g_string_free(_polyFilter->source,TRUE);
 	FLPO_Destroy(_polyFilter->flowpool);
 	MEPO_Destroy(_polyFilter->memorypool);
 	COMN_Destroy(_polyFilter->conn);
@@ -312,7 +327,8 @@ void POFR_AddToHTTPCache(int type,char *value){
 void POFR_SendSuspiciousSegmentToExecute(ST_MemorySegment *seg,ST_TrustOffsets *t_off,unsigned long hash, uint32_t seq) {
 
 	if(_polyFilter->bus == NULL) {
-                DEBUG0("Cannot send suspicious segment over dbus, no connection available\n");
+                log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_ALERT,
+			"Cannot send suspicious segment over dbus, no connection available");
 		return;
 	}
 	PODS_SendSuspiciousSegment(_polyFilter->bus,
@@ -338,7 +354,8 @@ void POFR_SendSuspiciousSegmentToExecute(ST_MemorySegment *seg,ST_TrustOffsets *
 void POFR_SendVerifiedSegment(unsigned long hash, u_int32_t seq,int veredict) {
 	
 	if(_polyFilter->bus == NULL) {
-                DEBUG0("Cannot send vereridct segment over dbus, no connection available\n");
+		log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_ALERT,
+			"Cannot send vereridct segment over dbus, no connection available");
 		return;
 	}
 	PODS_SendVerifiedSegment(_polyFilter->bus,
@@ -347,6 +364,10 @@ void POFR_SendVerifiedSegment(unsigned long hash, u_int32_t seq,int veredict) {
 		"Veredict",
 		seq,hash,veredict);
 	return;
+}
+
+void POFR_SetExitOnPcap(int value){
+	_polyFilter->when_pcap_done_exit = value;
 }
 
 /**
@@ -421,12 +442,14 @@ void POFR_Run() {
                                 usepcap = 0;
                                 if(_polyFilter->is_pcap_file == TRUE){
 					fprintf(stdout,"Source analyze done.\n");
-                                        break;
+					if(_polyFilter->when_pcap_done_exit == TRUE)
+                                        	break;
                                 }
 			}else {
 				if(PKDE_Decode(header,pkt_data) == TRUE){
 					ga = FORD_GetAnalyzer(_polyFilter->forwarder,
 						PKCX_GetIPProtocol(),
+						PKCX_GetSrcPort(),
 						PKCX_GetDstPort());
 					if(ga != NULL) { 
 						int segment_size;
@@ -453,18 +476,38 @@ void POFR_Run() {
 									PKCX_GetDstPort());	
 										
 								COMN_InsertConnection(_polyFilter->conn,flow,&hash);
-								DEBUG0("New Connection on Pool [%s:%d:%d:%s:%d]\n",
+								log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,
+									"New connection on Pool [%s:%d:%d:%s:%d] flow(0x%x)",
 									PKCX_GetSrcAddrDotNotation(),
 									PKCX_GetSrcPort(),
 									protocol, 
 									PKCX_GetDstAddrDotNotation(),
-									PKCX_GetDstPort());
+									PKCX_GetDstPort(),
+									flow);
 								/* Check if the flow allready have a ST_MemorySegment attached */
 								memseg = MEPO_GetMemorySegment(_polyFilter->memorypool);
 								GEFW_SetMemorySegment(flow,memseg);
 								GEFW_SetArriveTime(flow,&currenttime);	
 							}else{
 								//WARNING("No flow pool allocated\n");
+								continue;
+							}
+						}
+						if(protocol == IPPROTO_TCP){
+							// Update the tcp flow
+							TCAZ_Analyze(flow);
+							// check if the flow have end
+							if(flow->tcp_state_prev == TCP_CLOSE && flow->tcp_state_curr == TCP_CLOSE) {
+								// The flow should be returned to the cache
+                                                                log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,
+									"Release connection to Pool [%s:%d:%d:%s:%d] flow(0x%x)",
+                                                                        PKCX_GetSrcAddrDotNotation(),
+                                                                        PKCX_GetSrcPort(),
+                                                                        protocol,
+                                                                        PKCX_GetDstAddrDotNotation(),
+                                                                        PKCX_GetDstPort(),
+                                                                        flow);
+								COMN_ReleaseConnection(_polyFilter->conn,flow);
 								continue;
 							}
 						}
@@ -504,10 +547,10 @@ void POFR_Run() {
 					} // end of decode;
 				}
                 }
-		/* updates the flow time every 10 seconds aproximately
+		/* updates the flow time every 180 seconds aproximately
 		 * in order to avoid sorting without non-sense the flow list timer
 		 */
-		if((currenttime.tv_sec % 10) == 0){
+		if((currenttime.tv_sec % 180) == 0){
 			if(update_timers) {
 				COMN_UpdateTimers(_polyFilter->conn,&currenttime);
 				update_timers = 0;

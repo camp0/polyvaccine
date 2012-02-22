@@ -55,7 +55,8 @@
 #define DEBUG0(a...)
 #endif
 
-#define DEBUG1(a...) 
+#define DEBUG1(a...)  
+//#define DEBUG1 __DEBUG
 #define DEBUG2(a...)
 
 #ifdef __GNUC__

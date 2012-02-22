@@ -35,19 +35,26 @@ static struct option long_options[] = {
         {"force-post", 	no_argument, 		0, 'f'},
         {"unknown", 	no_argument, 		0, 'u'},
         {"cache", 	no_argument, 		0, 'c'},
+        {"exit", 	no_argument, 		0, 'e'},
         {"help",    	no_argument, 		0, 'h'},
         {"version",    	no_argument, 		0, 'V'},
         {0, 0, 0, 0}
 };
 
-static char *short_options = "li:p:hVfuc";
+static char *short_options = "li:p:hVfuces:";
 
 static char *common_http_headers [] = {
 	"GET /index.phtml HTTP/1.1",
 	"GET /index.php HTTP/1.1",
 	"GET /index.html HTTP/1.1",
+	"GET /rss.php HTTP/1.1",
 	"GET / HTTP/1.1",
-	"POST / HTTP/1.1",	
+	"OPTIONS / HTTP/1.1",
+	"GET / HTTP/1.0",
+	"POST /login.php HTTP/1.1",	
+	"POST /login.php HTTP/1.0",	
+	"POST /gateway.php HTTP/1.1",	
+	"POST /gateway.php HTTP/1.0",	
 	NULL
 };
 
@@ -71,6 +78,26 @@ static char *common_http_parameters [] = {
 	NULL
 };
 
+static char *show_options = {
+	"The options are:\n"
+	"\t-i, --interface=<device>             Device or pcapfile.\n"
+	"\t-e, --exit                           Exits when analisys is done(for pcapfiles).\n"
+	"\n"
+	"\tHTTP options\n"
+	"\t-p, --hport=<port number>            Web-server port number (80 default).\n"
+	"\t-f, --force-post                     Force the HTTP analyzer to analyze the post data content.\n"
+	"\t-l, --learning                       Cache all the HTTP request on the HTTP cache.\n"
+	"\t-u, --unknown                        Shows the unknown HTTP supported.\n"
+	"\t-c, --cache                          Use common HTTP values on the cache to test cache effectivity.\n"
+	"\n"
+	"\tSIP options\n"
+	"\t-s, --sport=<port number>            Sip-server port number (5060 default).\n"
+	"\n"
+	"\t-h, --help                           Display this information.\n"
+	"\t-V, --version                        Display this program's version number.\n"
+	"\n"
+};
+
 void sigquit(int signal) {
 	POFR_Stop();
 	POFR_StopAndExit();
@@ -80,18 +107,7 @@ void sigquit(int signal) {
 void usage(char *prog){
 	fprintf(stdout,"%s %s\n",POLYVACCINE_FILTER_ENGINE_NAME,VERSION);
 	fprintf(stdout,"Usage: %s [option(s)]\n",prog);
-        fprintf(stdout,"The options are:\n");
-        fprintf(stdout,"\t-i, --interface=<device>             Device or pcapfile.\n");
-        fprintf(stdout,"\t-p, --hport=<port number>            Web-server port number (80 default).\n");
-        fprintf(stdout,"\t-s, --sport=<port number>            Sip-server port number (5060 default).\n");
-        fprintf(stdout,"\t-f, --force-post                     Force the HTTP analyzer to analyze the post data content.\n");
-	fprintf(stdout,"\t-l, --learning                       Cache all the HTTP request on the HTTP cache.\n");
-	fprintf(stdout,"\t-u, --unknown                        Shows the unknown HTTP supported.\n");
-	fprintf(stdout,"\t-c, --cache                          Use common HTTP values on the cache to test cache effectivity.\n");
-	fprintf(stdout,"\n");
-        fprintf(stdout,"\t-h, --help                           Display this information.\n");
-        fprintf(stdout,"\t-V, --version                        Display this program's version number.\n");
-        fprintf(stdout,"\n");
+	fprintf(stdout,"%s",show_options);
         fprintf(stdout,"%s",bugs_banner);
         return;
 }
@@ -102,12 +118,14 @@ void main(int argc, char **argv) {
 	int i,c,hport,sport,learning,option_index;
 	char *source = NULL;
 	int force_post,show_unknown,use_cache;
+	int exit_on_pcap;
 	char *value;
 
 	force_post = FALSE;
 	show_unknown = FALSE;
 	learning = FALSE;
 	use_cache = FALSE;
+	exit_on_pcap = FALSE;
 	hport = 80;
 	sport = 5060;
 	while((c = getopt_long(argc,argv,short_options,
@@ -124,6 +142,9 @@ void main(int argc, char **argv) {
              			break;
            		case 'c':
              			use_cache = TRUE;	
+             			break;
+           		case 'e':
+             			exit_on_pcap = TRUE;	
              			break;
            		case 'u':
              			show_unknown = TRUE;
@@ -181,6 +202,11 @@ void main(int argc, char **argv) {
 			value = common_http_headers[i];
 		}	
 	}
+
+	/* Configuring the SIP options */
+	POFR_SetSIPSourcePort(sport);
+
+	POFR_SetExitOnPcap(exit_on_pcap);
 
 	POFR_Start();
 	POFR_Run();

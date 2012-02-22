@@ -67,16 +67,11 @@ class Test_02(unittest.TestCase):
                 pvde_d = dbus.Interface(s,dbus_interface='polyvaccine.detector')
 		time.sleep(0.5)
 
-                pvfe = subprocess.Popen(["../src/core/pvfe","-i","./pcapfiles/http_slashdot.pcap","-p 80"])
+                pvfe = subprocess.Popen(["../src/core/pvfe","-i","./pcapfiles/http_slashdot.pcap","-p 80","-e"])
                 time.sleep(0.5)
-                s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
-                pvfe_d = dbus.Interface(s,dbus_interface='polyvaccine.filter')
-		time.sleep(0.5)
 		value1 = pvde_d.ShellcodesDetected()
 		value2 = pvde_d.ExecutedSegments()
 		time.sleep(1)
-		pvfe.kill()
-		pvfe.wait()
 		pvde.kill()
 		pvde.wait()
 		self.assertEqual(value1,0)
@@ -85,7 +80,7 @@ class Test_02(unittest.TestCase):
 if __name__ == '__main__':
 	print "Testing the detection engine"
 	suite=unittest.TestSuite()
-    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
+#    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
     	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_02))
 	result=testrunner.BasicTestRunner().run(suite)
 	

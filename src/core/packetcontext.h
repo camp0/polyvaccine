@@ -74,11 +74,16 @@ static u_int16_t PKCX_GetIPHeaderLength(void) { return _pktctx.ip->ihl * 4; }
 static int PKCX_IsIPver4(void) { return _pktctx.ip->version == 4; }
 static int PKCX_GetIPProtocol(void) { return _pktctx.ip->protocol; }
 /* TCP Fields */
+static struct tcphdr *PKCX_GetTCPHeader(void) { return _pktctx.tcp;}
 static unsigned int PKCX_GetTCPPayloadLength(void) { return ntohs(_pktctx.ip->tot_len) - _pktctx.ip->ihl * 4 - _pktctx.tcp->doff * 4; }
 static int PKCX_GetPayloadLength(void) { return _pktctx.len; }
 static unsigned int PKCX_GetTCPHeaderLength(void) { return _pktctx.tcp->doff * 4; }
 static u_int16_t PKCX_GetTCPSrcPort(void) { return ntohs(_pktctx.tcp->source); }
 static u_int16_t PKCX_GetTCPDstPort(void) { return ntohs(_pktctx.tcp->dest); }
+static int PKCX_IsTCPSyn(void) { return _pktctx.tcp->syn;}
+static int PKCX_IsTCPAck(void) { return _pktctx.tcp->ack;}
+static int PKCX_IsTCPRst(void) { return _pktctx.tcp->rst;}
+static int PKCX_IsTCPFin(void) { return _pktctx.tcp->fin;}
 static int PKCX_IsTCPPush(void) { return _pktctx.tcp->psh;}
 static unsigned char *PKCX_GetPayload(void) { return _pktctx.payload;}
 

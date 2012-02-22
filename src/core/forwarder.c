@@ -137,14 +137,22 @@ void FORD_Destroy(ST_Forwarder *fw){
  *
  * @param ST_Forwarder
  * @param protocol 
- * @param port
+ * @param sport
+ * @param dport
  */
-ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw, int16_t protocol,int16_t port){
+ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw, int16_t protocol,int16_t sport,int16_t dport){
+	ST_GenericAnalyzer *ga = NULL;
+	GHashTable *t = NULL;
 
 	if(protocol == 6)
-		return (ST_GenericAnalyzer*)g_hash_table_lookup(fw->tcp_analyzers,GINT_TO_POINTER(port));
+		t = fw->tcp_analyzers; 
 	else
-		return (ST_GenericAnalyzer*)g_hash_table_lookup(fw->udp_analyzers,GINT_TO_POINTER(port));
+		t = fw->udp_analyzers;
+
+	ga = (ST_GenericAnalyzer*)g_hash_table_lookup(t,GINT_TO_POINTER(sport));
+	if(ga == NULL) 
+		ga = (ST_GenericAnalyzer*)g_hash_table_lookup(t,GINT_TO_POINTER(dport));	
+	return ga;
 }
 
 /**

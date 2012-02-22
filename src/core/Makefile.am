@@ -10,10 +10,10 @@ INCLUDES =      -I../opcodes/ \
 BUILT_SOURCES = $(srcdir)/polyvaccine_wrap.c
 
 libpolyvaccine_la_SOURCES =	system.c memory.c memorypool.c privatecallbacks.c flowpool.c \
-				connection.c packetdecoder.c authorized.c trustoffset.c \
+				connection.c packetdecoder.c authorized.c trustoffset.c tcpanalyzer.c \
 				httpanalyzer.c sipanalyzer.c cache.c forwarder.c polyfilter.c 
 
-noinst_HEADERS =	httpvalues.h flowpool.h connection.h cache.h polyfilter.h forwarder.h \
+noinst_HEADERS =	httpvalues.h flowpool.h connection.h cache.h polyfilter.h forwarder.h tcpanalyzer.h \
 			packetdecoder.h packetcontext.h genericflow.h authorized.h privatecallbacks.h \
 			httpanalyzer.h memory.h memorypool.h system.h trustoffset.h sipvalues.h \
 			sipanalyzer.h 

@@ -1,5 +1,5 @@
-AC_INIT([polyvaccine],[0.1],[luis.camp0.2009@gmail.com],[],[])
-AM_INIT_AUTOMAKE(polyvaccine,0.2)
+AC_INIT([polyvaccine],[0.3],[luis.camp0.2009@gmail.com],[],[])
+AM_INIT_AUTOMAKE(polyvaccine,0.3)
 AM_PROG_LIBTOOL
 
 AC_CONFIG_HEADER(config.h)
@@ -56,6 +56,9 @@ dnl pcap
 AC_CHECK_LIB(pcap, main, ,AC_MSG_ERROR("Install pcap library"),)
 AC_CHECK_HEADER(pcap.h, ,[AC_MSG_ERROR("pcap.h header not found.")],)
 
+dnl pcap 
+AC_CHECK_LIB(log4c, main, ,AC_MSG_ERROR("Install log4c library"),)
+AC_CHECK_HEADER(log4c.h, ,[AC_MSG_ERROR("log4c.h header not found.")],)
 
 AC_MSG_CHECKING(for perl regular expressions support)
 AC_ARG_WITH(pcre, AC_HELP_STRING([--with-pcre],[Enable pcre support (default yes)]),

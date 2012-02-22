@@ -30,12 +30,14 @@
 #endif
 
 #include <pcre.h>
+#include <log4c.h>
 #include "genericflow.h"
 #include "cache.h"
 #include "trustoffset.h"
 #include <sys/types.h>
 #include <glib.h>
 #include "debug.h"
+#include "interfaces.h"
 #include "counter.h"
 
 #define OVECCOUNT 30
@@ -47,6 +49,7 @@ struct ST_HTTPAnalyzer{
         pcre_extra *pe_header;
         const char *errstr;
 	ST_TrustOffsets *t_off;
+	log4c_category_t* logger;
         int ovector[OVECCOUNT];
 	/* configuration options */	
 	int on_suspicious_header_break;

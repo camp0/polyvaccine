@@ -47,6 +47,43 @@ def showPvfeHttpCache(i):
 		for h in cache:
 			print "\t",h
 
+def insertFileOnDatabase(filename):
+	errors = 0
+	inserts = 0
+	f = open(filename)
+	lines = f.readlines()
+
+	conn = MySQLdb.connect("localhost","pvuser", "pvuser","pvdata")
+        c = conn.cursor()
+
+	for l in lines:
+		if(("Header(" in l)and(")matchs" in l)):
+			i = l.find("Header(")
+			j = l.find(")matchs")
+			value = l[i+7:j]
+			sql = "insert into httpcache (value,type)values('%s',0)" % value
+			try:
+				c.execute(sql)
+				inserts = inserts +1
+			except:
+				errors = errors +1	
+		if(("Parameter(" in l)and(")matchs" in l)):
+			i = l.find("Parameter(")
+			j = l.find(")matchs")
+			value = l[i+10:j]
+			sql = "insert into httpcache (value,type)values('%s',1)" % value
+			try:
+				c.execute(sql)	
+				inserts = inserts +1
+			except:
+				errors = errors +1	
+
+	conn.commit()		
+	f.close()
+	c.close()
+	conn.close()
+	print "Total inserts %d errors %d\n" %(inserts,errors)
+
 def insertPvfeHttpCache(i,update=False):
         conn = MySQLdb.connect("localhost","pvuser", "pvuser","pvdata")
 
@@ -72,23 +109,32 @@ def insertPvfeHttpCache(i,update=False):
 
 def insertHttpCachePvfe(i):
         conn = MySQLdb.connect("localhost","pvuser", "pvuser","pvdata")
+	loads = 0
+	errors = 0
 
         c = conn.cursor()
 	sql = "select value from httpcache where type = 0"
 	c.execute(sql)
 	res = c.fetchall()
 	for h in res:
-		i.AddCacheHeader(h[0])
-
+		try:
+			i.AddCacheHeader(h[0])
+			loads = loads + 1
+		except:
+			errors = errors + 1
 	sql = "select value from httpcache where type = 1"
 	c.execute(sql)
 	res = c.fetchall()
 	for h in res:
-		i.AddCacheParameter(h[0])
+		try:
+			i.AddCacheParameter(h[0])
+			loads = loads + 1
+		except:
+			errors = errors + 1
 
         c.close()
         conn.close()
-
+	print "Loaded %d errrors %d\n" %(loads,errors)
 
 def usage():
         print "Use: python %s [OPTIONS]" %sys.argv[0]
@@ -96,6 +142,7 @@ def usage():
         print "\t-c                        Create database model."
         print "\t-l                        Load the database on the pvfe."
         print "\t-i                        Inserts the httpcache of the pvfe on database."
+        print "\t-f <file>                 Inserts the httpcache of the pvfe on database from a file."
         print "\t-u                        Updates the httpcache of the pvfe on database."
         print "\t-s                        Shows the httpcache of the pvfe."
 	print "\n"
@@ -109,9 +156,10 @@ def parseArguments():
 	update_database_model = False
 	show_httpcache = False
 	verbose = 0
+	insert_database_model_file = None 
 
         try:
-                opts, args = getopt.getopt(sys.argv[1:], "vclisu")
+                opts, args = getopt.getopt(sys.argv[1:], "vclisuf:")
         except getopt.GetoptError, err:
                 print str(err) # will print something like "option -a not recognized"
                 usage()
@@ -127,16 +175,23 @@ def parseArguments():
                      	insert_database_model = True 
                 elif o in ("-s"):
                      	show_httpcache = True 
+                elif o in ("-f"):
+                   	insert_database_model_file = a 
                 else:
                         assert False, "unhandled option"
 
-	return create_database_model,load_database_model,insert_database_model,show_httpcache,update_database_model,verbose
+	return create_database_model,load_database_model,insert_database_model,show_httpcache,update_database_model,\
+	insert_database_model_file,verbose
 
 	
 if __name__ == '__main__':
 	
 	create_database_model,load_database_model,insert_database_model,show_httpcache,\
-	update_database_model,verbose = parseArguments()
+	update_database_model,filename,verbose = parseArguments()
+
+	if(filename):
+		insertFileOnDatabase(filename)
+		sys.exit(0)
 
 	if(create_database_model):
 		createDatabaseModel()

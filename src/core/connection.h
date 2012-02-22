@@ -28,9 +28,12 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include <log4c.h>
 #include "flowpool.h"
 #include "memorypool.h"
 #include "debug.h"
+#include "interfaces.h"
 #include <netinet/in.h>
 
 struct ST_Connection {
@@ -40,6 +43,7 @@ struct ST_Connection {
 	int expiretimers;
 	ST_FlowPool *flowpool;
 	ST_MemoryPool *mempool;
+	log4c_category_t *logger;
 };
 
 typedef struct ST_Connection ST_Connection;

@@ -22,30 +22,42 @@
  *
  */
 
-#ifndef _INTERFACES_H_
-#define _INTERFACES_H_
+#ifndef _TCPANALYZER_H_
+#define _TCPANALYZER_H_
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#define POLYVACCINE "polyvaccine"
+#include <netinet/tcp.h>
+#include <log4c.h>
+#include "packetcontext.h"
+#include "genericflow.h"
+#include <sys/types.h>
+#include <glib.h>
+#include "debug.h"
+#include "interfaces.h"
 
-/* Dbus names for the filter engine */
-#define POLYVACCINE_FILTER_OBJECT "/" POLYVACCINE "/filter"
+struct ST_TCPAnalyzer{
+	/* statistics */
+	int32_t total_syn;
+	int32_t total_synack;
+	int32_t total_ack;
+	int32_t total_rst;
+	int32_t total_fin;
+	int32_t total_bad_flags;
 
-#define POLYVACCINE_FILTER_INTERFACE POLYVACCINE ".filter"
-#define POLYVACCINE_FILTER_HTTP_INTERFACE POLYVACCINE_FILTER_INTERFACE ".http"
-#define POLYVACCINE_FILTER_TCP_INTERFACE POLYVACCINE_FILTER_INTERFACE ".tcp"
-#define POLYVACCINE_FILTER_HTTPCACHE_INTERFACE POLYVACCINE_FILTER_INTERFACE ".httpcache"
-#define POLYVACCINE_FILTER_CONNECTION_INTERFACE POLYVACCINE_FILTER_INTERFACE ".connection"
+	int64_t total_tcp_bytes;
+	int64_t total_tcp_segments;
 
-/* Dbus names for the detection engine */
-#define POLYVACCINE_DETECTION_OBJECT "/" POLYVACCINE "/detector"
-#define POLYVACCINE_DETECTION_INTERFACE POLYVACCINE ".detector"
+	log4c_category_t* logger;
+};
 
-/* Dbus names for the protection engine */
-#define POLYVACCINE_PROTECTOR_OBJECT "/" POLYVACCINE "/protector"
-#define POLYVACCINE_PROTECTOR_INTERFACE POLYVACCINE ".protector"
+typedef struct ST_TCPAnalyzer ST_TCPAnalyzer;
+
+void TCAZ_Init(void);
+void TCAZ_Destroy(void);
+void TCAZ_Analyze(ST_GenericFlow *f);
+void TCAZ_Stats(void);
 
 #endif

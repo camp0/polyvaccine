@@ -117,12 +117,12 @@ int PKDE_Decode(struct pcap_pkthdr *hdr, unsigned char *packet) {
         }while(have_l7==FALSE);
         PKCX_SetL7Payload((packet+offset),l7size);
 	_pktdec._totalL7Packets++;
-	DEBUG1("Decoding IPPacket: [%s:%d:%d:%s:%d] length %d\n",
+	DEBUG1("Decoding IPPacket: [%s:%d:%d:%s:%d] length %d l7flag %d\n",
 		PKCX_GetSrcAddrDotNotation(),
 		PKCX_GetSrcPort(),
 		PKCX_GetIPProtocol(),
 		PKCX_GetDstAddrDotNotation(),
-		PKCX_GetDstPort(),l7size);
+		PKCX_GetDstPort(),l7size,have_l7);
 
 	return TRUE;
 }

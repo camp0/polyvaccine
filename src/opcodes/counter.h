@@ -59,6 +59,7 @@ typedef struct ST_OpcodeCounter ST_OpcodeCounter;
 
 void COSU_Init(void);
 int COSU_CheckSuspiciousOpcodes(char *data,int datasize);
+int COSU_CheckSuspiciousOpcodes2(char *data,int datasize) __attribute__ ((deprecated));
 void COSU_Destroy(void);
 void COSU_Stats(void);
 

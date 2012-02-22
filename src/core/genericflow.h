@@ -25,6 +25,7 @@
 #ifndef _GENERICFLOW_H_
 #define _GENERICFLOW_H_
 
+#include <netinet/tcp.h>
 #include "memory.h"
 #include <sys/types.h>
 
@@ -37,6 +38,10 @@ struct ST_GenericFlow {
 
 	int32_t total_bytes;
         int32_t total_packets;
+
+	short aborted;
+	short tcp_state_prev;
+	short tcp_state_curr;
 
 	struct timeval arrive_time;
 	struct timeval current_time;
@@ -57,6 +62,9 @@ static void GEFW_Reset(ST_GenericFlow *f) {
 	f->total_bytes = 0;f->total_packets= 0;
 	f->arrive_time.tv_sec = 0;f->arrive_time.tv_usec = 0;
 	f->current_time.tv_sec = 0;f->current_time.tv_usec = 0;
+	f->tcp_state_prev = TCP_CLOSE;
+	f->tcp_state_curr = TCP_CLOSE;
+	f->aborted = 0;
 	f->memory = NULL; 
 	return;
 };

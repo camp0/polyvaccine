@@ -32,6 +32,7 @@
 #include <dbus/dbus.h>
 #include <stdio.h>
 #include <glib.h>
+#include <log4c.h>
 #include "debug.h"
 #include <sys/time.h>
 #include "packetcontext.h"
@@ -60,6 +61,8 @@ struct ST_PolyFilter {
 	int polyfilter_status;
 	int pcapfd;
 	int is_pcap_file;
+	int when_pcap_done_exit;
+	log4c_category_t* logger; 
 	DBusConnection *bus;
 	ST_Connection *conn;
 	ST_FlowPool *flowpool;
@@ -78,6 +81,7 @@ void POFR_Init(void);
 void POFR_Destroy(void);
 
 void POFR_SetSource(char *source);
+void POFR_SetExitOnPcap(int value);
 
 void POFR_Stats(void);
 void POFR_Start(void);

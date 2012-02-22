@@ -24,6 +24,7 @@ class Test_01(unittest.TestCase):
 	def test_01_1(self):
 		"Test the httpcache fails header"
 		p.POFR_SetSource("./pcapfiles/http_one_get_and_response.pcap")
+		p.POFR_SetExitOnPcap(1)
 		p.POFR_Start()
 		p.POFR_Run()
 		p.POFR_Stop()	
@@ -34,6 +35,7 @@ class Test_01(unittest.TestCase):
                 "Test the httpcache hits header"
                 p.POFR_SetSource("./pcapfiles/http_one_get_and_response.pcap")
                 p.POFR_AddToHTTPCache(0,"GET /dashboard HTTP/1.1")
+		p.POFR_SetExitOnPcap(1)
                 p.POFR_Start()
                 p.POFR_Run()
                 p.POFR_Stop()
@@ -45,6 +47,7 @@ class Test_01(unittest.TestCase):
                 p.POFR_SetSource("./pcapfiles/http_one_get_and_response.pcap")
                 p.POFR_AddToHTTPCache(0,"GET /dashboard HTTP/1.1")
                 p.POFR_AddToHTTPCache(1,"Connection: keep-alive")
+		p.POFR_SetExitOnPcap(1)
                 p.POFR_Start()
                 p.POFR_Run()
                 p.POFR_Stop()
@@ -59,6 +62,7 @@ class Test_01(unittest.TestCase):
                 p.POFR_AddToHTTPCache(0,"GET /dashboard HTTP/1.1")
                 p.POFR_AddToHTTPCache(1,"Connection: keep-alive")
                 p.POFR_AddToHTTPCache(1,"Accept-Encoding: gzip,deflate,sdch")
+		p.POFR_SetExitOnPcap(1)
                 p.POFR_Start()
                 p.POFR_Run()
                 p.POFR_Stop()
@@ -82,8 +86,8 @@ class Test_02(unittest.TestCase):
                 pp = subprocess.Popen(["../src/core/pvfe","-i","lo","-p 80"])
 		time.sleep(1)
 		bus = dbus.SessionBus()
-		s = bus.get_object('polyvaccine.engine', '/polyvaccine/engine')
-		d = dbus.Interface(s,dbus_interface='polyvaccine.engine')
+		s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
+		d = dbus.Interface(s,dbus_interface='polyvaccine.filter')
 		state = d.State()
 		pp.kill()	
 		self.assertTrue(state == "stop")
@@ -95,8 +99,8 @@ class Test_02(unittest.TestCase):
 		
 		time.sleep(1)
 		bus = dbus.SessionBus()
-                s = bus.get_object('polyvaccine.engine', '/polyvaccine/engine')
-                d = dbus.Interface(s,dbus_interface='polyvaccine.engine.httpcache')
+                s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
+                d = dbus.Interface(s,dbus_interface='polyvaccine.filter.httpcache')
 
 		header = ['GET / HTTP/1.1'] 
 		param = ['Host: slashdot.org','Accept-Encoding: gzip, deflate','Connection: keep-alive']
