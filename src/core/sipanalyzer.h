@@ -35,8 +35,8 @@
 #include "trustoffset.h"
 #include <sys/types.h>
 #include <glib.h>
-#include "debug.h"
 #include "counter.h"
+#include "interfaces.h"
 
 #define OVECCOUNT 30
 

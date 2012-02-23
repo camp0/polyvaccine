@@ -25,7 +25,8 @@
 #ifndef _GENERICFLOW_H_
 #define _GENERICFLOW_H_
 
-#include <netinet/tcp.h>
+//#include <netinet/tcp.h>
+//#include "tcpanalyzer.h"
 #include "memory.h"
 #include <sys/types.h>
 
@@ -39,6 +40,7 @@ struct ST_GenericFlow {
 	int32_t total_bytes;
         int32_t total_packets;
 
+	short direction;
 	short aborted;
 	short tcp_state_prev;
 	short tcp_state_curr;
@@ -49,6 +51,9 @@ struct ST_GenericFlow {
 };
 
 typedef struct ST_GenericFlow ST_GenericFlow;
+
+#define FLOW_FORW 0
+#define FLOW_BACK 1
 
 static void GEFW_SetFlowId(ST_GenericFlow *f,u_int32_t saddr,u_int16_t sport,u_int16_t protocol,u_int32_t daddr,u_int16_t dport){
 	f->saddr = saddr;
@@ -62,9 +67,10 @@ static void GEFW_Reset(ST_GenericFlow *f) {
 	f->total_bytes = 0;f->total_packets= 0;
 	f->arrive_time.tv_sec = 0;f->arrive_time.tv_usec = 0;
 	f->current_time.tv_sec = 0;f->current_time.tv_usec = 0;
-	f->tcp_state_prev = TCP_CLOSE;
-	f->tcp_state_curr = TCP_CLOSE;
+	f->tcp_state_prev = 0; // Corresponds to TCP_CLOSE state
+	f->tcp_state_curr = 0;
 	f->aborted = 0;
+	f->direction = FLOW_FORW;
 	f->memory = NULL; 
 	return;
 };

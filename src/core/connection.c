@@ -25,6 +25,9 @@
 #include "connection.h"
 #include "genericflow.h"
 
+#define POLYLOG_CATEGORY_NAME POLYVACCINE_FILTER_CONNECTION_INTERFACE
+#include "log.h"
+
 /**
  * COMN_SetFlowPool - Sets the reference of the flowpool on the ST_Connection.
  *
@@ -72,7 +75,7 @@ void COMN_ReleaseConnection(ST_Connection *conn,ST_GenericFlow *flow) {
         seg = flow->memory;
         flow->memory = NULL;
 
-	log4c_category_log(conn->logger, LOG4C_PRIORITY_DEBUG,		
+	LOG(POLYLOG_PRIORITY_DEBUG,
         	"Release flow(0x%x)segment(0x%x) to flowpool(0x%x)memorypool(0x%x)",
         	flow,seg,conn->flowpool,conn->mempool);
 	if(seg != NULL)
@@ -128,7 +131,7 @@ void COMN_UpdateTimers(ST_Connection *conn,struct timeval *currenttime){
 //                DEBUG1("Checkin timer for flow(0x%x)secs(%d)curr(%d)\n",flow,flow->current_time.tv_sec,currenttime->tv_sec);
                 if(flow->current_time.tv_sec + conn->inactivitytime <= currenttime->tv_sec) {
                         /* The timer expires */
-			log4c_category_log(conn->logger, LOG4C_PRIORITY_DEBUG,
+			LOG(POLYLOG_PRIORITY_DEBUG,
                         	"Expire timer for flow(0x%x)secs(%d)curr(%d)",flow,flow->current_time.tv_sec,currenttime->tv_sec);
 
 			COMN_ReleaseConnection(conn,flow);
@@ -160,7 +163,6 @@ ST_Connection *COMN_Init() {
 	conn->expiretimers = 0;
 	conn->flowpool = NULL;
 	conn->mempool = NULL;
-	conn->logger = log4c_category_get(POLYVACCINE_FILTER_CONNECTION_INTERFACE);
 	return conn;
 };
 
@@ -186,7 +188,7 @@ void COMN_ReleaseFlows(ST_Connection *conn){
                 FLPO_AddFlow(conn->flowpool,flow);
 		items++;
         }
-	log4c_category_log(conn->logger, LOG4C_PRIORITY_DEBUG,
+	LOG(POLYLOG_PRIORITY_DEBUG,
         	"Releasing %d flows to flowpool(0x%x)memorypool(0x%x)",
 		items,conn->flowpool,conn->mempool);
 	return;
@@ -221,6 +223,7 @@ void COMN_Destroy(ST_Connection *conn) {
  */
 ST_GenericFlow *COMN_FindConnection(ST_Connection *conn,u_int32_t saddr,u_int16_t sport,u_int16_t protocol,u_int32_t daddr,u_int16_t dport,unsigned long *hash){
         gpointer object;
+	ST_GenericFlow *f = NULL;
         struct in_addr a,b;
 
         a.s_addr = saddr;
@@ -228,24 +231,25 @@ ST_GenericFlow *COMN_FindConnection(ST_Connection *conn,u_int32_t saddr,u_int16_
 
         unsigned long h = (saddr^sport^protocol^daddr^dport);
 
- //       DEBUG2("first lookup(%lu):[%s:%d:%d:%s:%d]\n",h,inet_ntoa(a),sport,protocol,inet_ntoa(b),dport);
+        //DEBUG0("first lookup(%lu):[%s:%d:%d:%s:%d]\n",h,inet_ntoa(a),sport,protocol,inet_ntoa(b),dport);
 
         object = g_hash_table_lookup(conn->table,GINT_TO_POINTER(h));
         if (object != NULL){
 		(*hash) = h;
-                return (ST_GenericFlow*)object;
+		f = (ST_GenericFlow*)object;
+                return f;
         }
 
         h = (daddr^dport^protocol^saddr^sport);
 
- //       DEBUG2("second lookup(%lu):[%s:%d:%d:%s:%d]\n",h,inet_ntoa(b),dport,protocol,inet_ntoa(a),sport);
+        //DEBUG0("second lookup(%lu):[%s:%d:%d:%s:%d]\n",h,inet_ntoa(b),dport,protocol,inet_ntoa(a),sport);
 
         object = g_hash_table_lookup(conn->table,GINT_TO_POINTER(h));
         if (object != NULL){
 		(*hash) = h;
-                return (ST_GenericFlow*)object;
+		f = (ST_GenericFlow*)object;
+                return f;
         }
-
         return NULL;
 }
 

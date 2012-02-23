@@ -31,6 +31,9 @@
 #include "httpanalyzer.h"
 #include "sipanalyzer.h"
 
+#define POLYLOG_CATEGORY_NAME POLYVACCINE_FILTER_INTERFACE
+#include "log.h"
+
 static ST_PolyFilter *_polyFilter = NULL;
 
 /**
@@ -51,7 +54,6 @@ void POFR_Init() {
 	_polyFilter->pcap = NULL;
 	_polyFilter->source = g_string_new("");
 	_polyFilter->bus = PODS_Connect(POLYVACCINE_FILTER_INTERFACE,(void*)_polyFilter);
-	_polyFilter->logger = NULL;
 
 	/* Only load the callbacks if dbus is running */ 
 	if(_polyFilter->bus != NULL) {
@@ -64,9 +66,6 @@ void POFR_Init() {
 			current = (ST_Callback*)&(interface->methods[0]);
 			j = 0;
 			while((current != NULL)&&(current->name != NULL)) {
-				log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,
-					"callback(0x%x)(%d) add method '%s' on interface '%s'\n",
-					current,j,current->name,interface->name);
 				PODS_AddPublicCallback(current);
 				j++;
 				current = (ST_Callback*)&(interface->methods[j]);
@@ -74,9 +73,6 @@ void POFR_Init() {
 			j = 0;
 			current = (ST_Callback*)&(interface->signals[0]);
 			while((current != NULL)&&(current->name != NULL)) {
-				log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,
-					"callback(0x%x) add signal '%s' on interface '%s'\n",
-					current,current[j].name,interface->name);
 				PODS_AddPublicCallback(current);
 				j++;
 				current = (ST_Callback*)&(interface->signals[j]);
@@ -84,9 +80,6 @@ void POFR_Init() {
 			j = 0;
 			current = (ST_Callback*)&(interface->properties[0]);
 			while((current!=NULL)&&(current->name != NULL)){
-				log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,
-					"callback(0x%x)(%d) add properties '%s' on interface '%s'\n",
-					current,j,current->name,interface->name);
 				PODS_AddPublicCallback(current);
 				j++;
 				current = (ST_Callback*)&(interface->properties[j]);
@@ -99,8 +92,7 @@ void POFR_Init() {
 	PKCX_Init();
 	SYIN_Init();
 	TCAZ_Init();
-	log4c_init();
-	_polyFilter->logger = log4c_category_get(POLYVACCINE_FILTER_INTERFACE);
+	POLG_Init();
 
 	_polyFilter->conn = COMN_Init();
 	_polyFilter->flowpool = FLPO_Init();
@@ -112,12 +104,12 @@ void POFR_Init() {
 	COMN_SetFlowPool(_polyFilter->conn,_polyFilter->flowpool);
 	COMN_SetMemoryPool(_polyFilter->conn,_polyFilter->memorypool);
 
-	log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,"Initialized engine....");
-	log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,"connection manager (0x%x)",_polyFilter->conn);
-	log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,"flowpool (0x%x)",_polyFilter->flowpool);
-	log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,"memorypool (0x%x)",_polyFilter->memorypool);
-	log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,"httpcache (0x%x)",_polyFilter->httpcache);
-	log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,"sipcache (0x%x)",_polyFilter->sipcache);
+	LOG(POLYLOG_PRIORITY_DEBUG,"Initialized engine....");
+	LOG(POLYLOG_PRIORITY_DEBUG,"connection manager (0x%x)",_polyFilter->conn);
+	LOG(POLYLOG_PRIORITY_DEBUG,"flowpool (0x%x)",_polyFilter->flowpool);
+	LOG(POLYLOG_PRIORITY_DEBUG,"memorypool (0x%x)",_polyFilter->memorypool);
+	LOG(POLYLOG_PRIORITY_DEBUG,"httpcache (0x%x)",_polyFilter->httpcache);
+	LOG(POLYLOG_PRIORITY_DEBUG,"sipcache (0x%x)",_polyFilter->sipcache);
 
 	// Plugin the analyzers
 	FORD_AddAnalyzer(_polyFilter->forwarder,_polyFilter->httpcache,
@@ -202,9 +194,9 @@ void POFR_SetForceAnalyzeHTTPPostData(int value){
  */
 
 void POFR_Start() {
-	
-	log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_INFO,
-		"Trying to start the engine, status=%s",polyfilter_states_str[_polyFilter->polyfilter_status]);
+
+	LOG(POLYLOG_PRIORITY_INFO,
+		"Trying to start the engine, status=%s",polyfilter_states_str[_polyFilter->polyfilter_status]);	
 	if(_polyFilter->polyfilter_status == POLYFILTER_STATE_STOP) {
 		char errbuf[PCAP_ERRBUF_SIZE];
 
@@ -227,7 +219,7 @@ void POFR_Start() {
         	}
 		_polyFilter->pcapfd = pcap_get_selectable_fd(_polyFilter->pcap);
 		_polyFilter->polyfilter_status = POLYFILTER_STATE_RUNNING;
-                log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_INFO,"Starting engine");
+                LOG(POLYLOG_PRIORITY_INFO,"Starting engine",NULL);
 	}
 }
 
@@ -236,8 +228,8 @@ void POFR_Start() {
  */
 void POFR_Stop() {
 	
-	log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_INFO,
-		"Trying to stop the engine, status=%s",polyfilter_states_str[_polyFilter->polyfilter_status]);
+	LOG(POLYLOG_PRIORITY_INFO,
+		"Trying to stop the engine, status=%s",polyfilter_states_str[_polyFilter->polyfilter_status]);	
 	if(_polyFilter->polyfilter_status == POLYFILTER_STATE_RUNNING) {
 		// printf("pcap = 0x%x\n",_polyFilter->pcap);
 		//if(_polyFilter->pcap != NULL);
@@ -245,7 +237,7 @@ void POFR_Stop() {
 		_polyFilter->pcap = NULL;
 		_polyFilter->pcapfd = -1;
 		_polyFilter->polyfilter_status = POLYFILTER_STATE_STOP;
-                log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_INFO,"Stoping engine");
+                LOG(POLYLOG_PRIORITY_INFO,"Stoping engine",NULL);
 	}
 }
 
@@ -271,7 +263,7 @@ void POFR_StopAndExit() {
  */
 void POFR_Destroy() {
 	PODS_Destroy();
-	log4c_fini();
+	POLG_Destroy();
 	g_string_free(_polyFilter->source,TRUE);
 	FLPO_Destroy(_polyFilter->flowpool);
 	MEPO_Destroy(_polyFilter->memorypool);
@@ -327,7 +319,7 @@ void POFR_AddToHTTPCache(int type,char *value){
 void POFR_SendSuspiciousSegmentToExecute(ST_MemorySegment *seg,ST_TrustOffsets *t_off,unsigned long hash, uint32_t seq) {
 
 	if(_polyFilter->bus == NULL) {
-                log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_ALERT,
+		LOG(POLYLOG_PRIORITY_ALERT,
 			"Cannot send suspicious segment over dbus, no connection available");
 		return;
 	}
@@ -354,7 +346,7 @@ void POFR_SendSuspiciousSegmentToExecute(ST_MemorySegment *seg,ST_TrustOffsets *
 void POFR_SendVerifiedSegment(unsigned long hash, u_int32_t seq,int veredict) {
 	
 	if(_polyFilter->bus == NULL) {
-		log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_ALERT,
+		LOG(POLYLOG_PRIORITY_ALERT,
 			"Cannot send vereridct segment over dbus, no connection available");
 		return;
 	}
@@ -475,15 +467,16 @@ void POFR_Run() {
 									PKCX_GetIPDstAddr(),
 									PKCX_GetDstPort());	
 										
+								flow->direction = ga->direction;
 								COMN_InsertConnection(_polyFilter->conn,flow,&hash);
-								log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,
+								LOG(POLYLOG_PRIORITY_DEBUG,
 									"New connection on Pool [%s:%d:%d:%s:%d] flow(0x%x)",
 									PKCX_GetSrcAddrDotNotation(),
 									PKCX_GetSrcPort(),
 									protocol, 
 									PKCX_GetDstAddrDotNotation(),
 									PKCX_GetDstPort(),
-									flow);
+									flow); 
 								/* Check if the flow allready have a ST_MemorySegment attached */
 								memseg = MEPO_GetMemorySegment(_polyFilter->memorypool);
 								GEFW_SetMemorySegment(flow,memseg);
@@ -493,20 +486,23 @@ void POFR_Run() {
 								continue;
 							}
 						}
+						// Update the direction of the flow
+						flow->direction = ga->direction;
+
 						if(protocol == IPPROTO_TCP){
 							// Update the tcp flow
 							TCAZ_Analyze(flow);
 							// check if the flow have end
-							if(flow->tcp_state_prev == TCP_CLOSE && flow->tcp_state_curr == TCP_CLOSE) {
+							if(flow->tcp_state_curr == POLY_TCPS_CLOSED) {
 								// The flow should be returned to the cache
-                                                                log4c_category_log(_polyFilter->logger,LOG4C_PRIORITY_DEBUG,
+								LOG(POLYLOG_PRIORITY_DEBUG,
 									"Release connection to Pool [%s:%d:%d:%s:%d] flow(0x%x)",
                                                                         PKCX_GetSrcAddrDotNotation(),
                                                                         PKCX_GetSrcPort(),
                                                                         protocol,
                                                                         PKCX_GetDstAddrDotNotation(),
                                                                         PKCX_GetDstPort(),
-                                                                        flow);
+                                                                        flow); 
 								COMN_ReleaseConnection(_polyFilter->conn,flow);
 								continue;
 							}

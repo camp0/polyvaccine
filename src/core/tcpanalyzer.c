@@ -23,38 +23,162 @@
  */
 
 #include "tcpanalyzer.h"
-#include "debug.h"
 
-/*
-enum
-{
-  TCP_ESTABLISHED = 1,
-  TCP_SYN_SENT,
-  TCP_SYN_RECV,
-  TCP_FIN_WAIT1,
-  TCP_FIN_WAIT2,
-  TCP_TIME_WAIT,
-  TCP_CLOSE,
-  TCP_CLOSE_WAIT,
-  TCP_LAST_ACK,
-  TCP_LISTEN,
-  TCP_CLOSING    now a valid state 
-};
-*/
+#define POLYLOG_CATEGORY_NAME POLYVACCINE_FILTER_TCP_INTERFACE
+#include "log.h"
 
 static char *tcp_states [] = {
-	"UNKNOWN",
+        "CLOSE",
+        "SYN_SENT",
+        "SIMSYN_SENT",
+        "SYN_RECVEIVED",
 	"ESTABLISHED",
-	"SYN_SENT",
-	"SYN_RECV",
-	"FIN_WAIT1",
-	"FIN_WAIT2",
-	"TIME_WAIT",
-	"CLOSE",
-	"CLOSE_WAIT",
-	"LAST_ACK",
-	"LISTEN",
-	"TCP_CLOSING"
+        "FIN_SEEN",
+        "CLOSE_WAIT",
+        "FIN_WAIT",
+        "CLOSING",
+        "LAST_ACK",
+        "TIMEWAIT"
+};
+
+/* tcp flags conversion */
+#define	TCPFC_INVALID		0
+#define	TCPFC_SYN		1
+#define	TCPFC_SYNACK		2
+#define	TCPFC_ACK		3
+#define	TCPFC_FIN		4
+#define	TCPFC_COUNT		5
+
+/* TCP State table from BSD npf project */
+static int tcp_finite_state_machine[POLY_TCP_NSTATES][2][TCPFC_COUNT] = {
+	[POLY_TCPS_CLOSED] = {
+		[FLOW_FORW] = {
+			/* Handshake (1): initial SYN. */
+			[TCPFC_SYN]	= POLY_TCPS_SYN_SENT,
+		},
+	},
+	[POLY_TCPS_SYN_SENT] = {
+		[FLOW_FORW] = {
+			/* SYN may be retransmitted. */
+			[TCPFC_SYN]	= POLY_TCPS_OK,
+		},
+		[FLOW_BACK] = {
+			/* Handshake (2): SYN-ACK is expected. */
+			[TCPFC_SYNACK]	= POLY_TCPS_SYN_RECEIVED,
+			/* Simultaneous initiation - SYN. */
+			[TCPFC_SYN]	= POLY_TCPS_SIMSYN_SENT,
+		},
+	},
+	[POLY_TCPS_SIMSYN_SENT] = {
+		[FLOW_FORW] = {
+			/* Original SYN re-transmission. */
+			[TCPFC_SYN]	= POLY_TCPS_OK,
+			/* SYN-ACK response to simultaneous SYN. */
+			[TCPFC_SYNACK]	= POLY_TCPS_SYN_RECEIVED,
+		},
+		[FLOW_BACK] = {
+			/* Simultaneous SYN re-transmission.*/
+			[TCPFC_SYN]	= POLY_TCPS_OK,
+			/* SYN-ACK response to original SYN. */
+			[TCPFC_SYNACK]	= POLY_TCPS_SYN_RECEIVED,
+			/* FIN may be sent early. */
+			[TCPFC_FIN]	= POLY_TCPS_FIN_SEEN,
+		},
+	},
+	[POLY_TCPS_SYN_RECEIVED] = {
+		[FLOW_FORW] = {
+			/* Handshake (3): ACK is expected. */
+			[TCPFC_ACK]	= POLY_TCPS_ESTABLISHED,
+			/* FIN may be sent early. */
+			[TCPFC_FIN]	= POLY_TCPS_FIN_SEEN,
+		},
+		[FLOW_BACK] = {
+			/* SYN-ACK may be retransmitted. */
+			[TCPFC_SYNACK]	= POLY_TCPS_OK,
+			/* XXX: ACK of late SYN in simultaneous case? */
+			[TCPFC_ACK]	= POLY_TCPS_OK,
+			/* FIN may be sent early. */
+			[TCPFC_FIN]	= POLY_TCPS_FIN_SEEN,
+		},
+	},
+	[POLY_TCPS_ESTABLISHED] = {
+		/*
+		 * Regular ACKs (data exchange) or FIN.
+		 * FIN packets may have ACK set.
+		 */
+		[FLOW_FORW] = {
+			[TCPFC_ACK]	= POLY_TCPS_OK,
+			/* FIN by the sender. */
+			[TCPFC_FIN]	= POLY_TCPS_FIN_SEEN,
+		},
+		[FLOW_BACK] = {
+			[TCPFC_ACK]	= POLY_TCPS_OK,
+			/* FIN by the receiver. */
+			[TCPFC_FIN]	= POLY_TCPS_FIN_SEEN,
+		},
+	},
+	[POLY_TCPS_FIN_SEEN] = {
+		/*
+		 * FIN was seen.  If ACK only, connection is half-closed now,
+		 * need to determine which end is closed (sender or receiver).
+		 * However, both FIN and FIN-ACK may race here - in which
+		 * case we are closing immediately.
+		 */
+		[FLOW_FORW] = {
+			[TCPFC_ACK]	= POLY_TCPS_CLOSE_WAIT,
+			[TCPFC_FIN]	= POLY_TCPS_CLOSING,
+		},
+		[FLOW_BACK] = {
+			[TCPFC_ACK]	= POLY_TCPS_FIN_WAIT,
+			[TCPFC_FIN]	= POLY_TCPS_CLOSING,
+		},
+	},
+	[POLY_TCPS_CLOSE_WAIT] = {
+		/* Sender has sent the FIN and closed its end. */
+		[FLOW_FORW] = {
+			[TCPFC_ACK]	= POLY_TCPS_OK,
+			[TCPFC_FIN]	= POLY_TCPS_LAST_ACK,
+		},
+		[FLOW_BACK] = {
+			[TCPFC_ACK]	= POLY_TCPS_OK,
+			[TCPFC_FIN]	= POLY_TCPS_LAST_ACK,
+		},
+	},
+	[POLY_TCPS_FIN_WAIT] = {
+		/* Receiver has closed its end. */
+		[FLOW_FORW] = {
+			[TCPFC_ACK]	= POLY_TCPS_OK,
+			[TCPFC_FIN]	= POLY_TCPS_LAST_ACK,
+		},
+		[FLOW_BACK] = {
+			[TCPFC_ACK]	= POLY_TCPS_OK,
+			[TCPFC_FIN]	= POLY_TCPS_LAST_ACK,
+		},
+	},
+	[POLY_TCPS_CLOSING] = {
+		/* Race of FINs - expecting ACK. */
+		[FLOW_FORW] = {
+			[TCPFC_ACK]	= POLY_TCPS_LAST_ACK,
+		},
+		[FLOW_BACK] = {
+			[TCPFC_ACK]	= POLY_TCPS_LAST_ACK,
+		},
+	},
+	[POLY_TCPS_LAST_ACK] = {
+		/* FINs exchanged - expecting last ACK. */
+		[FLOW_FORW] = {
+			[TCPFC_ACK]	= POLY_TCPS_TIME_WAIT,
+		},
+		[FLOW_BACK] = {
+			[TCPFC_ACK]	= POLY_TCPS_TIME_WAIT,
+		},
+	},
+	[POLY_TCPS_TIME_WAIT] = {
+		/* May re-open the connection as per RFC 1122. */
+		[FLOW_FORW] = {
+			[TCPFC_SYN]	= POLY_TCPS_SYN_SENT,
+		},
+	},
 };
 
 static ST_TCPAnalyzer _tcp;
@@ -72,7 +196,6 @@ void TCAZ_Init() {
         _tcp.total_tcp_bytes = 0;
         _tcp.total_tcp_segments= 0;
 
-	_tcp.logger = log4c_category_get(POLYVACCINE_FILTER_TCP_INTERFACE);
 	return;
 }
 
@@ -99,103 +222,6 @@ void TCAZ_Destroy() {
 }
 
 
-
-void TCAZ_HandlerSyn(ST_GenericFlow *f){
-
-	if(f->tcp_state_prev == TCP_CLOSE && f->tcp_state_curr == TCP_CLOSE &&
-		PKCX_IsTCPSyn() == 1 && PKCX_IsTCPAck() == 0){
-		/* First syn from client */
-		f->tcp_state_prev = TCP_CLOSE;
-		f->tcp_state_curr = TCP_SYN_SENT;
-        	_tcp.total_syn ++;
-		return;
-	}
-	if(f->tcp_state_curr != TCP_SYN_SENT && f->tcp_state_prev != TCP_CLOSE &&
-		PKCX_IsTCPAck() == 0){
-		_tcp.total_bad_flags ++;
-		// no syn/ack packet
-		return;
-	}
-	// syn/ack received
-	_tcp.total_synack ++;
-	f->tcp_state_prev = f->tcp_state_curr;
-	f->tcp_state_curr = TCP_SYN_RECV;
-	return;	
-}
-
-void TCAZ_HandlerAck(ST_GenericFlow *f){
-
-	//printf("ACK %s -> %s \n",
-	//	tcp_states[f->tcp_state_prev],tcp_states[f->tcp_state_curr]);
-	if(f->tcp_state_prev == TCP_SYN_SENT && f->tcp_state_curr == TCP_SYN_RECV &&
-		PKCX_IsTCPAck() == 1) {
-		// sequence check
-		f->tcp_state_prev = TCP_ESTABLISHED;
-		f->tcp_state_curr = TCP_ESTABLISHED;
-		_tcp.total_ack ++;
-		return;
-	}
-        if(f->tcp_state_curr == TCP_LAST_ACK) {
-                f->tcp_state_prev = TCP_CLOSE;
-                f->tcp_state_curr = TCP_CLOSE;
-		return;
-        }
-	if(f->tcp_state_curr == TCP_FIN_WAIT1) {
-		f->tcp_state_prev = f->tcp_state_curr;
-		f->tcp_state_curr = TCP_FIN_WAIT2;
-		return;
-	}
-	f->tcp_state_prev = f->tcp_state_curr;
-	return;
-}
-
-
-void TCAZ_HandlerFin(ST_GenericFlow *f){
-
-	_tcp.total_fin ++;
-	if(PKCX_IsTCPAck() == 0) {
-		if(f->tcp_state_curr == TCP_SYN_RECV){
-			f->tcp_state_prev = f->tcp_state_curr;
-			f->tcp_state_curr = TCP_FIN_WAIT1;
-			_tcp.total_fin ++;
-			return; 
-		} 
-		if(f->tcp_state_curr == TCP_ESTABLISHED) {
-			f->tcp_state_prev = f->tcp_state_curr;
-			f->tcp_state_curr = TCP_FIN_WAIT1;
-			return;
-		}	
-	}else{
-		if(f->tcp_state_curr == TCP_ESTABLISHED) {
-			f->tcp_state_prev = f->tcp_state_curr;
-			f->tcp_state_curr = TCP_CLOSE_WAIT;
-			return;
-		}
-		if(f->tcp_state_curr == TCP_CLOSE_WAIT) {
-			f->tcp_state_prev = f->tcp_state_curr;
-			f->tcp_state_curr = TCP_LAST_ACK;
-			return;
-		}
-		if(f->tcp_state_curr == TCP_FIN_WAIT2) {
-			f->tcp_state_prev = f->tcp_state_curr;
-			f->tcp_state_curr = TCP_TIME_WAIT;
-			return;
-		}
-	}
-	f->tcp_state_prev = f->tcp_state_curr;
-}
-
-void TCAZ_HandlerRst(ST_GenericFlow *f){
-
-	_tcp.total_rst ++;
-	f->aborted = 1;
-	//if(f->tcp_state_curr == TCP_SYN_RECV){
-	f->tcp_state_curr = TCP_CLOSE;
-	f->tcp_state_prev = TCP_CLOSE;
-//	}
-	return;
-}
-
 /**
  * TCAZ_Analyze - Analyze the TCP segment 
  *
@@ -208,25 +234,53 @@ void TCAZ_Analyze(ST_GenericFlow *f ){
 	uint16_t ack = PKCX_IsTCPAck();
 	uint16_t fin = PKCX_IsTCPFin();
 	uint16_t rst = PKCX_IsTCPRst();
-	short prev_state = f->tcp_state_curr;
-	// TCP stack state machine
-	if(syn) {
-		TCAZ_HandlerSyn(f);
-	}else if(rst){
-		TCAZ_HandlerRst(f);
-	}else if(ack){
-		TCAZ_HandlerAck(f);
+	int state = f->tcp_state_curr;
+	int flags = TCPFC_INVALID;
+
+	if(syn){
+		if(ack){
+			flags = TCPFC_SYNACK;
+			_tcp.total_synack ++;
+		}else{
+			flags = TCPFC_SYN;
+			_tcp.total_syn++;
+		}
+	}else{
+		if((ack)&&(fin)){
+			flags = TCPFC_FIN;
+			_tcp.total_fin++;
+			_tcp.total_ack++;
+		}else{
+			if(fin){
+				flags = TCPFC_FIN;
+				_tcp.total_fin++;
+			}else{
+				flags = TCPFC_ACK;
+				_tcp.total_ack++;
+			}
+		}
 	}
 
-	if(f->aborted != 1) 
-		if(fin)
-			TCAZ_HandlerFin(f);
+	f->tcp_state_prev = f->tcp_state_curr;
+	int new_state = tcp_finite_state_machine[state][f->direction][flags];
+	f->tcp_state_curr = new_state;
+	if(new_state == -1)
+		// Continue on the same state 
+		new_state = f->tcp_state_prev;
+	
+	f->tcp_state_curr = new_state;
+	if(rst) {
+	        _tcp.total_rst ++;
+        	f->aborted = 1;
+        	f->tcp_state_curr = new_state = POLY_TCPS_CLOSED;
+        	f->tcp_state_prev = new_state = POLY_TCPS_CLOSED;
+	}
 
-	log4c_category_log(_tcp.logger,LOG4C_PRIORITY_DEBUG,
-		"TCP Flow(0x%x) Flags(s(%d)a(%d)f(%d)r(%d)] change state(%s) to state(%s)",
-		f,
+	LOG(POLYLOG_PRIORITY_DEBUG,
+		"TCP Flow(0x%x)(%s) Flags(s(%d)a(%d)f(%d)r(%d)] state(%s) to state(%s)",
+		f,f->direction ? "downstream":"upstream",
 		syn,ack,fin,rst,
-		tcp_states[prev_state],tcp_states[f->tcp_state_curr]);
+		tcp_states[state],tcp_states[new_state]); 
 	return ;
 }
 

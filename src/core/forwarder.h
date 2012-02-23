@@ -31,12 +31,15 @@
 
 #include <sys/types.h>
 #include <glib.h>
+#include <log4c.h>
 #include "debug.h"
 #include "cache.h"
 #include "genericflow.h"
+#include "interfaces.h"
 
 struct ST_GenericAnalyzer{
 	int16_t port;
+	short direction;
 	char name[32];
 	ST_Cache *cache;
 	void (*init)(void);

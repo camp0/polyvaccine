@@ -62,7 +62,6 @@ struct ST_PolyFilter {
 	int pcapfd;
 	int is_pcap_file;
 	int when_pcap_done_exit;
-	log4c_category_t* logger; 
 	DBusConnection *bus;
 	ST_Connection *conn;
 	ST_FlowPool *flowpool;

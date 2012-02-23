@@ -49,7 +49,6 @@ struct ST_HTTPAnalyzer{
         pcre_extra *pe_header;
         const char *errstr;
 	ST_TrustOffsets *t_off;
-	log4c_category_t* logger;
         int ovector[OVECCOUNT];
 	/* configuration options */	
 	int on_suspicious_header_break;

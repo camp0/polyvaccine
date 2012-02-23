@@ -24,7 +24,9 @@
 
 #include "httpanalyzer.h"
 #include "httpvalues.h"
-#include "debug.h"
+
+#define POLYLOG_CATEGORY_NAME POLYVACCINE_FILTER_HTTP_INTERFACE
+#include "log.h"
 
 #define HTTP_URI_END "HTTP/1.[0|1]"
 #define HTTP_HEADER_PARAM "^(GET|POST|OPTIONS|HEAD|CONNECT|PUT|DELETE|TRACE).*" HTTP_URI_END
@@ -54,13 +56,11 @@ void *HTAZ_Init() {
 	_http.analyze_post_data = FALSE;
 	_http.show_unknown_http = FALSE;
 
-	_http.logger = log4c_category_get(POLYVACCINE_FILTER_HTTP_INTERFACE);
-
 	_http.expr_header = pcre_compile((char*)HTTP_HEADER_PARAM, PCRE_FIRSTLINE, &_http.errstr, &erroffset, 0);
 #ifdef PCRE_HAVE_JIT
 	_http.pe_header = pcre_study(_http.expr_header,PCRE_STUDY_JIT_COMPILE,&_http.errstr);
         if(_http.pe_header == NULL){
-                log4c_category_log(_http.logger,LOG4C_PRIORITY_WARN,
+                LOG(POLYLOG_PRIORITY_WARN,
 			"PCRE study with JIT support failed '%s'",_http.errstr);
         }
         int jit = 0;
@@ -68,13 +68,13 @@ void *HTAZ_Init() {
 
         ret = pcre_fullinfo(_http.expr_header,_http.pe_header, PCRE_INFO_JIT,&jit);
         if (ret != 0 || jit != 1) {
-                log4c_category_log(_http.logger,LOG4C_PRIORITY_WARN,
+                LOG(POLYLOG_PRIORITY_WARN,
                 	"PCRE JIT compiler does not support the expresion on the HTTP analyzer");
         }
 #else
 	_http.pe_header = pcre_study(_http.expr_header,0,&_http.errstr);
         if(_http.pe_header == NULL)
-                log4c_category_log(_http.logger,LOG4C_PRIORITY_WARN,
+                LOG(POLYLOG_PRIORITY_WARN,
                 	"PCRE study failed '%s'",_http.errstr);
 #endif
 	_http.t_off = TROF_Init(); // Init the stack offsets
@@ -175,7 +175,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 	ST_HTTPField *p_field = NULL;
 	gpointer pointer = NULL;
 
-	log4c_category_log(_http.logger,LOG4C_PRIORITY_DEBUG,
+        LOG(POLYLOG_PRIORITY_DEBUG,
 		"Analyzing flow(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]",
 		f,f->total_bytes,f->total_packets,seg,seg->real_size,seg->virtual_size);
 
@@ -218,13 +218,13 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 		}
 		memcpy(uri,&(seg->mem[0]),urilen);
 		uri[urilen] = '\0';
-		log4c_category_log(_http.logger,LOG4C_PRIORITY_DEBUG,
+        	LOG(POLYLOG_PRIORITY_DEBUG,
 			"Flow(0x%x) HTTP uri(%s)offset(%d)length(%d)",f,uri,offset,urilen);
 		nod = CACH_GetHeaderFromCache(c,uri);
 		if (nod ==NULL ) { // The uri is not in the cache we should analyze
 			int suspicious_opcodes = COSU_CheckSuspiciousOpcodes(uri,urilen);
 			if(suspicious_opcodes>1) {
-				log4c_category_log(_http.logger,LOG4C_PRIORITY_DEBUG,
+        			LOG(POLYLOG_PRIORITY_DEBUG,
 					"Flow(0x%x) uri(%s) have %d suspicious bytes",f,uri,suspicious_opcodes);
 				_http.suspicious_headers++;
 				c->header_suspicious_opcodes ++;
@@ -273,7 +273,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 						memcpy(parameter,init,parameter_length);
 						parameter[parameter_length-1] = '\0';	
 						//snprintf(parameter,parameter_length,"%s",init);
-						log4c_category_log(_http.logger,LOG4C_PRIORITY_DEBUG,
+        					LOG(POLYLOG_PRIORITY_DEBUG,
 							"Flow(0x%x) HTTP parameter(%s)value(%s)offset(%d)length(%d)",f,
 							parameter,http_line,process_bytes,http_line_length);
 
@@ -289,7 +289,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 						if(nod == NULL) { // The parameter value is not in the cache
 							int suspicious_opcodes = COSU_CheckSuspiciousOpcodes(parameter,parameter_length);
 							if(suspicious_opcodes>1) {
-								log4c_category_log(_http.logger,LOG4C_PRIORITY_DEBUG,
+        							LOG(POLYLOG_PRIORITY_DEBUG,
 									"Flow(0x%x) parameter have %d suspicious bytes",f,suspicious_opcodes);
 								c->parameter_suspicious_opcodes ++;
 								_http.suspicious_parameters++;
@@ -310,7 +310,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 				if(have_data == TRUE){ // The payload of a post request
 					int len = seg->virtual_size - process_bytes;
 					if(_http.analyze_post_data) { // the data of the post should be analyzed.			
-						log4c_category_log(_http.logger,LOG4C_PRIORITY_DEBUG,
+        					LOG(POLYLOG_PRIORITY_DEBUG,
 							"Flow(0x%x) POST data forced to be suspicious",f);
                                                 c->parameter_suspicious_opcodes ++;
                                                 _http.suspicious_parameters++;
@@ -322,7 +322,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 					}	
 					int suspicious_opcodes = COSU_CheckSuspiciousOpcodes(init,len);
 					if(suspicious_opcodes>1) {
-						log4c_category_log(_http.logger,LOG4C_PRIORITY_DEBUG,
+        					LOG(POLYLOG_PRIORITY_DEBUG,
 							"Flow(0x%x) POST data have %d suspicious bytes",f,suspicious_opcodes);
                                                 c->parameter_suspicious_opcodes ++;
                                                 _http.suspicious_parameters++;
@@ -370,7 +370,7 @@ void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_GenericFlow *f){
         ST_HTTPField *p_field = NULL;
         gpointer pointer = NULL;
 
-	log4c_category_log(_http.logger,LOG4C_PRIORITY_DEBUG,
+  	LOG(POLYLOG_PRIORITY_DEBUG,
         	"Analyzing authorized flow(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]",
                 f,f->total_bytes,f->total_packets,seg,seg->real_size,seg->virtual_size);
         lret = pcre_exec(_http.expr_header,_http.pe_header,(char*)seg->mem,seg->virtual_size,
@@ -393,7 +393,8 @@ void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_GenericFlow *f){
                 }
 		memcpy(uri,&(seg->mem[0]),urilen);
 		uri[urilen] = '\0';
-		log4c_category_log(_http.logger,LOG4C_PRIORITY_DEBUG,
+  	
+		LOG(POLYLOG_PRIORITY_DEBUG,
                 	"Authorized flow(0x%x) HTTP uri(%s)offset(%d)",f,uri,offset);
 		/* Adds the uri to the http cache */
                 CACH_AddHeaderToCache(c,uri,NODE_TYPE_DYNAMIC);
@@ -431,7 +432,7 @@ void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_GenericFlow *f){
                                                         p_field = (ST_HTTPField*)pointer;
 							if(p_field->check_cache == TRUE) {
 								/* The value could be cacheable so add to the cache */
-								log4c_category_log(_http.logger,LOG4C_PRIORITY_DEBUG,
+								LOG(POLYLOG_PRIORITY_DEBUG,
                                                 			"Authorized flow(0x%x) HTTP parameter(%s)\n",f,http_line);
 								/* Adds the parameter to the httpcache */
 								CACH_AddParameterToCache(c,http_line,NODE_TYPE_DYNAMIC);

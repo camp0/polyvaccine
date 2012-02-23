@@ -24,7 +24,9 @@
 
 #include "sipanalyzer.h"
 #include "sipvalues.h"
-#include "debug.h"
+
+#define POLYLOG_CATEGORY_NAME POLYVACCINE_FILTER_SIP_INTERFACE
+#include "log.h"
 
 #define SIP_URI_END "SIP/2.[0|1]"
 #define SIP_HEADER_PARAM "^(REGISTER|INVITE|ACK|CANCEL|BYE|OPTIONS|MESSAGE).*" SIP_URI_END
@@ -57,19 +59,22 @@ void *SPAZ_Init() {
 #ifdef PCRE_HAVE_JIT
         _sip.pe_header = pcre_study(_sip.expr_header,PCRE_STUDY_JIT_COMPILE,&_sip.errstr);
         if(_sip.pe_header == NULL){
-                WARNING("PCRE study with JIT support failed '%s'.\n",_sip.errstr);
+		LOG(POLYLOG_PRIORITY_WARN,
+                	"PCRE study with JIT support failed '%s'.\n",_sip.errstr);
         }
         int jit = 0;
         int ret;
 
         ret = pcre_fullinfo(_sip.expr_header,_sip.pe_header, PCRE_INFO_JIT,&jit);
         if (ret != 0 || jit != 1) {
-                INFOMSG("PCRE JIT compiler does not support the expresion on the SIP analyzer.\n");
+		LOG(POLYLOG_PRIORITY_WARN,
+                	"PCRE JIT compiler does not support the expresion on the SIP analyzer.\n");
         }
 #else
         _sip.pe_header = pcre_study(_sip.expr_header,0,&_sip.errstr);
         if(_sip.pe_header == NULL)
-                WARNING("PCRE study failed '%s'\n",_sip.errstr);
+		LOG(POLYLOG_PRIORITY_WARN,
+                	"PCRE study failed '%s'\n",_sip.errstr);
 #endif
 	_sip.t_off = TROF_Init(); // Init the stack offsets
 
@@ -80,7 +85,6 @@ void *SPAZ_Init() {
 	i = 0;
 	while((f->name!= NULL)) {
 		g_hash_table_insert(_sip.methods,g_strdup(f->name),f);
-		DEBUG1("Adding SIP (%s)(0x%x) header type\n",f->name,f);
 		i ++;
 		f = &ST_SIPTypeHeaders[i];
 	}	
@@ -88,7 +92,6 @@ void *SPAZ_Init() {
 	i = 0;
 	while((f->name!= NULL)) {
 		g_hash_table_insert(_sip.parameters,g_strdup(f->name),f);
-		DEBUG1("Adding SIP (%s)(0x%x) parameter type\n",f->name,f);
 		i++;
 		f = &ST_SIPFields[i];
 	}	
@@ -171,7 +174,8 @@ void *SPAZ_AnalyzeSIPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 	ST_SIPField *p_field = NULL;
 	gpointer pointer = NULL;
 
-	DEBUG0("Analyzing flow(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]\n",
+	LOG(POLYLOG_PRIORITY_DEBUG,
+		"Analyzing flow(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]\n",
 		f,f->total_bytes,f->total_packets,seg,seg->real_size,seg->virtual_size);
 	lret = pcre_exec(_sip.expr_header,_sip.pe_header,(char*)seg->mem,seg->virtual_size,
 		0 /* Start offset */,
@@ -188,8 +192,6 @@ void *SPAZ_AnalyzeSIPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 		methodlen = _sip.ovector[3]-_sip.ovector[2];
 		urilen = _sip.ovector[1]-_sip.ovector[0];
                
-		printf("ovector[1]=%d,ovector[0]=%d,ovector[2]=%d\n",
-			_sip.ovector[1],_sip.ovector[0],_sip.ovector[2]); 
 		TROF_Reset(_sip.t_off); // Reset the trust offsets candidates
 
 		_sip.total_sip_bytes += seg->virtual_size;	
@@ -213,12 +215,14 @@ void *SPAZ_AnalyzeSIPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 			urilen = MAX_URI_LENGTH-1;
 		}
 		memcpy(uri,&(seg->mem[0]),urilen);
-		DEBUG0("flow(0x%x) SIP uri(%s)offset(%d)length(%d)\n",f,uri,offset,urilen);
+		LOG(POLYLOG_PRIORITY_DEBUG,
+			"flow(0x%x) SIP uri(%s)offset(%d)length(%d)\n",f,uri,offset,urilen);
 		nod = CACH_GetHeaderFromCache(c,uri);
 		if (nod ==NULL ) { // The uri is not in the cache we should analyze
 			int suspicious_opcodes = COSU_CheckSuspiciousOpcodes(uri,urilen);
 			if(suspicious_opcodes>1) {
-				DEBUG0("flow(0x%x) uri(%s) have %d suspicious bytes\n",f,uri,suspicious_opcodes);
+				LOG(POLYLOG_PRIORITY_DEBUG,
+					"flow(0x%x) uri(%s) have %d suspicious bytes\n",f,uri,suspicious_opcodes);
 				_sip.suspicious_headers++;
 				c->header_suspicious_opcodes ++;
 				/* Most of the exploits have the next body
@@ -254,7 +258,8 @@ void *SPAZ_AnalyzeSIPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 						int parameter_length = (pend-init)+1;
 					
 						snprintf(parameter,parameter_length,"%s",init);
-						DEBUG0("flow(0x%x) SIP parameter(%s)value(%s)offset(%d)length(%d)\n",f,
+						LOG(POLYLOG_PRIORITY_DEBUG,
+							"flow(0x%x) SIP parameter(%s)value(%s)offset(%d)length(%d)\n",f,
 							parameter,sip_line,process_bytes,sip_line_length);
 
 						if(g_hash_table_lookup_extended(_sip.parameters,(gchar*)parameter,NULL,&pointer) == TRUE){
@@ -269,7 +274,8 @@ void *SPAZ_AnalyzeSIPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 						if(nod == NULL) { // The parameter value is not in the cache
 							int suspicious_opcodes = COSU_CheckSuspiciousOpcodes(parameter,parameter_length);
 							if(suspicious_opcodes>1) {
-								DEBUG0("flow(0x%x) parameter have %d suspicious bytes\n",f,suspicious_opcodes);
+								LOG(POLYLOG_PRIORITY_DEBUG,
+									"flow(0x%x) parameter have %d suspicious bytes\n",f,suspicious_opcodes);
 								c->parameter_suspicious_opcodes ++;
 								_sip.suspicious_parameters++;
 								if(_sip.on_suspicious_parameter_break == TRUE){
@@ -289,7 +295,8 @@ void *SPAZ_AnalyzeSIPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 				if(have_data == TRUE){ // The payload of a post request
 					int len = seg->virtual_size - process_bytes;
 					if(_sip.analyze_sdp_data) { // the data of the post should be analyzed.
-						DEBUG0("flow(0x%x) SDP data forced to be suspicious\n",f);
+						LOG(POLYLOG_PRIORITY_DEBUG,
+							"flow(0x%x) SDP data forced to be suspicious\n",f);
                                                 c->parameter_suspicious_opcodes ++;
                                                 _sip.suspicious_parameters++;
                                                 if(_sip.on_suspicious_parameter_break == TRUE){
@@ -300,7 +307,8 @@ void *SPAZ_AnalyzeSIPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 					}	
 					int suspicious_opcodes = COSU_CheckSuspiciousOpcodes(init,len);
 					if(suspicious_opcodes>1) {
-						DEBUG0("flow(0x%x) SDP data have %d suspicious bytes\n",f,suspicious_opcodes);
+						LOG(POLYLOG_PRIORITY_DEBUG,
+							"flow(0x%x) SDP data have %d suspicious bytes\n",f,suspicious_opcodes);
                                                 c->parameter_suspicious_opcodes ++;
                                                 _sip.suspicious_parameters++;
                                                 if(_sip.on_suspicious_parameter_break == TRUE){
@@ -345,7 +353,8 @@ void *SPAZ_AnalyzeDummySIPRequest(ST_Cache *c, ST_GenericFlow *f){
         ST_SIPField *p_field = NULL;
         gpointer pointer = NULL;
 
-        DEBUG0("Analyzing authorized flow(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]\n",
+	LOG(POLYLOG_PRIORITY_DEBUG,
+        	"Analyzing authorized flow(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]\n",
                 f,f->total_bytes,f->total_packets,seg,seg->real_size,seg->virtual_size);
         lret = pcre_exec(_sip.expr_header,_sip.pe_header,(char*)seg->mem,seg->virtual_size,
                 0 /* Start offset */,
@@ -366,7 +375,8 @@ void *SPAZ_AnalyzeDummySIPRequest(ST_Cache *c, ST_GenericFlow *f){
                         urilen = MAX_URI_LENGTH-1;
                 }
                 snprintf(uri,urilen+1,"%s",&(seg->mem[offset]));
-                DEBUG0("authorized flow(0x%x) SIP uri(%s)offset(%d)\n",f,uri,offset);
+		LOG(POLYLOG_PRIORITY_DEBUG,
+                	"authorized flow(0x%x) SIP uri(%s)offset(%d)\n",f,uri,offset);
 		/* Adds the uri to the sip cache */
                 CACH_AddHeaderToCache(c,uri,NODE_TYPE_DYNAMIC);
 		
@@ -387,7 +397,8 @@ void *SPAZ_AnalyzeDummySIPRequest(ST_Cache *c, ST_GenericFlow *f){
                                         char *pend = strstr(init,":");
                                         if(pend != NULL) {
                                                 snprintf(parameter,(pend-init)+1,"%s",init);
-                                                DEBUG0("authorized flow(0x%x) SIP parameter(%s)\n",f,sip_line);
+						LOG(POLYLOG_PRIORITY_DEBUG,
+                                                	"authorized flow(0x%x) SIP parameter(%s)\n",f,sip_line);
 						/* Adds the parameter to the sipcache */
 						CACH_AddParameterToCache(c,sip_line,NODE_TYPE_DYNAMIC);
                                         }

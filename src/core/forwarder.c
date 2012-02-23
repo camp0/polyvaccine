@@ -24,6 +24,9 @@
 
 #include "forwarder.h"
 
+#define POLYLOG_CATEGORY_NAME POLYVACCINE_FILTER_FORWARDER_INTERFACE
+#include "log.h"
+
 /**
  * FORD_Init - Inits the forwarder. 
  *
@@ -48,13 +51,13 @@ void FORD_InitAnalyzers(ST_Forwarder *fw){
 	g_hash_table_iter_init (&iter, fw->tcp_analyzers);
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
 		ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
-		DEBUG0("TCP %s on port %d\n",ga->name,ga->port);
+		LOG(POLYLOG_PRIORITY_INFO,"TCP %s plugged on port %d",ga->name,ga->port);
 		ga->init();
 	}
 	g_hash_table_iter_init (&iter, fw->udp_analyzers);
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
 		ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
-		DEBUG0("UDP %s on port %d\n",ga->name,ga->port);
+		LOG(POLYLOG_PRIORITY_INFO,"UDP %s plugged on port %d",ga->name,ga->port);
 		ga->init();
 	}
 	return;
@@ -150,8 +153,12 @@ ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw, int16_t protocol,int16_t 
 		t = fw->udp_analyzers;
 
 	ga = (ST_GenericAnalyzer*)g_hash_table_lookup(t,GINT_TO_POINTER(sport));
-	if(ga == NULL) 
-		ga = (ST_GenericAnalyzer*)g_hash_table_lookup(t,GINT_TO_POINTER(dport));	
+	if(ga == NULL){ 
+		ga = (ST_GenericAnalyzer*)g_hash_table_lookup(t,GINT_TO_POINTER(dport));
+		ga->direction = FLOW_FORW;
+	}else{
+		ga->direction = FLOW_BACK;
+	}	
 	return ga;
 }
 
@@ -183,20 +190,21 @@ void FORD_AddAnalyzer(ST_Forwarder *fw, ST_Cache *cache, char *name,int16_t prot
 	else
 		t = fw->udp_analyzers;
 
-	DEBUG0("Adding analyzer '%s' on port %d\n",name,port);
+	LOG(POLYLOG_PRIORITY_INFO,"Adding analyzer '%s' on port %d",name,port);
 	ga = (ST_GenericAnalyzer*)g_hash_table_lookup(t,GINT_TO_POINTER(port));
 	if (ga == NULL){ // the analyzer dont exist
 		ga = g_new(ST_GenericAnalyzer,1);
 		snprintf(ga->name,32,"%s",name);
 		ga->cache = cache;
 		ga->port = port;
+		ga->direction = FLOW_FORW; // used to know the direction of the packet upstrem, donwstream;
 		ga->init = init;
 		ga->stats = stats;
 		ga->destroy = destroy;
 		ga->analyze = analyze;
 		ga->learn = learn;
 		g_hash_table_insert(t,GINT_TO_POINTER(port),ga);
-		DEBUG0("Analyzer '%s' instanciated 0x%x\n",name,ga);
+		LOG(POLYLOG_PRIORITY_INFO,"Analyzer '%s' instanciated 0x%x",name,ga);
 	}	
 	return;
 }

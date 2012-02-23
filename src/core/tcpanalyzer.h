@@ -30,7 +30,6 @@
 #endif
 
 #include <netinet/tcp.h>
-#include <log4c.h>
 #include "packetcontext.h"
 #include "genericflow.h"
 #include <sys/types.h>
@@ -49,11 +48,23 @@ struct ST_TCPAnalyzer{
 
 	int64_t total_tcp_bytes;
 	int64_t total_tcp_segments;
-
-	log4c_category_t* logger;
 };
 
 typedef struct ST_TCPAnalyzer ST_TCPAnalyzer;
+
+#define POLY_TCPS_OK            (-1)
+#define POLY_TCPS_CLOSED        0
+#define POLY_TCPS_SYN_SENT      1
+#define POLY_TCPS_SIMSYN_SENT   2
+#define POLY_TCPS_SYN_RECEIVED  3
+#define POLY_TCPS_ESTABLISHED   4
+#define POLY_TCPS_FIN_SEEN      5
+#define POLY_TCPS_CLOSE_WAIT    6
+#define POLY_TCPS_FIN_WAIT      7
+#define POLY_TCPS_CLOSING       8
+#define POLY_TCPS_LAST_ACK      9
+#define POLY_TCPS_TIME_WAIT     10
+#define POLY_TCP_NSTATES        11
 
 void TCAZ_Init(void);
 void TCAZ_Destroy(void);

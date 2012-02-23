@@ -43,7 +43,6 @@ struct ST_Connection {
 	int expiretimers;
 	ST_FlowPool *flowpool;
 	ST_MemoryPool *mempool;
-	log4c_category_t *logger;
 };
 
 typedef struct ST_Connection ST_Connection;
