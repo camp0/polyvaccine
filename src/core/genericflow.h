@@ -48,7 +48,7 @@ struct ST_GenericFlow {
 	struct timeval arrive_time;
 	struct timeval current_time;
 	ST_MemorySegment *memory;	
-};
+} __attribute__((packed));
 
 typedef struct ST_GenericFlow ST_GenericFlow;
 

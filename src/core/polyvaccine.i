@@ -17,6 +17,7 @@
 %apply char * { unsigned char*}
 %apply unsigned int { time_t }
 
+#define __attribute__(x)
 %include "cache.h"
 %include "flowpool.h"
 %include "memorypool.h"

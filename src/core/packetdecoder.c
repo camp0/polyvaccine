@@ -108,7 +108,13 @@ int PKDE_Decode(struct pcap_pkthdr *hdr, unsigned char *packet) {
 				break;
                         case IPPROTO_ICMP:
                         case IPPROTO_IPV6:
+#ifdef HAVE_IPV6
+				PKCX_SetIPv6Header((packet+offset));
+				offset += PKCX_GetIPv6HeaderLength();
+				next_proto = PKCX_GetIPv6Protocol();
+#endif
 				_pktdec._totalIpv6Packets++;
+
 				return FALSE;
                         default:
                                 _pktdec._totalUnknownPackets++;

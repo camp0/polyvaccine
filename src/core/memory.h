@@ -41,7 +41,7 @@ struct ST_MemorySegment {
 	unsigned char *mem;
 	int virtual_size;	
 	int real_size;
-};
+}__attribute__((packed));
 
 typedef struct ST_MemorySegment ST_MemorySegment;
 

@@ -144,6 +144,7 @@ void MEPO_Stats(ST_MemoryPool *mp){
 	}
 	
 	fprintf(stdout,"Memory pool statistics\n");
+	fprintf(stdout,"\tmemory size:%d bytes\n",sizeof(ST_MemorySegment));
 	fprintf(stdout,"\tallocate memory:%d %s\n",value,unit);
 	fprintf(stdout,"\tacquire bytes:%d\n\treleases bytes:%d\n",mp->total_release_bytes,mp->total_acquire_bytes);
         fprintf(stdout,"\tblocks:%d\n\treleases:%d\n",g_slist_length(mp->mem),mp->total_releases);

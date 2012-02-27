@@ -62,6 +62,7 @@ void FLPO_Stats(ST_FlowPool *p){
         }
 
 	fprintf(stdout,"FlowPool statistics\n");
+	fprintf(stdout,"\tflow size:%d bytes\n",sizeof(ST_GenericFlow));
 	fprintf(stdout,"\tallocated memory:%d %s\n",value,unit);
 	fprintf(stdout,"\tflows:%d\n\treleases:%d\n",g_slist_length(p->flows),p->total_releases);
 	fprintf(stdout,"\tacquires:%d\n\terrors:%d\n",p->total_acquires,p->total_errors);

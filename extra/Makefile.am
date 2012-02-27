@@ -1,5 +1,7 @@
 AUTOMAKE_OPTIONS = gnu
 
+EXTRA_DIST = glib.suppressions
+
 CLEANFILES = *.pyc
 
 MAINTAINERCLEANFILES = Makefile.in

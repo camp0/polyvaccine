@@ -131,6 +131,8 @@ void FORD_Destroy(ST_Forwarder *fw){
 		ga->destroy();
 		g_free(ga);
 	}
+	g_hash_table_destroy(fw->tcp_analyzers);
+	g_hash_table_destroy(fw->udp_analyzers);
 	g_free(fw);	
 	return;
 }

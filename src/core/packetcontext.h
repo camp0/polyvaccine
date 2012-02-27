@@ -25,12 +25,19 @@
 #ifndef _PACKETCONTEXT_H_
 #define _PACKETCONTEXT_H_
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
 #include <netinet/ip.h>
 #include <sys/socket.h>
+#ifdef HAVE_IPV6
+#include <netinet/ip6.h>
+#endif
 
 #define ETH_P_8021Q 0x8100
 #define ETH_P_IP 0x0800
@@ -38,6 +45,9 @@
 struct ST_PacketContext {
 #ifdef __LINUX__
 	struct iphdr *ip;
+#ifdef HAVE_IPV6
+	struct ip6_hdr *ip6;
+#endif
 #endif
 #ifdef __FREEBSD__
 	struct ip *ip;

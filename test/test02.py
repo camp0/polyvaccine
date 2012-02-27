@@ -111,19 +111,93 @@ class Test_02(unittest.TestCase):
 		d.Stop()
 		d.SetSource("./pcapfiles/http_slashdot.pcap")
 		d.Start()
+		time.sleep(0.5)
 		a = d.HeaderHits() 
-		b = d.ParameterHits()	
+		b = d.ParameterHits()
+		#print "Header hits",a
+		#print "Parameter hits",b	
 		d.Stop()
 		pp.kill()
 		pp.wait()
 		self.assertEqual(a,1)
-		self.assertEqual(b,6)
-		
+		self.assertEqual(b,68)
+	
+
+	def test_02_3(self):
+		"Test the pvfe connection manager, one flow on pool"
+                pp = subprocess.Popen(["../src/core/pvfe","-i","lo","-p 80"])
+                time.sleep(0.5)
+                bus = dbus.SessionBus()
+                s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
+                d = dbus.Interface(s,dbus_interface='polyvaccine.filter.connection')
+
+		# decrease the flow/memory pool to one.
+		value = d.FlowsOnPool() - 1
+		r = d.DecreaseFlowPool(value)
+		self.assertEqual(r,1)
+		r = d.DecreaseMemoryPool(value) 
+		self.assertEqual(r,1)
+
+		time.sleep(0.5)
+                d.Stop()
+                d.SetSource("./pcapfiles/http_slashdot.pcap")
+		d.Start()
+		time.sleep(0.5)
+		fa = d.FlowAcquires()
+		fr = d.FlowReleases()
+		fp = d.FlowsOnPool()
+		fe = d.FlowErrors()
+		#print "Flow acquires",fa
+		#print "Flow releases",fr
+		#print "Flows on pool",fp
+		#print "Flow errors",fe
+                pp.kill()
+                pp.wait()
+		self.assertEqual(fa,1)
+		self.assertEqual(fr,0)
+		self.assertEqual(fp,0)
+		self.assertEqual(fe,498)
+
+        def test_02_4(self):
+                "Test the pvfe connection manager, five flowis on pool"
+                pp = subprocess.Popen(["../src/core/pvfe","-i","lo","-p 80"])
+                time.sleep(0.5)
+                bus = dbus.SessionBus()
+                s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
+                d = dbus.Interface(s,dbus_interface='polyvaccine.filter.connection')
+
+                # decrease the flow/memory pool to one.
+                value = d.FlowsOnPool() - 5 
+                r = d.DecreaseFlowPool(value)
+                self.assertEqual(r,1)
+                r = d.DecreaseMemoryPool(value)
+                self.assertEqual(r,1)
+
+                time.sleep(0.5)
+                d.Stop()
+                d.SetSource("./pcapfiles/http_slashdot.pcap")
+                d.Start()
+                time.sleep(0.5)
+                fa = d.FlowAcquires()
+                fr = d.FlowReleases()
+                fp = d.FlowsOnPool()
+                fe = d.FlowErrors()
+                #print "Flow acquires",fa
+                #print "Flow releases",fr
+                #print "Flows on pool",fp
+                #print "Flow errors",fe
+                pp.kill()
+                pp.wait()
+                self.assertEqual(fa,5)
+                self.assertEqual(fr,0)
+                self.assertEqual(fp,0)
+                self.assertEqual(fe,318)
+	
 if __name__ == '__main__':
 	print "Testing polyvaccine interfaces"
 	suite=unittest.TestSuite()
-#    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_02))
-    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
+    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_02))
+#    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
 #	unittest.main()
 	result=testrunner.BasicTestRunner().run(suite)
 	
