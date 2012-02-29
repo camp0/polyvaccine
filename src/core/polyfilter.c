@@ -36,6 +36,8 @@
 
 static ST_PolyFilter *_polyFilter = NULL;
 
+static int timeout_checker = 180;
+
 /**
  * POFR_Init - Initialize the main structures of the polyfilter
  */
@@ -246,14 +248,6 @@ void POFR_Stop() {
  */
 void POFR_StopAndExit() {
 	POFR_Stop();
-	COMN_ReleaseFlows(_polyFilter->conn);
-	PKDE_PrintfStats();
-	TCAZ_Stats();
-        MEPO_Stats(_polyFilter->memorypool);
-        FLPO_Stats(_polyFilter->flowpool);
-        CACH_Stats(_polyFilter->httpcache);
-        CACH_Stats(_polyFilter->sipcache);
-	FORD_Stats(_polyFilter->forwarder);
 	POFR_Destroy();
 	exit(0);
 }
@@ -263,7 +257,11 @@ void POFR_StopAndExit() {
  */
 void POFR_Destroy() {
 	PODS_Destroy();
-	POLG_Destroy();
+	// TODO: the flows stored on the connection manager
+	// should be returned to the pools.
+	// COMN_ReleaseFlows(_polyFilter->conn);
+	COMN_ReleaseFlows(_polyFilter->conn);
+
 	g_string_free(_polyFilter->source,TRUE);
 	FLPO_Destroy(_polyFilter->flowpool);
 	MEPO_Destroy(_polyFilter->memorypool);
@@ -273,7 +271,9 @@ void POFR_Destroy() {
 	AUHT_Destroy(_polyFilter->hosts);
 	FORD_Destroy(_polyFilter->forwarder);
 	PKCX_Destroy();
+	POLG_Destroy();
 	g_free(_polyFilter);
+	_polyFilter = NULL;
 	return;
 }
 
@@ -282,12 +282,14 @@ void POFR_Destroy() {
  */
 
 void POFR_Stats() {
-	
-	MEPO_Stats(_polyFilter->memorypool);
-	FLPO_Stats(_polyFilter->flowpool);
-	CACH_Stats(_polyFilter->httpcache);
-	CACH_Stats(_polyFilter->sipcache);
-	FORD_Stats(_polyFilter->forwarder);
+        PKDE_PrintfStats();
+        TCAZ_Stats();
+        MEPO_Stats(_polyFilter->memorypool);
+        FLPO_Stats(_polyFilter->flowpool);
+        COMN_Stats(_polyFilter->conn);
+        CACH_Stats(_polyFilter->httpcache);
+        CACH_Stats(_polyFilter->sipcache);
+        FORD_Stats(_polyFilter->forwarder);
 	return;
 }
 
@@ -384,6 +386,7 @@ void POFR_Run() {
 	int nfds,usepcap,ret,update_timers;
         DBusWatch *local_watches[MAX_WATCHES];
 	struct timeval currenttime;
+	struct timeval lasttimeouttime;
 	struct pcap_pkthdr *header;
 	unsigned char *pkt_data;
 	struct pollfd local_fds[MAX_WATCHES];
@@ -395,6 +398,7 @@ void POFR_Run() {
 		fprintf(stdout,"\tLearning mode active\n");
 	FORD_ShowAnalyzers(_polyFilter->forwarder);
 
+        gettimeofday(&lasttimeouttime,NULL);
 	update_timers = 1;
 	while (TRUE) {
                 nfds = 0;
@@ -545,11 +549,15 @@ void POFR_Run() {
                 }
 		/* updates the flow time every 180 seconds aproximately
 		 * in order to avoid sorting without non-sense the flow list timer
+		 * Notice that if not dbus messages available on the buss the 
+		 * timers never execute.
 		 */
-		if((currenttime.tv_sec % 180) == 0){
+		if(lasttimeouttime.tv_sec + timeout_checker < currenttime.tv_sec) {
 			if(update_timers) {
 				COMN_UpdateTimers(_polyFilter->conn,&currenttime);
 				update_timers = 0;
+				lasttimeouttime.tv_sec = currenttime.tv_sec;
+				lasttimeouttime.tv_usec = currenttime.tv_usec;
 			}
 		}else 
 			update_timers = 1;

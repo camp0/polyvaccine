@@ -20,22 +20,22 @@ class Test_01(unittest.TestCase):
 		p.FLPO_Destroy(self.pool)
 
 	def test_01_1(self):
-		"Test the flowpool "
+		"Test the flowpool I"
 		value = p.FLPO_GetNumberFlows(self.pool)
 		temp = list()
-		p.FLPO_DecrementFlowPool(self.pool,1000)
-		for i in xrange(0,1000):
+		p.FLPO_DecrementFlowPool(self.pool,100)
+		for i in xrange(0,100):
 			h = p.FLPO_GetFlow(self.pool)
 			temp.append(h)
 
-		self.assertEqual(value-2000,p.FLPO_GetNumberFlows(self.pool))
+		self.assertEqual(value-200,p.FLPO_GetNumberFlows(self.pool))
 		for h in temp:
 			p.FLPO_AddFlow(self.pool,h)
 
-		self.assertEqual(value-1000,p.FLPO_GetNumberFlows(self.pool))
+		self.assertEqual(value-100,p.FLPO_GetNumberFlows(self.pool))
 
 	def test_01_2(self):
-		"Test the memorypool "
+		"Test the memorypool I"
 		m = p.MEPO_Init()
 		value = p.MEPO_GetNumberMemorySegments(m)
                 temp = list()
@@ -149,6 +149,49 @@ class Test_01(unittest.TestCase):
 		p.MESG_Reset(s)
 		p.MESG_Reset(s)
 
+        def test_01_8(self):
+                "Test the flowpool II"
+                value = p.FLPO_GetNumberFlows(self.pool)
+                temp = list()
+                for i in xrange(0,value):
+                        h = p.FLPO_GetFlow(self.pool)
+                        temp.append(h)
+
+		for i in xrange(0,5):
+			h = p.FLPO_GetFlow(self.pool)
+			self.assertEqual(None,h)
+
+		self.assertEqual(5,self.pool.total_errors)
+                for h in temp:
+                        p.FLPO_AddFlow(self.pool,h)
+
+		p.FLPO_AddFlow(self.pool,None)
+                self.assertEqual(value,p.FLPO_GetNumberFlows(self.pool))
+
+        def test_01_9(self):
+                "Test the flowpool III"
+		pool = p.FLPO_Init()
+                value = p.FLPO_GetNumberFlows(pool)
+                temp = list()
+                for i in xrange(0,value):
+                        h = p.FLPO_GetFlow(pool)
+                        temp.append(h)
+
+                for i in xrange(0,5):
+                        h = p.FLPO_GetFlow(pool)
+                        self.assertEqual(None,h)
+
+                self.assertEqual(5,pool.total_errors)
+                for h in temp:
+                        p.FLPO_AddFlow(pool,h)
+
+		
+                p.FLPO_AddFlow(pool,None)
+                self.assertEqual(value,p.FLPO_GetNumberFlows(pool))
+                h = p.FLPO_GetFlow(pool)
+                h = p.FLPO_GetFlow(pool)
+                h = p.FLPO_GetFlow(pool)
+		p.FLPO_Destroy(pool)
 
 class Test_02(unittest.TestCase):
 

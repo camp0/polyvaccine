@@ -186,7 +186,6 @@ void *SPAZ_AnalyzeSIPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 		char uri[MAX_URI_LENGTH];
 		int methodlen,urilen,offset;
 
-		printf("*\n");
 		process_bytes = 0;
 		offset = 0;
 		methodlen = _sip.ovector[3]-_sip.ovector[2];

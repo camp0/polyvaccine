@@ -50,6 +50,22 @@ void COMN_SetMemoryPool(ST_Connection *conn,ST_MemoryPool *mempool){
 	conn->mempool = mempool;
 }
 
+/**
+ * COMN_Stats - Show the statistics
+ *
+ * @param conn the ST_Connection 
+ */
+
+void COMN_Stats(ST_Connection *conn) {
+ 
+        fprintf(stdout,"Connection statistics\n");
+        fprintf(stdout,"\ttimeout:%d seconds\n",conn->inactivitytime);
+        fprintf(stdout,"\treleases:%d\n",conn->releases);
+        fprintf(stdout,"\tinserts:%d\n",conn->inserts);
+        fprintf(stdout,"\texpires:%d\n",conn->expiretimers);
+	return;
+}
+
 
 gint flow_cmp(ST_GenericFlow *f1, ST_GenericFlow *f2) {
         if (f1->current_time.tv_sec > f2->current_time.tv_sec)
@@ -72,6 +88,10 @@ void COMN_ReleaseConnection(ST_Connection *conn,ST_GenericFlow *flow) {
         	h = (flow->daddr^flow->dport^flow->protocol^flow->saddr^flow->sport);
                 g_hash_table_remove(conn->table,GINT_TO_POINTER(h));
         }
+
+	// TODO: This should be optimized maybe by a tree.
+	conn->timers = g_list_remove(conn->timers,flow);
+
         seg = flow->memory;
         flow->memory = NULL;
 
@@ -81,6 +101,8 @@ void COMN_ReleaseConnection(ST_Connection *conn,ST_GenericFlow *flow) {
 	if(seg != NULL)
         	MEPO_AddMemorySegment(conn->mempool,seg);
         FLPO_AddFlow(conn->flowpool,flow);
+	conn->current_connections--;
+	conn->releases++;
 	return;
 }
 
@@ -102,6 +124,8 @@ void COMN_InsertConnection(ST_Connection *conn,ST_GenericFlow *flow,unsigned lon
         unsigned long h = (flow->saddr^flow->sport^flow->protocol^flow->daddr^flow->dport);
 	(*hash) = h;
 
+	conn->current_connections++;
+	conn->inserts++;
  //       DEBUG2("insert flow(0x%x) hash(%lu) [%s:%d:%d:%s:%d]\n",flow,h,
   //              inet_ntoa(a),flow->sport,6,inet_ntoa(b),flow->dport);
 
@@ -121,14 +145,12 @@ void COMN_UpdateTimers(ST_Connection *conn,struct timeval *currenttime){
         GList *f_update = NULL;
         GList *current = NULL;
         ST_GenericFlow *flow = NULL;
-        //struct timeval *t = NULL;
 	ST_MemorySegment *seg = NULL;
 
         while((current = g_list_first(conn->timers)) != NULL) {
                 flow =(ST_GenericFlow*)current->data;
                 conn->timers = g_list_remove_link(conn->timers,current);
 
-//                DEBUG1("Checkin timer for flow(0x%x)secs(%d)curr(%d)\n",flow,flow->current_time.tv_sec,currenttime->tv_sec);
                 if(flow->current_time.tv_sec + conn->inactivitytime <= currenttime->tv_sec) {
                         /* The timer expires */
 			LOG(POLYLOG_PRIORITY_DEBUG,
@@ -161,13 +183,16 @@ ST_Connection *COMN_Init() {
 	conn->timers = NULL;
 	conn->inactivitytime = 180;
 	conn->expiretimers = 0;
+	conn->releases = 0;
+	conn->inserts = 0;
+	conn->current_connections = 0;
 	conn->flowpool = NULL;
 	conn->mempool = NULL;
 	return conn;
 };
 
 /**
- * COMN_ReleaseFlows - Releases the flows stored on the ST_Connection.
+ * COMN_ReleaseFlows - Releases all the flows stored on the ST_Connection.
  *
  * @param conn 
  * 
@@ -175,19 +200,14 @@ ST_Connection *COMN_Init() {
 
 void COMN_ReleaseFlows(ST_Connection *conn){
         GHashTableIter iter;
-        gpointer k,v;
+	GList *l = NULL; 
 	int items = 0;
 
-        g_hash_table_iter_init (&iter, conn->table);
-        while (g_hash_table_iter_next (&iter, &k, &v)) {
-                ST_GenericFlow *flow = (ST_GenericFlow*)v;
-                ST_MemorySegment *seg = flow->memory;
-                flow->memory = NULL;
-		if(seg!= NULL)
-                	MEPO_AddMemorySegment(conn->mempool,seg);
-                FLPO_AddFlow(conn->flowpool,flow);
+	while((l = g_list_first(conn->timers)) != NULL) {
+                ST_GenericFlow *flow =(ST_GenericFlow*)l->data;
+		COMN_ReleaseConnection(conn,flow);
 		items++;
-        }
+	}	
 	LOG(POLYLOG_PRIORITY_DEBUG,
         	"Releasing %d flows to flowpool(0x%x)memorypool(0x%x)",
 		items,conn->flowpool,conn->mempool);

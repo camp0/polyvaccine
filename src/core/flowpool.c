@@ -24,6 +24,8 @@
 
 #include "flowpool.h"
 
+#define POLYLOG_CATEGORY_NAME POLYVACCINE_FILTER_FLOWPOOL_INTERFACE
+#include "log.h"
 /**
  * FLPO_Init - Initialize a flow pool 
  *
@@ -78,6 +80,7 @@ void FLPO_Destroy(ST_FlowPool *p){
 	FLPO_DecrementFlowPool(p,g_slist_length(p->flows));
 	g_slist_free(p->flows);
 	g_free(p);
+	p = NULL;
 }
 
 int FLPO_GetNumberFlows(ST_FlowPool *p){
@@ -96,6 +99,8 @@ int FLPO_IncrementFlowPool(ST_FlowPool *p,int value){
 
         if (value < 1)
                 return FALSE;
+	LOG(POLYLOG_PRIORITY_INFO,
+		"Allocating %d flows on pool, current flows on pool %d",value,g_slist_length(p->flows));
 
         for (i = 0;i<value;i++){
 		ST_GenericFlow *f = g_new0(ST_GenericFlow,1);
@@ -122,12 +127,14 @@ int FLPO_DecrementFlowPool(ST_FlowPool *p,int value) {
         else
                 r = value;
 
+	LOG(POLYLOG_PRIORITY_INFO,
+		"Freeing %d flows on pool",r);
         for (i = 0;i<r;i++){
                 GSList *item = g_slist_nth(p->flows,0);
                 if (item != NULL) {
                         p->flows = g_slist_remove_link(p->flows,item);
                         f = (ST_GenericFlow*)item->data;
-                        g_free(f);
+			GEFW_Destroy(f);
                 }
         }
 	return TRUE;
@@ -141,9 +148,11 @@ int FLPO_DecrementFlowPool(ST_FlowPool *p,int value) {
  */
 
 void FLPO_AddFlow(ST_FlowPool *p,ST_GenericFlow *flow){
-        GEFW_Reset(flow);
-        p->total_releases++;
-        p->flows = g_slist_prepend(p->flows,flow);
+	if(flow != NULL){ 
+        	GEFW_Reset(flow);
+        	p->total_releases++;
+        	p->flows = g_slist_prepend(p->flows,flow);
+	}
 }
 
 /**

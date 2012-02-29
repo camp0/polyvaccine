@@ -86,4 +86,10 @@ static void GEFW_UpdateTime(ST_GenericFlow *f,struct timeval *t) {
 	f->current_time.tv_sec = t->tv_sec;f->current_time.tv_usec = t->tv_usec; 
 }
 
+static void GEFW_Destroy(ST_GenericFlow *f){
+	if(f){
+		g_free(f);
+		f = NULL;
+	}
+}
 #endif

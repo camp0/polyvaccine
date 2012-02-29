@@ -25,11 +25,17 @@
 #ifndef _FLOWPOOL_H_
 #define _FLOWPOOL_H_
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <sys/types.h>
 #include <glib.h>
 #include "genericflow.h"
+#include "interfaces.h"
 
-#define MAX_FLOWS_PER_POOL 1024 * 256 
+#define MAX_FLOWS_PER_POOL 256 
+//#define MAX_FLOWS_PER_POOL 1024 * 256 
 
 struct ST_FlowPool {
 	GSList *flows;
@@ -48,4 +54,5 @@ int FLPO_GetNumberFlows(ST_FlowPool *p);
 int FLPO_IncrementFlowPool(ST_FlowPool *p,int value);
 int FLPO_DecrementFlowPool(ST_FlowPool *p,int value);
 void FLPO_Stats(ST_FlowPool *p);
+
 #endif

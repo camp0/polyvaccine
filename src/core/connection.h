@@ -40,7 +40,10 @@ struct ST_Connection {
 	GHashTable *table;
 	GList *timers;
 	int inactivitytime;
-	int expiretimers;
+	int32_t expiretimers;
+	int32_t inserts;
+	int32_t releases;
+	int32_t current_connections;
 	ST_FlowPool *flowpool;
 	ST_MemoryPool *mempool;
 };
@@ -56,6 +59,7 @@ void COMN_UpdateTimers(ST_Connection *conn,struct timeval *currenttime);
 void COMN_SetFlowPool(ST_Connection *conn,ST_FlowPool *flowpool);
 void COMN_SetMemoryPool(ST_Connection *conn,ST_MemoryPool *mempool);
 void COMN_ReleaseFlows(ST_Connection *conn);
+void COMN_Stats(ST_Connection *conn);
 
 #endif
 

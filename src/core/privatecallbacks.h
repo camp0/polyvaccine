@@ -232,6 +232,10 @@ static ST_Callback ST_StaticHTTPCacheMethodCallbacks [] = {
 };
 
 /* Functions related to the connection manager */
+void PRCA_Property_GetTotalReleaseConnections(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetTotalCurrentConnections(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetTotalTimeoutConnections(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetTotalInsertConnections(DBusConnection *conn,DBusMessage *msg, void *data);
 
 void PRCA_Property_GetFlowPoolTotalReleases(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetFlowPoolTotalAcquires(DBusConnection *conn,DBusMessage *msg, void *data);
@@ -245,6 +249,30 @@ void PRCA_Property_GetTotalFlowsOnFlowPool(DBusConnection *conn,DBusMessage *msg
 void PRCA_Property_GetTotalSegmentOnMemoryPool(DBusConnection *conn,DBusMessage *msg, void *data);
 
 static ST_Callback ST_StaticConnectionPropertiesCallbacks [] = {
+        {
+                .name   =       "InsertConnections",
+                .in     =       NULL,
+                .out    =       "i",
+                .func   =       PRCA_Property_GetTotalInsertConnections
+        },
+	{
+		.name	=	"CurrentConnections",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=	PRCA_Property_GetTotalCurrentConnections
+	},
+	{
+		.name	=	"ReleaseConnections",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=	PRCA_Property_GetTotalReleaseConnections
+	},
+	{
+		.name	=	"TimeExpireConnections",
+		.in	=	NULL,
+		.out	=	"i",
+		.func	=	PRCA_Property_GetTotalTimeoutConnections
+	},
         { 
 		.name	=	"FlowsOnPool",
 		.in	=	NULL,

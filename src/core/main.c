@@ -35,13 +35,14 @@ static struct option long_options[] = {
         {"force-post", 	no_argument, 		0, 'f'},
         {"unknown", 	no_argument, 		0, 'u'},
         {"cache", 	no_argument, 		0, 'c'},
+        {"stats", 	no_argument, 		0, 'S'},
         {"exit", 	no_argument, 		0, 'e'},
         {"help",    	no_argument, 		0, 'h'},
         {"version",    	no_argument, 		0, 'V'},
         {0, 0, 0, 0}
 };
 
-static char *short_options = "li:p:hVfuces:";
+static char *short_options = "li:p:hVfuces:S";
 
 static char *common_http_headers [] = {
 	"GET /index.phtml HTTP/1.1",
@@ -82,6 +83,7 @@ static char *show_options = {
 	"The options are:\n"
 	"\t-i, --interface=<device>             Device or pcapfile.\n"
 	"\t-e, --exit                           Exits when analisys is done(for pcapfiles).\n"
+	"\t-S, --stats                          Show statistics.\n"
 	"\n"
 	"\tHTTP options\n"
 	"\t-p, --hport=<port number>            Web-server port number (80 default).\n"
@@ -98,8 +100,22 @@ static char *show_options = {
 	"\n"
 };
 
+/* options of the daemon */
+int show_statistics = FALSE;
+int force_post = FALSE;
+int show_unknown = FALSE;
+int learning = FALSE;
+int use_cache = FALSE;
+int exit_on_pcap = FALSE;
+int hport = 80;
+int sport = 5060;
+
 void sigquit(int signal) {
+
 	POFR_Stop();
+	if(show_statistics == TRUE) {
+		POFR_Stats();
+	}
 	POFR_StopAndExit();
 	return;
 }
@@ -115,19 +131,10 @@ void usage(char *prog){
 
 
 void main(int argc, char **argv) {
-	int i,c,hport,sport,learning,option_index;
+	int i,c,option_index;
 	char *source = NULL;
-	int force_post,show_unknown,use_cache;
-	int exit_on_pcap;
 	char *value;
 
-	force_post = FALSE;
-	show_unknown = FALSE;
-	learning = FALSE;
-	use_cache = FALSE;
-	exit_on_pcap = FALSE;
-	hport = 80;
-	sport = 5060;
 	while((c = getopt_long(argc,argv,short_options,
                             long_options, &option_index)) != -1) {
         	switch (c) {
@@ -148,6 +155,9 @@ void main(int argc, char **argv) {
              			break;
            		case 'u':
              			show_unknown = TRUE;
+             			break;
+           		case 'S':
+             			show_statistics = TRUE;
              			break;
            		case 'l':
              			learning = TRUE;
@@ -211,7 +221,10 @@ void main(int argc, char **argv) {
 	POFR_Start();
 	POFR_Run();
 
-	POFR_Stop();
+	//POFR_Stop();
+        if(show_statistics == TRUE) {
+                POFR_Stats();
+        }
 	POFR_StopAndExit();
 	return;
 }

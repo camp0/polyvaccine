@@ -43,11 +43,11 @@ ST_MemorySegment *MESG_InitWithSize(int size){
 void MESG_Destroy(ST_MemorySegment *m){
 	free(m->mem);
 	g_free(m);
+	m = NULL;
 }
 
 void MESG_Reset(ST_MemorySegment *m){
 	if(m->mem == NULL) {
-		printf("boommmmmm\n");
 		m->virtual_size = 0;
 		return;
 	}

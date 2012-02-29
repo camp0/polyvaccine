@@ -226,6 +226,41 @@ void PRCA_Property_GetNumberValidSegments(DBusConnection *conn,DBusMessage *msg,
 
 
 /* Functions for the connection manager */
+void PRCA_Property_GetTotalReleaseConnections(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
+	dbus_int32_t value = p->conn->releases;
+
+	__CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+	return;
+}
+
+void PRCA_Property_GetTotalCurrentConnections(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
+        dbus_int32_t value = p->conn->current_connections;
+
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+
+        return;
+}
+
+void PRCA_Property_GetTotalInsertConnections(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
+	dbus_int32_t value = p->conn->inserts;
+
+	__CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+
+        return;
+}
+
+void PRCA_Property_GetTotalTimeoutConnections(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
+	dbus_int32_t value = p->conn->expiretimers;
+
+	__CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+
+        return;
+}
+
 void PRCA_Property_GetTotalFlowsOnFlowPool(DBusConnection *conn,DBusMessage *msg, void *data){
         ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;

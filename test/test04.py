@@ -43,7 +43,7 @@ class Test_01(unittest.TestCase):
 		elif("64" in arch):
 			for i in xrange(0,5):
 				subprocess.Popen(["../src/detection/sendexploit","9"])
-				time.sleep(0.01)
+				time.sleep(0.09)
 		value = d.ShellcodesDetected()
                 pp.kill()
                 pp.wait()
@@ -80,7 +80,7 @@ class Test_02(unittest.TestCase):
 if __name__ == '__main__':
 	print "Testing the detection engine"
 	suite=unittest.TestSuite()
-#    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
-    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_02))
+    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
+#    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_02))
 	result=testrunner.BasicTestRunner().run(suite)
 	

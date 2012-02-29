@@ -157,7 +157,8 @@ ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw, int16_t protocol,int16_t 
 	ga = (ST_GenericAnalyzer*)g_hash_table_lookup(t,GINT_TO_POINTER(sport));
 	if(ga == NULL){ 
 		ga = (ST_GenericAnalyzer*)g_hash_table_lookup(t,GINT_TO_POINTER(dport));
-		ga->direction = FLOW_FORW;
+		if(ga != NULL) 
+			ga->direction = FLOW_FORW;
 	}else{
 		ga->direction = FLOW_BACK;
 	}	
