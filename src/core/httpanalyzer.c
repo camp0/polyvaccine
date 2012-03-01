@@ -174,6 +174,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 	ST_HTTPField *h_field = NULL;
 	ST_HTTPField *p_field = NULL;
 	gpointer pointer = NULL;
+	int valid_segment = TRUE;
 
         LOG(POLYLOG_PRIORITY_DEBUG,
 		"Analyzing flow(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]",
@@ -210,7 +211,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 		}else{
 			ST_HTTPTypeHeaders[HTTP_HEADER_UNKNOWN].matchs++;
 			if(_http.show_unknown_http)
-				WARNING("Unknown HTTP header(%.*s)\n",128,method);
+				WARNING("Unknown HTTP dir(%d)header(%.*s)\n",128,f->direction,method);
 				
 		}	
 		if(urilen>MAX_URI_LENGTH) {
@@ -233,6 +234,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 				 * So there is no need to continue parsing the rest of the http header
 				 */
 				if(_http.on_suspicious_header_break == TRUE) {
+					valid_segment = FALSE;
 					_http.total_suspicious_segments++;
 					(*ret) = 1;
 					return;
@@ -294,7 +296,8 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 								c->parameter_suspicious_opcodes ++;
 								_http.suspicious_parameters++;
 								if(_http.on_suspicious_parameter_break == TRUE){
-									_http.total_suspicious_segments++;
+									if(valid_segment)
+										_http.total_suspicious_segments++;
 									(*ret) = 1;
 									return;
 								}
@@ -315,7 +318,8 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
                                                 c->parameter_suspicious_opcodes ++;
                                                 _http.suspicious_parameters++;
                                                 if(_http.on_suspicious_parameter_break == TRUE){
-                                                        _http.total_suspicious_segments++;
+							if(valid_segment)
+                                                        	_http.total_suspicious_segments++;
 							(*ret) = 1;
                                                         return ;
                                                 }	
@@ -327,7 +331,8 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
                                                 c->parameter_suspicious_opcodes ++;
                                                 _http.suspicious_parameters++;
                                                 if(_http.on_suspicious_parameter_break == TRUE){
-                                                	_http.total_suspicious_segments++;
+							if(valid_segment)
+                                                		_http.total_suspicious_segments++;
 							(*ret) = 1;
 							return;
 						}
@@ -344,7 +349,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 		}	
 	}else{
 		if(_http.show_unknown_http)
-			WARNING("Unknown HTTP header(%.*s)\n",128,seg->mem);
+			WARNING("Unknown HTTP dir(%s)header(%.*s)\n",f->direction ? "downstream":"upstream",128,seg->mem);
                 ST_HTTPTypeHeaders[HTTP_HEADER_UNKNOWN].matchs++;
 		_http.total_suspicious_segments++;
 		(*ret) = 1;

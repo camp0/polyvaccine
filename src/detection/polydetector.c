@@ -39,6 +39,7 @@ void PODT_Init() {
 	_polyDetector->shellcodes_detected = 0;
 	_polyDetector->show_received_payload = FALSE;
 
+	POLG_Init();
 	SYIN_Init();
 	PODS_Init();
         _polyDetector->bus = PODS_Connect(POLYVACCINE_DETECTION_INTERFACE,(void*)_polyDetector);
@@ -53,7 +54,6 @@ void PODT_Init() {
 			current = &interface->methods[0];
 			j=0;
 			while((current!=NULL)&&(current->name!=NULL)){
-				DEBUG0("callback(0x%x) add method '%s' on interface '%s'\n",current,current->name,interface->name);
 				PODS_AddPublicCallback(current);
 				j++;
 				current = &interface->methods[j];
@@ -61,7 +61,6 @@ void PODT_Init() {
 			j=0;
 			current = &interface->properties[0];
 			while((current!=NULL)&&(current->name!=NULL)){
-				DEBUG0("callback(0x%x) add property '%s' on interface '%s'\n",current,current->name,interface->name);
 				PODS_AddPublicCallback(current);
 				j++;
 				current = &interface->properties[j];
@@ -69,7 +68,6 @@ void PODT_Init() {
 			j=0;
 			current = &interface->signals[0];
 			while((current!=NULL)&&(current->name!=NULL)){
-				DEBUG0("callback(0x%x) add signal '%s' on interface '%s'\n",current,current->name,interface->name);
 				PODS_AddPublicCallback(current);
 				j++;
 				current = &interface->signals[j];
@@ -153,7 +151,9 @@ void PODT_Destroy(void){
 	PODS_Destroy();
 	PODT_Stats();
 	SYSU_Destroy();
+	POLG_Destroy();
 	g_free(_polyDetector);
+	_polyDetector = NULL;
 	return;
 }
 

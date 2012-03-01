@@ -516,7 +516,7 @@ void POFR_Run() {
 						segment_size = PKCX_GetPayloadLength();
 						flow->total_packets++;
 						flow->total_bytes += segment_size;
-						if(segment_size > 0) {
+						if((segment_size > 0)&&(flow->direction == FLOW_FORW)) {
 							MESG_AppendPayloadNew(flow->memory,PKCX_GetPayload(),segment_size);
 							//  TODO check the upstream datagrams, we dont need to analyze donwstream
 							// try to find something efficient

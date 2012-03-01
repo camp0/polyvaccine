@@ -34,8 +34,7 @@
 #include "genericflow.h"
 #include "interfaces.h"
 
-#define MAX_FLOWS_PER_POOL 256 
-//#define MAX_FLOWS_PER_POOL 1024 * 256 
+#define MAX_FLOWS_PER_POOL 1024 * 256 
 
 struct ST_FlowPool {
 	GSList *flows;

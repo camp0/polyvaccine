@@ -45,6 +45,7 @@
 #include "context.h"
 #include "pvtrace.h"
 #include "../core/trustoffset.h"
+#include "interfaces.h"
 
 #ifndef TRUE
 #define TRUE 1

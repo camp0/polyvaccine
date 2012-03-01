@@ -28,8 +28,8 @@
 #include "freebsd_syscalls.h"
 #include "pvtrace.h"
 
-#define DEBUG_TRACER(a...) 
-#define DEBUG_TRACER __DEBUG
+#define POLYLOG_CATEGORY_NAME POLYVACCINE_DETECTION_INTERFACE ".tracer"
+#include "log.h"
 
 static ST_Tracer *tracer = NULL;
 static ST_SharedContext *ctx = NULL; 
@@ -69,7 +69,7 @@ void printfhex(char *payload,int size) {
 void SYSU_Init(){
 	ST_SysCallSuspicious *sys = &ST_SysCallSuspiciousTable[0];
 	ST_SyscallNode *n = &ST_SyscallTable[0];
-	int i;
+	int i,j;
 	tracer = (ST_Tracer*)malloc(sizeof(ST_Tracer)); 
 	tracer->syscalls = g_hash_table_new(g_direct_hash,g_direct_equal);
 	tracer->syscalltable = g_hash_table_new(g_direct_hash,g_direct_equal);
@@ -90,18 +90,18 @@ void SYSU_Init(){
 	i = 0;
 	while((sys!=NULL)&&(sys->number>0)) {
                 g_hash_table_insert(tracer->syscalls,GINT_TO_POINTER(sys->number),sys);
-
-                DEBUG0("register callback '%s' reg = %d on hashtable(0x%x)\n",sys->name,sys->number,tracer->syscalls);
+		LOG(POLYLOG_PRIORITY_INFO,
+                	"register callback '%s' reg = %d on hashtable(0x%x)",sys->name,sys->number,tracer->syscalls);
 		i++;
 		sys = &ST_SysCallSuspiciousTable[i];
         }
-	i = 0;	
+	j = 0;	
 	while((n!=NULL)&&(n->name!=NULL)) {
 		g_hash_table_insert(tracer->syscalltable,GINT_TO_POINTER(n->number),n);
-		i++;
-		n = &ST_SyscallTable[i];
+		j++;
+		n = &ST_SyscallTable[j];
 	}
-	DEBUG0("syscalls avaiable %d\n",i);
+	LOG(POLYLOG_PRIORITY_INFO,"syscalls avaiable %d, loaded %d",j,i);
         return ;
 }
 
@@ -333,7 +333,6 @@ void SYSU_SetSysGood(pid_t p) {
 void SYSU_AddSuspiciousSyscall(ST_Tracer *t,char *name,struct user_regs_struct *u,int status) {
 	ST_SysCall *sys = (ST_SysCall*)SUSY_New(name,u,status); 
 
-	DEBUG0("adding suspicious syscall(0x%x) '%s'\n",sys,sys->name);
 	t->flow = g_slist_append(t->flow,sys);
 	return;
 }
@@ -347,18 +346,24 @@ int got_child_signal = 0;
  *  
  */
 
+#define POLYLOG_CATEGORY_NAME POLYVACCINE_DETECTION_INTERFACE ".tracer.child"
+
 void SYSU_NewExecutionProcess(ST_SharedContext *c) {
         char *pointer;
         void (*function)();
 	int i,status;
 
-        DEBUG_TRACER("Child(%d) preparing to execute %d bytes from offset %d\n",getpid(),ctx->size,ctx->virtualeip);
-        DEBUG_TRACER("Child(%d) istracedchild=%d,parent_pid=%d\n",getpid(),ctx->isptracechild,ctx->parent_pid);
-        DEBUG_TRACER("Child(%d) size=%d\n",getpid(),ctx->size);
+	LOG(POLYLOG_PRIORITY_DEBUG,
+        	"child(%d) preparing to execute %d bytes from offset %d",getpid(),ctx->size,ctx->virtualeip);
+	LOG(POLYLOG_PRIORITY_DEBUG,
+        	"child(%d) istracedchild=%d,parent_pid=%d",getpid(),ctx->isptracechild,ctx->parent_pid);
+	LOG(POLYLOG_PRIORITY_DEBUG,
+        	"child(%d) size=%d",getpid(),ctx->size);
 	if (ctx->isptracechild == FALSE) {
 
                 if((ctx->virtualeip >= ctx->size)||(ctx->virtualeip < 0)) {
-                        DEBUG_TRACER("Child(%d) Overflow exit\n",getpid());
+			LOG(POLYLOG_PRIORITY_DEBUG,
+                        	"child(%d) Overflow exit",getpid());
                         ctx->virtualeip = ctx->size;
                         exit(0);
                 }
@@ -373,6 +378,8 @@ void SYSU_NewExecutionProcess(ST_SharedContext *c) {
         (*function)();
         return;
 }
+
+#define POLYLOG_CATEGORY_NAME POLYVACCINE_DETECTION_INTERFACE ".tracer"
 
 /**
  * SYSU_TraceProcess - Traces a child process and check if there is any syscall.
@@ -402,7 +409,8 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 	PTRC_TraceSyscall(child_pid,SIGUSR1);
 //	SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, TRACE_O_TRACEFORK, (void*)SIGUSR1);
 	SYSU_DestroySuspiciousSyscalls();
-	DEBUG_TRACER("Parent(%d)ready for child execution\n",getpid());
+	LOG(POLYLOG_PRIORITY_INFO,
+		"parent(%d)ready for child execution",getpid());
         alarm(3);
         while(1) {
                 struct ST_SysCallFlow *scf;
@@ -425,9 +433,12 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 				if(sus != NULL) {
 					if (sus->level == SYSCALL_LEVEL_HIGH) {
 						SYSU_AddSuspiciousSyscall(t,syscall_name,&u_in,0);		
-						WARNING("High suspicious syscall %s on memory\n",syscall_name);
-						WARNING("\tax=%x;bx=%x;cx=%x;dx=%x\n",REG_AX(u_in),REG_BX(u_in),REG_CX(u_in),REG_DX(u_in));
-						WARNING("\tcs=%x;ip=%x;di=%x;si=%x\n",REG_CS(u_in),REG_IP(u_in),REG_DI(u_in),REG_SI(u_in));
+						LOG(POLYLOG_PRIORITY_WARN,
+							"High suspicious syscall %s on memory",syscall_name);
+						LOG(POLYLOG_PRIORITY_WARN,
+							"\tax=%x;bx=%x;cx=%x;dx=%x",REG_AX(u_in),REG_BX(u_in),REG_CX(u_in),REG_DX(u_in));
+						LOG(POLYLOG_PRIORITY_WARN,
+							"\tcs=%x;ip=%x;di=%x;si=%x",REG_CS(u_in),REG_IP(u_in),REG_DI(u_in),REG_SI(u_in));
 
 						if(t->show_execution_path== TRUE) 
 							SYSU_PrintSuspiciousSysCalls();
@@ -435,20 +446,24 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 							REG_AX(u_in) = 0xbeefbeef;
 							PTRC_TraceSetRegisters(child_pid,&u_in);
 //							SYSU_PTraceVoid(TRACE_SETREGS,child_pid,NULL,&u_in);
-							WARNING("\tModifying syscall number rax=%x, process continue execution\n",syscall);
+							LOG(POLYLOG_PRIORITY_WARN,
+								"modifying syscall number rax=%x, process continue execution",syscall);
 						}else {			
 							kill(child_pid,SIGKILL);
-							PTRC_TraceKill(child_pid);;
-							WARNING("Process %d killed by parent\n",child_pid);
+							PTRC_TraceKill(child_pid);
+							LOG(POLYLOG_PRIORITY_WARN,
+								"process %d killed by parent",child_pid);
                                         		alarm(0);
                                         		return 1;
 						}
 					}
 					if (sus->level == SYSCALL_LEVEL_MEDIUM) {
-						WARNING("Medium suspicious syscall %s on memory\n",syscall_name);
+						LOG(POLYLOG_PRIORITY_WARN,
+							"medium suspicious syscall %s on memory",syscall_name);
 					}
                                 }else{
-					WARNING("Unsupported syscall number %d\n",syscall);
+					LOG(POLYLOG_PRIORITY_WARN,
+						"unsupported syscall number %d",syscall);
 				}
                         }
 //                        SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, 0, 0);
@@ -459,7 +474,6 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 	if(t->show_execution_path== TRUE) 
 		SYSU_PrintSuspiciousSysCalls();
         alarm(0);
-	DEBUG0("return Analyzer\n");
         return 0;
 }
 
@@ -467,7 +481,8 @@ void SYSU_HandlerAlarmNew (int sig) {
         int ret;
         int status;
 
-        DEBUG0("Process %d consume too much CPU on offset %d\n",ctx->child_pid);//,sc_floweip->child_pid,sc_floweip->virtualeip);
+	LOG(POLYLOG_PRIORITY_DEBUG,
+        	"process %d consume too much CPU on offset %d",ctx->child_pid);//,sc_floweip->child_pid,sc_floweip->virtualeip);
 //        sc_floweip->cpu_execed ++;
  //       sc_floweip->virtualeip = sc_floweip->size;
         kill(ctx->child_pid,SIGKILL);
@@ -481,11 +496,15 @@ void sigusr(int signal) {
 	return;
 }
 
+#define POLYLOG_CATEGORY_NAME POLYVACCINE_DETECTION_INTERFACE ".tracer.child"
+
 void sigsegv_handler(int sig, siginfo_t *info, void *data) {
-	DEBUG_TRACER("Child(%d) receives signal %d on virtualeip %d\n",getpid(),sig,ctx->virtualeip);
+	LOG(POLYLOG_PRIORITY_DEBUG,
+		"child(%d) receives signal %d on virtualeip %d",getpid(),sig,ctx->virtualeip);
 
         if((ctx->virtualeip>=ctx->size)||(ctx->virtualeip < 0)) {
-                DEBUG_TRACER("Child(%d) Overflow exit on virtualeip=%d size=%d\n",getpid(),
+		LOG(POLYLOG_PRIORITY_DEBUG,
+                	"child(%d) Overflow exit on virtualeip=%d size=%d",getpid(),
 			ctx->virtualeip ,ctx->size);
                 ctx->virtualeip = ctx->size;
                 exit(0);
@@ -503,7 +522,7 @@ void sigsegv_handler(int sig, siginfo_t *info, void *data) {
 }
 
 
-
+#define POLYLOG_CATEGORY_NAME POLYVACCINE_DETECTION_INTERFACE ".tracer"
 
 int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
 	void (*oldsig)(int);
@@ -579,11 +598,11 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
 			ctx->virtualeip = t_off->offsets_end[index]+1;
 			index++;	
 		}	
-
 		ctx->isptracechild = FALSE;
 		ctx->incbytracer++;
 		got_child_signal = 0;
-                DEBUG0("Tracer(%d) Forking Process from offset %d of %d bytes\n",getpid(),ctx->virtualeip,ctx->size);
+		LOG(POLYLOG_PRIORITY_DEBUG,
+                	"tracer(%d) Forking Process from offset %d of %d bytes",getpid(),ctx->virtualeip,ctx->size);
                 child_pid = fork();
                 if (child_pid == 0) {
         		struct sigaction sa;
@@ -610,7 +629,7 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
                         memcpy(tracer->executable_segment + (init_regs_size + 1) ,&(ctx->virtualeip) ,4);
                         if((ctx->virtualeip > ctx->size)||(ctx->virtualeip < 0)) {
                                 ctx->virtualeip = ctx->size;
-				DEBUG_TRACER("Avoid overflow execution,virtualeip(%d)size(%d)\n",ctx->virtualeip,ctx->size);
+				//DEBUG_TRACER("Avoid overflow execution,virtualeip(%d)size(%d)\n",ctx->virtualeip,ctx->size);
                                 exit(0);
                         }
                         SYSU_NewExecutionProcess(ctx);
@@ -631,7 +650,6 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
         munmap(tracer->executable_segment,tracer->executable_segment_size);
 	free(tracer->segment_with_opcodes);
         ctx->memory = NULL;
-	DEBUG0("End segment execution\n");
         return 0;
 }
 

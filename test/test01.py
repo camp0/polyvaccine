@@ -184,14 +184,35 @@ class Test_01(unittest.TestCase):
                 self.assertEqual(5,pool.total_errors)
                 for h in temp:
                         p.FLPO_AddFlow(pool,h)
-
 		
                 p.FLPO_AddFlow(pool,None)
                 self.assertEqual(value,p.FLPO_GetNumberFlows(pool))
                 h = p.FLPO_GetFlow(pool)
                 h = p.FLPO_GetFlow(pool)
                 h = p.FLPO_GetFlow(pool)
+                self.assertEqual(value-3,p.FLPO_GetNumberFlows(pool))
 		p.FLPO_Destroy(pool)
+
+        def test_01_10(self):
+                "Test the flowpool IV"
+                pool = p.FLPO_Init()
+                value = p.FLPO_GetNumberFlows(pool)
+                temp = list()
+                for i in xrange(0,value):
+                        h = p.FLPO_GetFlow(pool)
+                        temp.append(h)
+
+                self.assertEqual(0,pool.total_errors)
+                for h in temp:
+			p.GEFW_Destroy(h)
+
+                self.assertEqual(0,p.FLPO_GetNumberFlows(pool))
+                h = p.FLPO_GetFlow(pool)
+                h = p.FLPO_GetFlow(pool)
+                h = p.FLPO_GetFlow(pool)
+                self.assertEqual(0,p.FLPO_GetNumberFlows(pool))
+                p.FLPO_Destroy(pool)
+
 
 class Test_02(unittest.TestCase):
 

@@ -27,7 +27,7 @@ test_LDADD =
 
 BUILT_SOURCES = $(srcdir)/polydetector_wrap.c
 
-EXTRA_DIST = polydetector.i setup.py
+EXTRA_DIST = polydetector.i setup.py log4crc
 
 CLEANFILES = $(srcdir)/polydetector_wrap.c $(srcdir)/_polydetector.so *.pyc polydetector.py
 

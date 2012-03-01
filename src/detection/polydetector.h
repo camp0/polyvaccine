@@ -38,6 +38,9 @@
 #include <dbus/dbus.h>
 #include "interfaces.h"
 
+#define POLYLOG_CATEGORY_NAME POLYVACCINE_DETECTION_INTERFACE
+#include "log.h"
+
 enum {
         POLYDETECTOR_STATE_STOP = 0,
         POLYDETECTOR_STATE_RUNNING

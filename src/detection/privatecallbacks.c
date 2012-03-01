@@ -106,7 +106,8 @@ void PRCA_Signaling_AnalyzeSegment(DBusConnection *conn,DBusMessage *msg, void *
 		DBUS_TYPE_ARRAY,DBUS_TYPE_INT32,&d_end_off,&e_ret,
 		DBUS_TYPE_INVALID);
 
-	DEBUG0("receive buffer lenght(%d)hash(%lu)seq(%lu)s_off_len(%d)e_off_len(%d)\n",
+	LOG(POLYLOG_PRIORITY_INFO,
+		"receive buffer lenght(%d)hash(%lu)seq(%lu)s_off_len(%d)e_off_len(%d)",
 		length,hash,seq,s_ret,e_ret);
 
 	TROF_SetStartOffsets(&t_off,d_start_off);
