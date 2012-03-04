@@ -213,6 +213,35 @@ class Test_01(unittest.TestCase):
                 self.assertEqual(0,p.FLPO_GetNumberFlows(pool))
                 p.FLPO_Destroy(pool)
 
+        def test_01_11(self):
+                "Testing several copy of small memory chunks"
+                s = p.MESG_InitWithSize(10)
+                self.assertEqual(s.real_size ,10)
+                self.assertEqual(s.virtual_size ,0)
+
+	        url = "GET /somepath/somewhere/on/some/server HTTP 1.1\n"
+		length = len(url)
+                p.MESG_AppendPayloadNew(s,url,length)
+                self.assertEqual(s.virtual_size ,length)
+                self.assertEqual(s.real_size ,length)
+		host = "Host: www.somehost.com\n"
+		length = length + len(host)
+
+		p.MESG_AppendPayloadNew(s,host,len(host))	
+		self.assertEqual(s.virtual_size ,length)		
+		self.assertEqual(s.real_size ,length)		
+	
+		cookie = "Cookie: blablablalbalbalallalakjdfklajdfi"
+		length = length + len(cookie)
+
+		p.MESG_AppendPayloadNew(s,cookie,len(cookie))
+		self.assertEqual(s.virtual_size ,length)		
+		self.assertEqual(s.real_size ,length)		
+
+		final = url + host + cookie
+		self.assertEqual(len(s.mem),s.virtual_size)
+		self.assertEqual(len(s.mem),len(final))
+		self.assertEqual(s.mem,final)		
 
 class Test_02(unittest.TestCase):
 
