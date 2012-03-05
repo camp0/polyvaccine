@@ -212,6 +212,18 @@ void FORD_AddAnalyzer(ST_Forwarder *fw, ST_Cache *cache, char *name,int16_t prot
 	return;
 }
 
+/**
+ * FORD_ChangeAnalyzerToPlugOnPort - Change the analyzer of port, usefull function when the daemon 
+ * 	is running. This function should have a callback on the dbus in order to change the port
+ *	without restarting the process. 
+ *
+ * @param fw
+ * @param src_protocol 
+ * @param src_port
+ * @param dst_protocol
+ * @param dst_port
+ * 
+ */
 void FORD_ChangeAnalyzerToPlugOnPort(ST_Forwarder *fw,int16_t src_protocol, int16_t src_port,
         int16_t dst_protocol,int16_t dst_port){
 
@@ -234,4 +246,38 @@ void FORD_ChangeAnalyzerToPlugOnPort(ST_Forwarder *fw,int16_t src_protocol, int1
 		g_hash_table_insert(t,GINT_TO_POINTER(dst_port),ga);
 	}
 	return;
+}
+
+
+/**
+ * FORD_AddPortToAnalyzer - Adss a new port to the analyzer plugedd on other port.
+ *	This function is usefull for example for HTTP listen on two ports(80,8080).
+ *
+ * @param fw
+ * @param name 
+ * @param protocol
+ * @param port
+ * 
+ */
+
+void FORD_AddPortToAnalyzer(ST_Forwarder *fw,char *name,int16_t protocol,int16_t port){
+        GHashTableIter iter;
+        gpointer k,v;
+	GHashTable *t = NULL;
+	ST_GenericAnalyzer *ga = NULL;
+
+	if(protocol == 6)
+		t = fw->tcp_analyzers;
+	else
+		t = fw->udp_analyzers;
+
+        g_hash_table_iter_init (&iter, t);
+        while (g_hash_table_iter_next (&iter, &k, &v)) {
+                ga = (ST_GenericAnalyzer*)v;
+		if(strncmp(ga->name,name,strlen(name)) == 0){
+			LOG(POLYLOG_PRIORITY_INFO,"Adding analyzer '%s' on port %d",name,port);
+			g_hash_table_insert(t,GINT_TO_POINTER(port),ga);               		 
+		}
+        }
+        return;
 }

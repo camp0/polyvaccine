@@ -42,7 +42,6 @@ ST_Cache *CACH_Init(){
         c->header_suspicious_opcodes = 0;
         c->parameter_suspicious_opcodes = 0;
 
-	DEBUG0("Cache(0x%x)\n",c);
 	return c;
 }
 

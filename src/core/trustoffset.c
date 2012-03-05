@@ -57,21 +57,17 @@ void TROF_AddTrustOffset(ST_TrustOffsets *t, int start, int end){
 	int prev_index = 0;
 
 	if(t->index == MAX_OFFSETS_ALLOCATED) {
-		DEBUG0("Can not allocate more trust offsets\n");
+		//DEBUG0("Can not allocate more trust offsets\n");
 		return;
 	}
 	if(t->index >0) 
 		prev_index = t->index -1; 
 	if(t->offsets_end[prev_index] == start) { // only need to update the chunk
-		DEBUG0("reusing trust offset (%d,%d) index %d to (%d,%d). received (%d,%d)\n",
-			t->offsets_start[prev_index],t->offsets_end[prev_index],t->index,
-			t->offsets_start[prev_index],end,start,end);
 		t->offsets_end[prev_index] == end;
 		return;
 	} 
 	t->offsets_start[t->index] = start;
 	t->offsets_end[t->index] = end;
-	DEBUG0("Allocating trust offsets (%d,%d) on index %d\n",start,end,t->index);
 	t->index++;
 	return;
 

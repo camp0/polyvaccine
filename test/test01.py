@@ -232,16 +232,34 @@ class Test_01(unittest.TestCase):
 		self.assertEqual(s.real_size ,length)		
 	
 		cookie = "Cookie: blablablalbalbalallalakjdfklajdfi"
-		length = length + len(cookie)
+		l_cookie = len(cookie)
+		length = length + l_cookie
 
-		p.MESG_AppendPayloadNew(s,cookie,len(cookie))
+		p.MESG_AppendPayloadNew(s,cookie,l_cookie)
 		self.assertEqual(s.virtual_size ,length)		
 		self.assertEqual(s.real_size ,length)		
 
 		final = url + host + cookie
-		self.assertEqual(len(s.mem),s.virtual_size)
 		self.assertEqual(len(s.mem),len(final))
 		self.assertEqual(s.mem,final)		
+
+
+        def test_01_12(self):
+                "Testing small memory chunks and reuse it"
+                s = p.MESG_InitWithSize(10)
+                self.assertEqual(s.real_size ,10)
+                self.assertEqual(s.virtual_size ,0)
+
+                url = "GET /somepath/somewhere/on/some/server HTTP 1.1\n"
+                length = len(url)
+                p.MESG_AppendPayloadNew(s,url,length)
+                self.assertEqual(s.virtual_size ,length)
+                self.assertEqual(s.real_size ,length)
+
+		# The segment is reset but still with the last buffered info.
+		p.MESG_Reset(s)
+		self.assertEqual(s.virtual_size,0)
+		self.assertEqual(s.real_size,length)
 
 class Test_02(unittest.TestCase):
 

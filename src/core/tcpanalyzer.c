@@ -276,11 +276,13 @@ void TCAZ_Analyze(ST_GenericFlow *f ){
         	f->tcp_state_prev = new_state = POLY_TCPS_CLOSED;
 	}
 
+#ifdef DEBUG
 	LOG(POLYLOG_PRIORITY_DEBUG,
 		"TCP Flow(0x%x)(%s) Flags(s(%d)a(%d)f(%d)r(%d)] state(%s) to state(%s)",
 		f,f->direction ? "downstream":"upstream",
 		syn,ack,fin,rst,
-		tcp_states[state],tcp_states[new_state]); 
+		tcp_states[state],tcp_states[new_state]);
+#endif 
 	return ;
 }
 

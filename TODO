@@ -1,4 +1,4 @@
-- Generate a real tcp stack.
+- Generate a real tcp stack(Partialy).
 - Add support for netfilter, so tcp segments need to be athorized by the pvde process(Done).
 - Add more test for the detection engine(64bits and 32bits).
 - Adds a python script with data base support in order to store the httpcache.(Done).

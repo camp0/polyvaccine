@@ -70,19 +70,13 @@ void MESG_Realloc(ST_MemorySegment *m, int size) {
 void MESG_AppendPayloadNew(ST_MemorySegment *m, unsigned char *payload, int size) {
 	int value;
 
-	DEBUG0("Segment(0x%x) adding payload of %d bytes;real_size=%d;virtual_size=%d\n",
-		m,size,m->real_size,m->virtual_size);
 	value = m->virtual_size + size;
 	if (value > m->real_size) {
-		DEBUG0("Need reallocating %d bytes;real_size=%d;virtual_size=%d\n",
-			value-m->virtual_size,m->real_size,m->virtual_size);
 		MESG_Realloc(m,value);
 	}
 		
 	memcpy((m->mem+m->virtual_size),payload,size);
 	m->virtual_size += size; 
-	DEBUG1("Segment(0x%x)real_size(%d)virtual_size(%d)mem(0x%x)\n",
-		m,m->real_size,m->virtual_size,m->mem);
 	return;
 }
 
@@ -90,17 +84,12 @@ void MESG_AppendPayload(ST_MemorySegment *m,unsigned char *payload,int size){
 	int offset = 0;
 	int extra_bytes = 0;
 
-	DEBUG0("Adding payload of %d bytes;real_size=%d;virtual_size=%d\n",
-		size,m->real_size,m->virtual_size);
 	if (size <= 0)
 		return;
 
 	if (m->virtual_size == 0) { // First type packet copy
 		if(m->real_size < size) {
 			extra_bytes = size - m->real_size;
-			DEBUG0("Need reallocating %d bytes;real_size=%d;virtual_size=%d\n",
-				extra_bytes,m->real_size,m->virtual_size);
-			
 			MESG_Realloc(m,size);
 			m->real_size = size;
 		}
@@ -108,8 +97,6 @@ void MESG_AppendPayload(ST_MemorySegment *m,unsigned char *payload,int size){
 	extra_bytes = m->virtual_size + size;
 	if (extra_bytes > m->real_size) { // more segments to add
 		extra_bytes = extra_bytes - m->real_size;
-		DEBUG0("Need reallocating %d bytes;real_size=%d;virtual_size=%d\n",
-			extra_bytes,m->real_size,m->virtual_size);
 		MESG_Realloc(m,extra_bytes);
 		m->real_size += extra_bytes;
 	}

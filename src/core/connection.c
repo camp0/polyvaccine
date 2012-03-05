@@ -95,9 +95,11 @@ void COMN_ReleaseConnection(ST_Connection *conn,ST_GenericFlow *flow) {
         seg = flow->memory;
         flow->memory = NULL;
 
+#ifdef DEBUG
 	LOG(POLYLOG_PRIORITY_DEBUG,
         	"Release flow(0x%x)segment(0x%x) to flowpool(0x%x)memorypool(0x%x)",
         	flow,seg,conn->flowpool,conn->mempool);
+#endif
 	if(seg != NULL)
         	MEPO_AddMemorySegment(conn->mempool,seg);
         FLPO_AddFlow(conn->flowpool,flow);
@@ -126,8 +128,6 @@ void COMN_InsertConnection(ST_Connection *conn,ST_GenericFlow *flow,unsigned lon
 
 	conn->current_connections++;
 	conn->inserts++;
- //       DEBUG2("insert flow(0x%x) hash(%lu) [%s:%d:%d:%s:%d]\n",flow,h,
-  //              inet_ntoa(a),flow->sport,6,inet_ntoa(b),flow->dport);
 
         g_hash_table_insert(conn->table,GINT_TO_POINTER(h),flow);
 	conn->timers = g_list_insert_sorted(conn->timers,flow,(GCompareFunc)flow_cmp);
@@ -153,9 +153,10 @@ void COMN_UpdateTimers(ST_Connection *conn,struct timeval *currenttime){
 
                 if(flow->current_time.tv_sec + conn->inactivitytime <= currenttime->tv_sec) {
                         /* The timer expires */
+#ifdef DEBUG
 			LOG(POLYLOG_PRIORITY_DEBUG,
                         	"Expire timer for flow(0x%x)secs(%d)curr(%d)",flow,flow->current_time.tv_sec,currenttime->tv_sec);
-
+#endif
 			COMN_ReleaseConnection(conn,flow);
 
                         conn->expiretimers++; 
@@ -208,9 +209,11 @@ void COMN_ReleaseFlows(ST_Connection *conn){
 		COMN_ReleaseConnection(conn,flow);
 		items++;
 	}	
+#ifdef DEBUG
 	LOG(POLYLOG_PRIORITY_DEBUG,
         	"Releasing %d flows to flowpool(0x%x)memorypool(0x%x)",
 		items,conn->flowpool,conn->mempool);
+#endif
 	return;
 }
 
@@ -251,8 +254,6 @@ ST_GenericFlow *COMN_FindConnection(ST_Connection *conn,u_int32_t saddr,u_int16_
 
         unsigned long h = (saddr^sport^protocol^daddr^dport);
 
-        //DEBUG0("first lookup(%lu):[%s:%d:%d:%s:%d]\n",h,inet_ntoa(a),sport,protocol,inet_ntoa(b),dport);
-
         object = g_hash_table_lookup(conn->table,GINT_TO_POINTER(h));
         if (object != NULL){
 		(*hash) = h;
@@ -261,8 +262,6 @@ ST_GenericFlow *COMN_FindConnection(ST_Connection *conn,u_int32_t saddr,u_int16_
         }
 
         h = (daddr^dport^protocol^saddr^sport);
-
-        //DEBUG0("second lookup(%lu):[%s:%d:%d:%s:%d]\n",h,inet_ntoa(b),dport,protocol,inet_ntoa(a),sport);
 
         object = g_hash_table_lookup(conn->table,GINT_TO_POINTER(h));
         if (object != NULL){

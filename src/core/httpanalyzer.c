@@ -176,10 +176,11 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 	gpointer pointer = NULL;
 	int valid_segment = TRUE;
 
+#ifdef DEBUG
         LOG(POLYLOG_PRIORITY_DEBUG,
 		"Analyzing flow(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]",
 		f,f->total_bytes,f->total_packets,seg,seg->real_size,seg->virtual_size);
-
+#endif
 	lret = pcre_exec(_http.expr_header,_http.pe_header,(char*)seg->mem,seg->virtual_size,
 		0 /* Start offset */,
 		0 /* options */ ,
@@ -219,14 +220,18 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 		}
 		memcpy(uri,&(seg->mem[0]),urilen);
 		uri[urilen] = '\0';
+#ifdef DEBUG
         	LOG(POLYLOG_PRIORITY_DEBUG,
 			"Flow(0x%x) HTTP uri(%s)offset(%d)length(%d)",f,uri,offset,urilen);
+#endif
 		nod = CACH_GetHeaderFromCache(c,uri);
 		if (nod ==NULL ) { // The uri is not in the cache we should analyze
 			int suspicious_opcodes = COSU_CheckSuspiciousOpcodes(uri,urilen);
 			if(suspicious_opcodes>1) {
+#ifdef DEBUG
         			LOG(POLYLOG_PRIORITY_DEBUG,
 					"Flow(0x%x) uri(%s) have %d suspicious bytes",f,uri,suspicious_opcodes);
+#endif
 				_http.suspicious_headers++;
 				c->header_suspicious_opcodes ++;
 				/* Most of the exploits have the next body
@@ -274,11 +279,11 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 						}	
 						memcpy(parameter,init,parameter_length);
 						parameter[parameter_length-1] = '\0';	
-						//snprintf(parameter,parameter_length,"%s",init);
+#ifdef DEBUG
         					LOG(POLYLOG_PRIORITY_DEBUG,
 							"Flow(0x%x) HTTP parameter(%s)value(%s)offset(%d)length(%d)",f,
 							parameter,http_line,process_bytes,http_line_length);
-
+#endif
 						if(g_hash_table_lookup_extended(_http.parameters,(gchar*)parameter,NULL,&pointer) == TRUE){
 							p_field = (ST_HTTPField*)pointer;
 							p_field->matchs++;
@@ -291,8 +296,10 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 						if(nod == NULL) { // The parameter value is not in the cache
 							int suspicious_opcodes = COSU_CheckSuspiciousOpcodes(parameter,parameter_length);
 							if(suspicious_opcodes>1) {
+#ifdef DEBUG
         							LOG(POLYLOG_PRIORITY_DEBUG,
 									"Flow(0x%x) parameter have %d suspicious bytes",f,suspicious_opcodes);
+#endif
 								c->parameter_suspicious_opcodes ++;
 								_http.suspicious_parameters++;
 								if(_http.on_suspicious_parameter_break == TRUE){
@@ -312,9 +319,11 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 			}else{
 				if(have_data == TRUE){ // The payload of a post request
 					int len = seg->virtual_size - process_bytes;
-					if(_http.analyze_post_data) { // the data of the post should be analyzed.			
+					if(_http.analyze_post_data) { // the data of the post should be analyzed.		
+#ifdef DEBUG	
         					LOG(POLYLOG_PRIORITY_DEBUG,
 							"Flow(0x%x) POST data forced to be suspicious",f);
+#endif
                                                 c->parameter_suspicious_opcodes ++;
                                                 _http.suspicious_parameters++;
                                                 if(_http.on_suspicious_parameter_break == TRUE){
@@ -326,8 +335,10 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
 					}	
 					int suspicious_opcodes = COSU_CheckSuspiciousOpcodes(init,len);
 					if(suspicious_opcodes>1) {
+#ifdef DEBUG
         					LOG(POLYLOG_PRIORITY_DEBUG,
 							"Flow(0x%x) POST data have %d suspicious bytes",f,suspicious_opcodes);
+#endif
                                                 c->parameter_suspicious_opcodes ++;
                                                 _http.suspicious_parameters++;
                                                 if(_http.on_suspicious_parameter_break == TRUE){
@@ -375,9 +386,11 @@ void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_GenericFlow *f){
         ST_HTTPField *p_field = NULL;
         gpointer pointer = NULL;
 
+#ifdef DEBUG
   	LOG(POLYLOG_PRIORITY_DEBUG,
         	"Analyzing authorized flow(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]",
                 f,f->total_bytes,f->total_packets,seg,seg->real_size,seg->virtual_size);
+#endif
         lret = pcre_exec(_http.expr_header,_http.pe_header,(char*)seg->mem,seg->virtual_size,
                 0 /* Start offset */,
                 0 /* options */ ,
@@ -398,9 +411,11 @@ void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_GenericFlow *f){
                 }
 		memcpy(uri,&(seg->mem[0]),urilen);
 		uri[urilen] = '\0';
-  	
+  
+#ifdef DEBUG	
 		LOG(POLYLOG_PRIORITY_DEBUG,
                 	"Authorized flow(0x%x) HTTP uri(%s)offset(%d)",f,uri,offset);
+#endif
 		/* Adds the uri to the http cache */
                 CACH_AddHeaderToCache(c,uri,NODE_TYPE_DYNAMIC);
 		
@@ -437,8 +452,10 @@ void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_GenericFlow *f){
                                                         p_field = (ST_HTTPField*)pointer;
 							if(p_field->check_cache == TRUE) {
 								/* The value could be cacheable so add to the cache */
+#ifdef DEBUG	
 								LOG(POLYLOG_PRIORITY_DEBUG,
                                                 			"Authorized flow(0x%x) HTTP parameter(%s)\n",f,http_line);
+#endif
 								/* Adds the parameter to the httpcache */
 								CACH_AddParameterToCache(c,http_line,NODE_TYPE_DYNAMIC);
 							}

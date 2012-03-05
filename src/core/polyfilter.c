@@ -106,13 +106,14 @@ void POFR_Init() {
 	COMN_SetFlowPool(_polyFilter->conn,_polyFilter->flowpool);
 	COMN_SetMemoryPool(_polyFilter->conn,_polyFilter->memorypool);
 
+#ifdef DEBUG
 	LOG(POLYLOG_PRIORITY_DEBUG,"Initialized engine....");
 	LOG(POLYLOG_PRIORITY_DEBUG,"connection manager (0x%x)",_polyFilter->conn);
 	LOG(POLYLOG_PRIORITY_DEBUG,"flowpool (0x%x)",_polyFilter->flowpool);
 	LOG(POLYLOG_PRIORITY_DEBUG,"memorypool (0x%x)",_polyFilter->memorypool);
 	LOG(POLYLOG_PRIORITY_DEBUG,"httpcache (0x%x)",_polyFilter->httpcache);
 	LOG(POLYLOG_PRIORITY_DEBUG,"sipcache (0x%x)",_polyFilter->sipcache);
-
+#endif
 	// Plugin the analyzers
 	FORD_AddAnalyzer(_polyFilter->forwarder,_polyFilter->httpcache,
 		"HTTP Analyzer",IPPROTO_TCP,80,
@@ -473,6 +474,7 @@ void POFR_Run() {
 										
 								flow->direction = ga->direction;
 								COMN_InsertConnection(_polyFilter->conn,flow,&hash);
+#ifdef DEBUG
 								LOG(POLYLOG_PRIORITY_DEBUG,
 									"New connection on Pool [%s:%d:%d:%s:%d] flow(0x%x)",
 									PKCX_GetSrcAddrDotNotation(),
@@ -480,7 +482,8 @@ void POFR_Run() {
 									protocol, 
 									PKCX_GetDstAddrDotNotation(),
 									PKCX_GetDstPort(),
-									flow); 
+									flow);
+#endif 
 								/* Check if the flow allready have a ST_MemorySegment attached */
 								memseg = MEPO_GetMemorySegment(_polyFilter->memorypool);
 								GEFW_SetMemorySegment(flow,memseg);
@@ -499,6 +502,7 @@ void POFR_Run() {
 							// check if the flow have end
 							if(flow->tcp_state_curr == POLY_TCPS_CLOSED) {
 								// The flow should be returned to the cache
+#ifdef DEBUG
 								LOG(POLYLOG_PRIORITY_DEBUG,
 									"Release connection to Pool [%s:%d:%d:%s:%d] flow(0x%x)",
                                                                         PKCX_GetSrcAddrDotNotation(),
@@ -506,7 +510,8 @@ void POFR_Run() {
                                                                         protocol,
                                                                         PKCX_GetDstAddrDotNotation(),
                                                                         PKCX_GetDstPort(),
-                                                                        flow); 
+                                                                        flow);
+#endif 
 								COMN_ReleaseConnection(_polyFilter->conn,flow);
 								continue;
 							}
@@ -539,7 +544,6 @@ void POFR_Run() {
 								/* Reset the virtual memory of the segment */
 								//MESG_Reset(flow->memory);
 								flow->memory->virtual_size = 0;
-								
 							}	
 						}
 						GEFW_UpdateTime(flow,&currenttime);
