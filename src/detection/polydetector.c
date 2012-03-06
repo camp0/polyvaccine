@@ -48,27 +48,25 @@ void PODT_Init() {
 		i=0;	
 		interface = &ST_PublicInterfaces[0];
 		while(interface->name != NULL) {
-			PODS_AddInterface(interface);
-
 			/* Loads the methods first */
 			current = &interface->methods[0];
 			j=0;
 			while((current!=NULL)&&(current->name!=NULL)){
-				PODS_AddPublicCallback(current);
+				PODS_AddPublicMethod(interface,current);
 				j++;
 				current = &interface->methods[j];
 			}
 			j=0;
 			current = &interface->properties[0];
 			while((current!=NULL)&&(current->name!=NULL)){
-				PODS_AddPublicCallback(current);
+				PODS_AddPublicProperty(interface,current);
 				j++;
 				current = &interface->properties[j];
 			} 
 			j=0;
 			current = &interface->signals[0];
 			while((current!=NULL)&&(current->name!=NULL)){
-				PODS_AddPublicCallback(current);
+				PODS_AddPublicMethod(interface,current);
 				j++;
 				current = &interface->signals[j];
 			}

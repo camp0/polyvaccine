@@ -34,25 +34,43 @@ static ST_PolyDbus polybus;
  */
 void PODS_Init(){
 	polybus.total_watches = 0;
-	polybus.public_callbacks = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
-	polybus.private_callbacks = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);;
-	polybus.interfaces = NULL;
-	DEBUG0("Dbus object(0x%x)\n",&polybus);
+	polybus.private_callbacks = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
+	polybus.interfaces = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
+
+	// The properties are reference on two hashes, the first one is for improve the 
+	// efficiency of the system and the second is for ipython trait_names.
+	polybus.properties = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
 	return;
 }
 
-/**
- * PODS_AddInterface
- *
- */
+ST_PolyDbusInterface *PODS_GetInterface(ST_Interface *iface) {
+        ST_PolyDbusInterface *i = NULL;
 
-void PODS_AddInterface(ST_Interface *iface){
-	DEBUG0("add interface(0x%x)name(%s)\n",iface,iface->name);
-	polybus.interfaces = g_list_append(polybus.interfaces,iface);
+        i = (ST_PolyDbusInterface*)g_hash_table_lookup(polybus.interfaces,iface->name);
+        if(i == NULL) {
+                i = g_new(ST_PolyDbusInterface,1);
+                i->methods = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
+                i->iface = iface;
+//                i->signals = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
+                i->properties = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
+                g_hash_table_insert(polybus.interfaces,g_strdup(iface->name),i);
+        }
+	return i;
 }
 
-void PODS_AddPublicCallback(ST_Callback *call){
-	g_hash_table_insert(polybus.public_callbacks,g_strdup(call->name),call);
+void PODS_AddPublicProperty(ST_Interface *iface,ST_Callback *call){
+        ST_PolyDbusInterface *ipoly = PODS_GetInterface(iface);
+
+	// the property is added to two hashs
+        g_hash_table_insert(ipoly->properties,g_strdup(call->name),call);
+        g_hash_table_insert(polybus.properties,g_strdup(call->name),call);
+	return;
+}
+
+void PODS_AddPublicMethod(ST_Interface *iface, ST_Callback *call){
+        ST_PolyDbusInterface *ipoly = PODS_GetInterface(iface);
+
+	g_hash_table_insert(ipoly->methods,g_strdup(call->name),call);
 	return;
 }
 
@@ -62,7 +80,17 @@ void PODS_AddPrivateCallback(ST_Callback *call){
 }
 
 void PODS_Destroy() {
-	g_hash_table_destroy(polybus.public_callbacks);
+        GHashTableIter iter;
+        gpointer k,v;
+
+        g_hash_table_iter_init (&iter, polybus.interfaces);
+        while (g_hash_table_iter_next (&iter, &k, &v)) {
+                ST_PolyDbusInterface *iface = (ST_PolyDbusInterface*)v;
+                g_hash_table_destroy(iface->methods);
+        }
+	
+	g_hash_table_destroy(polybus.properties);
+	g_hash_table_destroy(polybus.interfaces);
 	g_hash_table_destroy(polybus.private_callbacks);
 	return;
 }
@@ -107,33 +135,64 @@ DBusHandlerResult DB_FilterDbusFunctionMessage(DBusConnection *c, DBusMessage *m
         const char *interface = dbus_message_get_interface(msg);
         const char *member = dbus_message_get_member(msg);
         const char *path = dbus_message_get_path(msg);
+	ST_PolyDbusInterface *iface = NULL; 
+	char *real_interface;
 
-        DEBUG1("i(%s)d(%d)p(%s)m(%s)\n",interface,destination,path,member);
+	if(interface == NULL){ // ipython generates no interface.
+		real_interface = path;
+	}else{
+		real_interface = interface;
+	}	
+        //printf("i(%s)d(%d)p(%s)m(%s)ri(%s)\n",interface,destination,path,member,real_interface);
 
         if (dbus_message_is_method_call (msg, "org.freedesktop.DBus.Introspectable", "Introspect")) {
 		PODS_Method_Instrospect(c,msg,data);
                 return DBUS_HANDLER_RESULT_HANDLED;
         }
+
         if (dbus_message_is_method_call (msg,"org.freedesktop.DBus.Properties","Get")) {
-                char *iface = "";
+                char *ifaceaux = "";
                 char *property = "";
                 DBusError err;
 
                 dbus_error_init(&err);
-                dbus_message_get_args(msg,&err,DBUS_TYPE_STRING,&iface,DBUS_TYPE_STRING,&property);
-                PODS_ExecuteCallback(polybus.public_callbacks,c,msg,property,data);
+                dbus_message_get_args(msg,&err,DBUS_TYPE_STRING,&ifaceaux,DBUS_TYPE_STRING,&property);
+         //       printf("geting property %s\n",property);
+                PODS_ExecuteCallback(polybus.properties,c,msg,property,data);
                 return DBUS_HANDLER_RESULT_HANDLED;
-        } 
-	GList *item = polybus.interfaces;
-	while ( item != NULL) {
-		char *iface = ((ST_Interface*)item->data)->name; //ST_PublicInterfaces[i].name;
-		if(strncmp(iface,interface,strlen(iface)) == 0) {
-        		//DEBUG0("Message for '%s'd(%d)p(%s)m(%s)\n",interface,destination,path,member);
-			PODS_ExecuteCallback(polybus.public_callbacks,c,msg,member,data);
-                	return DBUS_HANDLER_RESULT_HANDLED;
-		}
-		item = g_list_next(item);
+        }
+
+	// Should exist almost one interface
+	iface = (ST_PolyDbusInterface*)g_hash_table_lookup(polybus.interfaces,real_interface);
+	if (iface == NULL){
+		return DBUS_HANDLER_RESULT_HANDLED;
 	}
+        if (dbus_message_is_method_call (msg, real_interface, "trait_names")) { // method used by ipython 
+		PODS_ShowPublicMethodsOfInterface(c,msg,real_interface);
+                return DBUS_HANDLER_RESULT_HANDLED;
+        }
+        if (dbus_message_is_method_call (msg, real_interface, "_getAttributeNames")) { // method used by ipython
+		PODS_ShowPublicMethodsOfInterface(c,msg,real_interface);
+                return DBUS_HANDLER_RESULT_HANDLED;
+        }
+        if (dbus_message_is_method_call (msg, real_interface, "GetProperties")) { // method used by ipython
+		PODS_ShowPublicMethodsOfInterface(c,msg,real_interface);
+                return DBUS_HANDLER_RESULT_HANDLED;
+        }
+        if (dbus_message_is_method_call (msg, real_interface, "SetProperties")) { // method used by ipython
+                char *property = "";
+                char *value = "";
+                DBusError err;
+
+		// TODO
+                dbus_error_init(&err);
+                dbus_message_get_args(msg,&err,DBUS_TYPE_STRING,&property,DBUS_TYPE_STRING,&value);
+                //printf("setting property %s-%s\n",property ,value);
+		//PODS_ShowPublicMethodsOfInterface(c,msg,path);
+                return DBUS_HANDLER_RESULT_HANDLED;
+        }
+	
+	PODS_ExecuteCallback(iface->methods,c,msg,member,data);	
 	return DBUS_HANDLER_RESULT_HANDLED;
 }
 
@@ -245,6 +304,47 @@ DBusConnection *PODS_Connect(char *interface,void *engine) {
         return bus;
 }
 
+void PODS_ShowPublicMethodsOfInterface(DBusConnection *conn,DBusMessage *msg, char *interface){
+        GHashTableIter iter;
+        gpointer k,v;
+        DBusMessageIter args;
+        DBusMessage *reply = NULL;
+        int i = 0;
+        ST_PolyDbusInterface *ipoly = NULL;
+
+        ipoly = (ST_PolyDbusInterface*)g_hash_table_lookup(polybus.interfaces,interface);
+        if(ipoly != NULL) {
+        	reply = dbus_message_new_method_return(msg);
+
+        	dbus_message_iter_init(reply, &args);
+        	dbus_message_iter_init_append(reply, &args);
+
+        	g_hash_table_iter_init (&iter, ipoly->methods);
+        	while (g_hash_table_iter_next (&iter, &k, &v)) {
+			const char *value = k;
+                	if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &value)) {
+                        	fprintf(stderr, "Out Of Memory!\n");
+                        	return;
+                	}
+		}
+        	g_hash_table_iter_init (&iter, ipoly->properties);
+        	while (g_hash_table_iter_next (&iter, &k, &v)) {
+			const char *value = k;
+                	if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &value)) {
+                        	fprintf(stderr, "Out Of Memory!\n");
+				return;
+			}
+		}
+        	if (!dbus_connection_send(conn, reply, NULL)) {
+                	fprintf(stderr, "Out Of Memory!\n");
+                	return;
+        	}
+        	dbus_connection_flush(conn);
+        	dbus_message_unref(reply);
+	}
+        return;
+}
+
 static const char *instrospect_header = "<!DOCTYPE node PUBLIC \"-//freedesktop//DTD D-BUS Object Introspection 1.0//EN\"\n"
         "\"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd\">\n"
         "<node>\n"
@@ -275,7 +375,7 @@ void PODS_Method_Instrospect(DBusConnection *conn,DBusMessage *msg, void *data) 
         DBusMessage *reply = NULL;
         ST_Callback *current = NULL;
         ST_Interface *interfaces = NULL;
-	GList *item = polybus.interfaces;
+	GList *item = g_hash_table_get_values(polybus.interfaces);
         GString* xml_data;
         int i,j,offset;
 
@@ -287,8 +387,9 @@ void PODS_Method_Instrospect(DBusConnection *conn,DBusMessage *msg, void *data) 
         xml_data = g_string_new (instrospect_header);
         /* Now for every interface we publish their methods, signals and properties */
 	
-	while(item!= NULL) {	
-                interfaces = (ST_Interface*)item->data;
+	while(item!= NULL) {
+		interfaces = ((ST_PolyDbusInterface *)item->data)->iface;	
+                //interfaces = (ST_Interface*)item->data;
 
                 /* Now the methods supported by the interface of the agent */
                 g_string_append_printf (xml_data," \n<interface name=\"%s\">\n  ",interfaces->name);

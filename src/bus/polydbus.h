@@ -38,20 +38,31 @@
 
 #define MAX_DBUS_SEGMENT_BUFFER 2048
 
+struct ST_PolyDbusInterface{
+	ST_Interface *iface;
+	GHashTable *methods;
+// TODO
+//	GHashTable *signals;
+	GHashTable *properties;
+};
+typedef struct ST_PolyDbusInterface ST_PolyDbusInterface;
+
 struct ST_PolyDbus{
 	DBusWatch *watches[MAX_WATCHES];
 	struct pollfd pollfds[MAX_WATCHES];
 	int total_watches;
-	GHashTable *public_callbacks;
+	GHashTable *interfaces;
 	GHashTable *private_callbacks;
-	GList *interfaces;
+	GHashTable *properties;
 };
 typedef struct ST_PolyDbus ST_PolyDbus;
 
 void PODS_Init(void);
 void PODS_Destroy(void);
-void PODS_AddInterface(ST_Interface *iface);
-void PODS_AddPublicCallback(ST_Callback *call);
+
+void PODS_AddPublicMethod(ST_Interface *iface,ST_Callback *call);
+void PODS_AddPublicProperty(ST_Interface *iface,ST_Callback *call);
+
 void PODS_AddPrivateCallback(ST_Callback *call);
 DBusConnection *PODS_Connect(char *interface,void *engine);
 int PODS_GetTotalActiveDescriptors(void);

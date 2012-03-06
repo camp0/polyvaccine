@@ -62,27 +62,25 @@ void POFR_Init() {
 		i = 0;
 		interface = &ST_PublicInterfaces[0];
 		while(interface->name != NULL) {
-			PODS_AddInterface(interface);
-
 			/* Loads the methods first */
 			current = (ST_Callback*)&(interface->methods[0]);
 			j = 0;
 			while((current != NULL)&&(current->name != NULL)) {
-				PODS_AddPublicCallback(current);
+				PODS_AddPublicMethod(interface,current);
 				j++;
 				current = (ST_Callback*)&(interface->methods[j]);
 			}
 			j = 0;
 			current = (ST_Callback*)&(interface->signals[0]);
 			while((current != NULL)&&(current->name != NULL)) {
-				PODS_AddPublicCallback(current);
+				PODS_AddPublicMethod(interface,current);
 				j++;
 				current = (ST_Callback*)&(interface->signals[j]);
 			} 
 			j = 0;
 			current = (ST_Callback*)&(interface->properties[0]);
 			while((current!=NULL)&&(current->name != NULL)){
-				PODS_AddPublicCallback(current);
+				PODS_AddPublicProperty(interface,current);
 				j++;
 				current = (ST_Callback*)&(interface->properties[j]);
 			}
