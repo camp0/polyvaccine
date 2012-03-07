@@ -25,6 +25,10 @@
 #ifndef _POLYDBUS_H_
 #define _POLYDBUS_H_
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,6 +37,11 @@
 #include <sys/poll.h>
 #include "callbacks.h"
 #include <sys/types.h>
+#include "interfaces.h"
+#include "debug.h"
+
+#define POLYLOG_CATEGORY_NAME POLYVACCINE_BUS
+#include "log.h"
 
 #define MAX_WATCHES 4
 

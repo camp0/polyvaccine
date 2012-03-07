@@ -48,6 +48,7 @@ void POFR_Init() {
 
 	_polyFilter = (ST_PolyFilter*)g_new0(ST_PolyFilter,1);
 
+	POLG_Init();
 	PODS_Init();
 	_polyFilter->polyfilter_status = POLYFILTER_STATE_STOP;
 	_polyFilter->is_pcap_file = FALSE;
@@ -92,7 +93,6 @@ void POFR_Init() {
 	PKCX_Init();
 	SYIN_Init();
 	TCAZ_Init();
-	POLG_Init();
 
 	_polyFilter->conn = COMN_Init();
 	_polyFilter->flowpool = FLPO_Init();

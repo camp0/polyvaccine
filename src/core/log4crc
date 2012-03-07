@@ -16,6 +16,7 @@
         <!-- <category name="polyvaccine.filter.connection" priority="debug" appender="none"/> -->
         <!-- <category name="polyvaccine.filter" priority="debug" appender="none"/>-->
         <category name="polyvaccine.filter" priority="info" appender="stdout"/>
+        <category name="polyvaccine.bus" priority="info" appender="stdout"/>
 
         <!-- default appenders ===================================== -->
         <appender name="stdout" type="stream" layout="basic"/>

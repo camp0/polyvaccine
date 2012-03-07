@@ -23,7 +23,6 @@
  */
 
 #include "polydbus.h"
-#include "debug.h"
 #include "callbacks.h"
 
 static ST_PolyDbus polybus;
@@ -124,7 +123,18 @@ void PODS_ExecuteCallback(GHashTable *h, DBusConnection *c,DBusMessage *msg,char
                 DEBUG0("method found '%s' callback(0x%x)\n",key,callback);
                 callback->func(c,msg,data);
         }else{
-                DEBUG0("method not found '%s'\n",key);
+		DBusMessage *reply = NULL;
+		char error_str[128];
+
+		snprintf(error_str,128,"Method '%s' not found",key);
+		reply = dbus_message_new_error(msg, POLYVACCINE_BUS ".Error", error_str);
+
+		dbus_connection_send(c, reply, NULL);
+        	dbus_connection_flush(c);
+		dbus_message_unref(reply);
+
+		LOG(POLYLOG_PRIORITY_INFO,	
+                	"Method not found '%s'\n",key);
         }
 	return;
 }
@@ -143,22 +153,53 @@ DBusHandlerResult DB_FilterDbusFunctionMessage(DBusConnection *c, DBusMessage *m
 	}else{
 		real_interface = interface;
 	}	
-        //printf("i(%s)d(%d)p(%s)m(%s)ri(%s)\n",interface,destination,path,member,real_interface);
+#ifdef DEBUG
+	LOG(POLYLOG_PRIORITY_DEBUG,
+		"i(%s)d(%d)p(%s)m(%s)ri(%s)",interface,destination,path,member,real_interface);
+#endif
 
         if (dbus_message_is_method_call (msg, "org.freedesktop.DBus.Introspectable", "Introspect")) {
 		PODS_Method_Instrospect(c,msg,data);
                 return DBUS_HANDLER_RESULT_HANDLED;
         }
 
-        if (dbus_message_is_method_call (msg,"org.freedesktop.DBus.Properties","Get")) {
-                char *ifaceaux = "";
+        if (dbus_message_is_method_call (msg,"org.freedesktop.DBus.Properties","Get")){
+                char *property_interface = "";
                 char *property = "";
                 DBusError err;
 
                 dbus_error_init(&err);
-                dbus_message_get_args(msg,&err,DBUS_TYPE_STRING,&ifaceaux,DBUS_TYPE_STRING,&property);
-         //       printf("geting property %s\n",property);
-                PODS_ExecuteCallback(polybus.properties,c,msg,property,data);
+                dbus_message_get_args(msg,&err,DBUS_TYPE_STRING,&property_interface,DBUS_TYPE_STRING,&property);
+		iface = (ST_PolyDbusInterface*)g_hash_table_lookup(polybus.interfaces,property_interface);
+		if (iface == NULL){
+			LOG(POLYLOG_PRIORITY_INFO,
+                		"No interface %s available for property %s",property_interface,property);
+			return DBUS_HANDLER_RESULT_HANDLED;
+		}
+		// The properties should only visible on their interface, not globaly
+		LOG(POLYLOG_PRIORITY_INFO,
+               		"Get property '%s' from interface '%s'",property,property_interface);
+                PODS_ExecuteCallback(iface->properties,c,msg,property,data);
+                return DBUS_HANDLER_RESULT_HANDLED;
+        }
+
+        if (dbus_message_is_method_call (msg,"org.freedesktop.DBus.Properties","GetAll")) {
+                char *property_interface = "";
+                //char *property = "";
+                DBusError err;
+
+                dbus_error_init(&err);
+                dbus_message_get_args(msg,&err,DBUS_TYPE_STRING,&property_interface);
+                //dbus_message_get_args(msg,&err,DBUS_TYPE_STRING,&property_interface,DBUS_TYPE_STRING,&property);
+                iface = (ST_PolyDbusInterface*)g_hash_table_lookup(polybus.interfaces,property_interface);
+                if (iface == NULL){
+			LOG(POLYLOG_PRIORITY_INFO,
+                        	"GetAll interface '%s' not available",property_interface);
+                        return DBUS_HANDLER_RESULT_HANDLED;
+                }
+		LOG(POLYLOG_PRIORITY_INFO,
+                       	"GetAll properties from interface '%s'",property_interface);
+		PODS_ShowAllPropertiesOfInterface(iface,c,msg);
                 return DBUS_HANDLER_RESULT_HANDLED;
         }
 
@@ -176,22 +217,25 @@ DBusHandlerResult DB_FilterDbusFunctionMessage(DBusConnection *c, DBusMessage *m
                 return DBUS_HANDLER_RESULT_HANDLED;
         }
         if (dbus_message_is_method_call (msg, real_interface, "GetProperties")) { // method used by ipython
-		PODS_ShowPublicMethodsOfInterface(c,msg,real_interface);
+		//PODS_ShowPublicMethodsOfInterface(c,msg,real_interface);
+		PODS_ShowAllPropertiesOfInterface(iface,c,msg);
                 return DBUS_HANDLER_RESULT_HANDLED;
         }
-        if (dbus_message_is_method_call (msg, real_interface, "SetProperties")) { // method used by ipython
+        if (dbus_message_is_method_call (msg, real_interface, "GetProperty")) { // method used by ipython
                 char *property = "";
-                char *value = "";
+                //char *property = "";
                 DBusError err;
 
-		// TODO
                 dbus_error_init(&err);
-                dbus_message_get_args(msg,&err,DBUS_TYPE_STRING,&property,DBUS_TYPE_STRING,&value);
-                //printf("setting property %s-%s\n",property ,value);
-		//PODS_ShowPublicMethodsOfInterface(c,msg,path);
+                dbus_message_get_args(msg,&err,DBUS_TYPE_STRING,&property);
+		LOG(POLYLOG_PRIORITY_INFO,
+                        "Get property '%s' from interface '%s'",property,real_interface);
+                PODS_ExecuteCallback(iface->properties,c,msg,property,data);
                 return DBUS_HANDLER_RESULT_HANDLED;
         }
 	
+	LOG(POLYLOG_PRIORITY_INFO,
+               	"Executing method '%s' from interface '%s'",member,real_interface);
 	PODS_ExecuteCallback(iface->methods,c,msg,member,data);	
 	return DBUS_HANDLER_RESULT_HANDLED;
 }
@@ -302,6 +346,35 @@ DBusConnection *PODS_Connect(char *interface,void *engine) {
 	DEBUG0("registered %s \n", interface);
 
         return bus;
+}
+
+void PODS_ShowAllPropertiesOfInterface(ST_PolyDbusInterface *ipoly,DBusConnection *conn, DBusMessage *msg) {
+        DBusMessageIter args;
+        DBusMessage *reply = NULL;
+	GHashTableIter iter;
+	gpointer v,k;
+
+        reply = dbus_message_new_method_return(msg);
+
+        dbus_message_iter_init(reply, &args);
+        dbus_message_iter_init_append(reply, &args);
+
+        g_hash_table_iter_init (&iter, ipoly->properties);
+        while (g_hash_table_iter_next (&iter, &k, &v)) {
+		const char *value = k;
+                if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &value)) {
+                	fprintf(stderr, "Out Of Memory!\n");
+                        return;
+                }
+	}
+	if (!dbus_connection_send(conn, reply, NULL)) {
+		fprintf(stderr, "Out Of Memory!\n");
+		return;
+	}
+	dbus_connection_flush(conn);
+	dbus_message_unref(reply);
+
+	return;
 }
 
 void PODS_ShowPublicMethodsOfInterface(DBusConnection *conn,DBusMessage *msg, char *interface){
