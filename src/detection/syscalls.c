@@ -304,7 +304,7 @@ int SYSU_Wait(pid_t p, int report, int stopsig) {
         }
 
         if ((report & EXPECT_STOPPED) && !WIFSTOPPED(status)) {
-                fprintf(stdout, "ERROR:Not stopped?\n");
+//                fprintf(stdout, "ERROR:Not stopped?\n");
 		return PROCESS_EXIT;
         }
 	return PROCESS_RUNNING;
@@ -353,17 +353,21 @@ void SYSU_NewExecutionProcess(ST_SharedContext *c) {
         void (*function)();
 	int i,status;
 
+#ifdef DEBUG
 	LOG(POLYLOG_PRIORITY_DEBUG,
         	"child(%d) preparing to execute %d bytes from offset %d",getpid(),ctx->size,ctx->virtualeip);
 	LOG(POLYLOG_PRIORITY_DEBUG,
         	"child(%d) istracedchild=%d,parent_pid=%d",getpid(),ctx->isptracechild,ctx->parent_pid);
 	LOG(POLYLOG_PRIORITY_DEBUG,
         	"child(%d) size=%d",getpid(),ctx->size);
+#endif
 	if (ctx->isptracechild == FALSE) {
 
                 if((ctx->virtualeip >= ctx->size)||(ctx->virtualeip < 0)) {
+#ifdef DEBUG
 			LOG(POLYLOG_PRIORITY_DEBUG,
                         	"child(%d) Overflow exit",getpid());
+#endif
                         ctx->virtualeip = ctx->size;
                         exit(0);
                 }
@@ -391,6 +395,7 @@ void SYSU_NewExecutionProcess(ST_SharedContext *c) {
 
 int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
         int ret,syscall;
+	int shellcode_detected = FALSE;
 #ifdef __LINUX__
 	struct user_regs_struct u_in;
 #endif
@@ -410,7 +415,7 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 //	SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, TRACE_O_TRACEFORK, (void*)SIGUSR1);
 	SYSU_DestroySuspiciousSyscalls();
 	LOG(POLYLOG_PRIORITY_INFO,
-		"parent(%d)ready for child execution",getpid());
+		"parent(%d)ready for child(%d) execution",getpid(),child_pid);
         alarm(3);
         while(1) {
                 struct ST_SysCallFlow *scf;
@@ -439,7 +444,8 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 							"\tax=%x;bx=%x;cx=%x;dx=%x",REG_AX(u_in),REG_BX(u_in),REG_CX(u_in),REG_DX(u_in));
 						LOG(POLYLOG_PRIORITY_WARN,
 							"\tcs=%x;ip=%x;di=%x;si=%x",REG_CS(u_in),REG_IP(u_in),REG_DI(u_in),REG_SI(u_in));
-
+						
+						shellcode_detected = TRUE;
 						if(t->show_execution_path== TRUE) 
 							SYSU_PrintSuspiciousSysCalls();
 						if(t->block_syscalls_eax==TRUE){
@@ -454,7 +460,7 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 							LOG(POLYLOG_PRIORITY_WARN,
 								"process %d killed by parent",child_pid);
                                         		alarm(0);
-                                        		return 1;
+                                        		return shellcode_detected;
 						}
 					}
 					if (sus->level == SYSCALL_LEVEL_MEDIUM) {
@@ -473,16 +479,18 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
         }
 	if(t->show_execution_path== TRUE) 
 		SYSU_PrintSuspiciousSysCalls();
-        alarm(0);
-        return 0;
+	alarm(0);
+        return shellcode_detected;
 }
 
 void SYSU_HandlerAlarmNew (int sig) {
         int ret;
         int status;
 
+#ifdef DEBUG
 	LOG(POLYLOG_PRIORITY_DEBUG,
         	"process %d consume too much CPU on offset %d",ctx->child_pid);//,sc_floweip->child_pid,sc_floweip->virtualeip);
+#endif
 //        sc_floweip->cpu_execed ++;
  //       sc_floweip->virtualeip = sc_floweip->size;
         kill(ctx->child_pid,SIGKILL);
@@ -499,13 +507,16 @@ void sigusr(int signal) {
 #define POLYLOG_CATEGORY_NAME POLYVACCINE_DETECTION_INTERFACE ".tracer.child"
 
 void sigsegv_handler(int sig, siginfo_t *info, void *data) {
+#ifdef DEBUG
 	LOG(POLYLOG_PRIORITY_DEBUG,
 		"child(%d) receives signal %d on virtualeip %d",getpid(),sig,ctx->virtualeip);
-
+#endif
         if((ctx->virtualeip>=ctx->size)||(ctx->virtualeip < 0)) {
+#ifdef DEBUG
 		LOG(POLYLOG_PRIORITY_DEBUG,
                 	"child(%d) Overflow exit on virtualeip=%d size=%d",getpid(),
 			ctx->virtualeip ,ctx->size);
+#endif
                 ctx->virtualeip = ctx->size;
                 exit(0);
         }
@@ -593,16 +604,21 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
 
 		// TODO check all the trusted offsets to avoid fork operations
 		if((t_off->offsets_start[index]==0)&&(t_off->offsets_end[index]>0) ){
-			DEBUG0("avoid offset %d due to is trusted (%d,%d)\n",
+#ifdef DEBUG
+			LOG(POLYLOG_PRIORITY_DEBUG,
+				"avoid offset %d due to is trusted (%d,%d)",
 				ctx->virtualeip,t_off->offsets_start[index],t_off->offsets_end[index]);
+#endif
 			ctx->virtualeip = t_off->offsets_end[index]+1;
 			index++;	
 		}	
 		ctx->isptracechild = FALSE;
 		ctx->incbytracer++;
 		got_child_signal = 0;
+#ifdef DEBUG
 		LOG(POLYLOG_PRIORITY_DEBUG,
                 	"tracer(%d) Forking Process from offset %d of %d bytes",getpid(),ctx->virtualeip,ctx->size);
+#endif
                 child_pid = fork();
                 if (child_pid == 0) {
         		struct sigaction sa;

@@ -109,6 +109,5 @@ void main(int argc, char **argv) {
 	PODT_BlockDetectedSyscalls(block_syscalls);
 	PODT_ShowExecutionPath(show_execution_path);	
 	PODT_Run();
-
 	return;
 }

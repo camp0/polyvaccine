@@ -26,8 +26,8 @@ polyvaccine_module = Extension('_polyvaccine',
 
 setup (name = 'polyvaccine',
        version = '0.1',
-       author      = "SWIG Docs",
-       description = """Simple swig example from docs""",
+       author      = "Luis Campo Giralte",
+       description = """Simple wrapper for the filter engine""",
        ext_modules = [polyvaccine_module],
        py_modules = ["polyvaccine"],
        )

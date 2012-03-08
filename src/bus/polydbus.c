@@ -117,10 +117,8 @@ void PODS_ExecuteCallback(GHashTable *h, DBusConnection *c,DBusMessage *msg,char
         const char *member = dbus_message_get_member(msg);
         const char VARIABLE_IS_NOT_USED *path = dbus_message_get_path(msg);
 
-        DEBUG0("receive message from '%s' on object (0x%x)callback(%s)\n",interface,h,key);
         callback = (ST_Callback*)g_hash_table_lookup(h,(gchar*)key);
         if(callback != NULL) {
-                DEBUG0("method found '%s' callback(0x%x)\n",key,callback);
                 callback->func(c,msg,data);
         }else{
 		DBusMessage *reply = NULL;
@@ -185,12 +183,10 @@ DBusHandlerResult DB_FilterDbusFunctionMessage(DBusConnection *c, DBusMessage *m
 
         if (dbus_message_is_method_call (msg,"org.freedesktop.DBus.Properties","GetAll")) {
                 char *property_interface = "";
-                //char *property = "";
                 DBusError err;
 
                 dbus_error_init(&err);
                 dbus_message_get_args(msg,&err,DBUS_TYPE_STRING,&property_interface);
-                //dbus_message_get_args(msg,&err,DBUS_TYPE_STRING,&property_interface,DBUS_TYPE_STRING,&property);
                 iface = (ST_PolyDbusInterface*)g_hash_table_lookup(polybus.interfaces,property_interface);
                 if (iface == NULL){
 			LOG(POLYLOG_PRIORITY_INFO,
@@ -217,13 +213,11 @@ DBusHandlerResult DB_FilterDbusFunctionMessage(DBusConnection *c, DBusMessage *m
                 return DBUS_HANDLER_RESULT_HANDLED;
         }
         if (dbus_message_is_method_call (msg, real_interface, "GetProperties")) { // method used by ipython
-		//PODS_ShowPublicMethodsOfInterface(c,msg,real_interface);
 		PODS_ShowAllPropertiesOfInterface(iface,c,msg);
                 return DBUS_HANDLER_RESULT_HANDLED;
         }
         if (dbus_message_is_method_call (msg, real_interface, "GetProperty")) { // method used by ipython
                 char *property = "";
-                //char *property = "";
                 DBusError err;
 
                 dbus_error_init(&err);

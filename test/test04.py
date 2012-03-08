@@ -44,7 +44,9 @@ class Test_01(unittest.TestCase):
 			for i in xrange(0,5):
 				subprocess.Popen(["../src/detection/sendexploit","9"])
 				time.sleep(0.09)
-		value = d.ShellcodesDetected()
+		value = d.GetProperty("ShellcodesDetected")
+		print value
+#		value = d.ShellcodesDetected()
                 pp.kill()
                 pp.wait()
 		self.assertEqual(value,5)

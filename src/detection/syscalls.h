@@ -178,9 +178,6 @@ linux_call_type(long codesegment)
 #endif /* !PTRACE_LINUX64 */
 
 
-#define DEBUG
-
-
 void SYSU_Init(void);
 void SYSU_Destroy(void);
 void SYSU_ShowExecutionPath(int value);

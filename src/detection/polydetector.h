@@ -54,6 +54,7 @@ struct ST_PolyDetector {
         DBusConnection *bus;
 	int state;
 	int show_received_payload;
+	int block_syscalls;
 	int32_t executed_segments;
 	int32_t shellcodes_detected;
 	unsigned char buffer[MAX_DBUS_SEGMENT_BUFFER];

@@ -52,30 +52,25 @@ void POPR_Init() {
 	i = 0;
 	interface = &ST_PublicInterfaces[0];
 	while(interface->name != NULL) {	
-                PODS_AddInterface(interface);
-
                 /* Loads the methods first */
                 current = &interface->methods[0];
 		j=0;
 		while((current!=NULL)&&(current->name!=NULL)){
-                        DEBUG0("add method '%s' on interface '%s'\n",current->name,interface->name);
-                        PODS_AddPublicCallback(current);
+                        PODS_AddPublicMethod(interface,current);
 			j++;
                         current = &interface->methods[j];
                 }
                 current = &interface->properties[0];
 		j=0;
 		while((current!=NULL)&&(current->name!=NULL)){
-                        DEBUG0("add properties '%s' on interface '%s'\n",current->name,interface->name);
-                        PODS_AddPublicCallback(current);
+                        PODS_AddPublicProperty(interface,current);
 			j++;
                         current = &interface->properties[j];
                 }
                 current = &interface->signals[0];
 		j=0;
 		while((current!=NULL)&&(current->name!=NULL)){
-                        DEBUG0("add signal '%s' on interface '%s'\n",current->name,interface->name);
-                        PODS_AddPublicCallback(current);
+                        PODS_AddPublicMethod(interface,current);
 			j++;
                         current = &interface->signals[j];
 		}

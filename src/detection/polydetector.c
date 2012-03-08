@@ -38,6 +38,7 @@ void PODT_Init() {
 	_polyDetector->executed_segments = 0;
 	_polyDetector->shellcodes_detected = 0;
 	_polyDetector->show_received_payload = FALSE;
+	_polyDetector->block_syscalls = FALSE;
 
 	POLG_Init();
 	SYIN_Init();
@@ -117,7 +118,7 @@ void PODT_Run() {
 
                 ret = poll(local_fds,nfds,-1);
                 if (ret <0){
-                        //perror("poll");
+//                        perror("poll");
                         break;
                 }
 
@@ -137,6 +138,7 @@ void PODT_ShowExecutionPath(int value){
   
 
 void PODT_BlockDetectedSyscalls(int value){
+	_polyDetector->block_syscalls = value;
 	SYSU_BlockDetectedSyscalls(value);
 	return;
 }

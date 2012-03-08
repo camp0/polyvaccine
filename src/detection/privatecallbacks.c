@@ -131,11 +131,16 @@ void PRCA_Signaling_AnalyzeSegment(DBusConnection *conn,DBusMessage *msg, void *
 	if(ret)
 		p->shellcodes_detected++;
 	SYSU_DestroySuspiciousSyscalls();
-	PODS_SendVerifiedSegment(conn,
-		"/polyvaccine/protector","polyvaccine.protector.veredict","Veredict",
-                seq,hash,ret);
+
+	/* For some reason if the -b option is set the dbus sends a 
+           Disconect message and the pvde exists. This should be 
+	   fixed one day :D
+        */
+	if(p->block_syscalls == FALSE) 
+		PODS_SendVerifiedSegment(conn,
+			"/polyvaccine/protector","polyvaccine.protector.veredict","Veredict",
+                	seq,hash,ret);
 	p->executed_segments ++;
-	
 	return;
 }
 
