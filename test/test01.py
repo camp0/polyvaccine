@@ -240,7 +240,12 @@ class Test_01(unittest.TestCase):
 		self.assertEqual(s.real_size ,length)		
 
 		final = url + host + cookie
-		self.assertEqual(len(s.mem),len(final))
+#		print "-------------------"
+#		print "(%s)" % s.mem
+#		print "-------------------"
+#		print "(%s)" % final
+#		print "-------------------"
+#		self.assertEqual(len(s.mem),len(final))
 		self.assertEqual(s.mem,final)		
 
 
@@ -260,6 +265,26 @@ class Test_01(unittest.TestCase):
 		p.MESG_Reset(s)
 		self.assertEqual(s.virtual_size,0)
 		self.assertEqual(s.real_size,length)
+
+        def test_01_13(self):
+                "Test the memorypool II"
+                m = p.MEPO_Init()
+                value = p.MEPO_GetNumberMemorySegments(m)
+		seg = p.MEPO_GetMemorySegment(m)
+                p.MEPO_DecrementMemoryPool(m,value-1)
+
+		self.assertEqual(0,p.MEPO_GetNumberMemorySegments(m))
+		seg1 = p.MEPO_GetMemorySegment(m)
+		self.assertEqual(None,seg1)
+		self.assertEqual(0,p.MEPO_GetNumberMemorySegments(m))
+		p.MEPO_AddMemorySegment(m,seg)
+		self.assertEqual(1,p.MEPO_GetNumberMemorySegments(m))
+
+		p.MEPO_AddMemorySegment(m,seg1)
+		self.assertEqual(1,p.MEPO_GetNumberMemorySegments(m))
+
+                p.MEPO_Destroy(m)
+                del m 
 
 class Test_02(unittest.TestCase):
 

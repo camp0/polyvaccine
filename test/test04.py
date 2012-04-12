@@ -60,7 +60,7 @@ class Test_02(unittest.TestCase):
 	def tearDown(self):
 		pass
 
-	def test_01_2(self):
+	def test_02_1(self):
 		"Test the pvde and the pvfe together"
                 pvde = subprocess.Popen(["../src/detection/pvde"])
                 time.sleep(0.5)
@@ -79,10 +79,29 @@ class Test_02(unittest.TestCase):
 		self.assertEqual(value1,0)
 		self.assertEqual(value2,1)
 
+class Test_03(unittest.TestCase):
+	" Unit test for the false positives"
+
+        def setUp(self):
+                pass
+
+        def tearDown(self):
+                pass
+
+        def test_03_1(self):
+		d.SYSU_Init()
+
+		segment = "get bu bubluasdifjiennnna"
+		print "len=",len(segment)
+		ret = d.SYSU_AnalyzeSegmentMemory(segment,len(segment),None)
+		print ret
+		d.SYSU_Destroy()	
+	
 if __name__ == '__main__':
 	print "Testing the detection engine"
 	suite=unittest.TestSuite()
-    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
+    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_03))
+    	#suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
 #    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_02))
 	result=testrunner.BasicTestRunner().run(suite)
 	

@@ -108,6 +108,9 @@ int MEPO_DecrementMemoryPool(ST_MemoryPool *mp,int value) {
 }
 
 void MEPO_AddMemorySegment(ST_MemoryPool *mp,ST_MemorySegment *m){
+
+	if(m == NULL) 
+		return;
         MESG_Reset(m);
         mp->total_releases++;
 	mp->total_release_bytes += m->real_size;

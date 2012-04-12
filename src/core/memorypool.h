@@ -47,20 +47,8 @@ struct ST_MemoryPool {
 
 typedef struct ST_MemoryPool ST_MemoryPool;
 
-/**
- * Inits the memory pool 
- * 
- * @returns a ST_MemoryPool alloclated
- */
 ST_MemoryPool *MEPO_Init(void);
-
-/**
- * Destroy the memory pool 
- * 
- * @param ST_MemoryPool to free
- */
 void MEPO_Destroy(ST_MemoryPool *mp);
-
 void MEPO_AddMemorySegment(ST_MemoryPool *mp,ST_MemorySegment *m);
 ST_MemorySegment *MEPO_GetMemorySegment(ST_MemoryPool *mp);	
 int MEPO_GetNumberMemorySegments(ST_MemoryPool *mp);

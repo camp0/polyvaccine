@@ -361,6 +361,7 @@ void SYSU_NewExecutionProcess(ST_SharedContext *c) {
 	LOG(POLYLOG_PRIORITY_DEBUG,
         	"child(%d) size=%d",getpid(),ctx->size);
 #endif
+        	printf("child(%d) preparing to execute %d bytes from offset %d",getpid(),ctx->size,ctx->virtualeip);
 	if (ctx->isptracechild == FALSE) {
 
                 if((ctx->virtualeip >= ctx->size)||(ctx->virtualeip < 0)) {
@@ -403,6 +404,7 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 	struct reg u_in;
 #endif
 
+	printf("trace sending signal1 to child\n");
         SYSU_Kill(child_pid, SIGUSR1);
         ret = SYSU_Wait(child_pid, EXPECT_STOPPED, SIGUSR1);
         if (ret != PROCESS_RUNNING) {
@@ -410,12 +412,14 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
                 return 0;
         }
 
+	printf("trace sending signal1 to child DONE\n");
 //       	SYSU_SetSysGood(child_pid);
 	PTRC_TraceSyscall(child_pid,SIGUSR1);
 //	SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, TRACE_O_TRACEFORK, (void*)SIGUSR1);
 	SYSU_DestroySuspiciousSyscalls();
 	LOG(POLYLOG_PRIORITY_INFO,
 		"parent(%d)ready for child(%d) execution",getpid(),child_pid);
+	printf("parent(%d)ready for child(%d) execution",getpid(),child_pid);
         alarm(3);
         while(1) {
                 struct ST_SysCallFlow *scf;
@@ -511,6 +515,7 @@ void sigsegv_handler(int sig, siginfo_t *info, void *data) {
 	LOG(POLYLOG_PRIORITY_DEBUG,
 		"child(%d) receives signal %d on virtualeip %d",getpid(),sig,ctx->virtualeip);
 #endif
+	printf("child(%d) receives signal %d on virtualeip %d",getpid(),sig,ctx->virtualeip);
         if((ctx->virtualeip>=ctx->size)||(ctx->virtualeip < 0)) {
 #ifdef DEBUG
 		LOG(POLYLOG_PRIORITY_DEBUG,
@@ -536,11 +541,12 @@ void sigsegv_handler(int sig, siginfo_t *info, void *data) {
 #define POLYLOG_CATEGORY_NAME POLYVACCINE_DETECTION_INTERFACE ".tracer"
 
 int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
+	ST_TrustOffsets tr_off;
 	void (*oldsig)(int);
         struct sigaction sact;
 	struct sigaction susr;
         pid_t child_pid,parent_pid;
-        int ret,real_size,init_regs_size,jump_size;
+        int ret,real_size,init_regs_size,jump_size,i;
 	int offset = 0;
 
         sigemptyset( &sact.sa_mask );
@@ -591,7 +597,27 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
 	tracer->segment_with_opcodes = malloc(tracer->executable_segment_size);
         memcpy(tracer->segment_with_opcodes,tracer->executable_segment,tracer->executable_segment_size);
 
-	ctx->t_off = t_off;
+	if(t_off == NULL){
+		tr_off.offsets_start[0] = 0;
+		tr_off.offsets_end[0] = 0;
+		tr_off.index = 0;
+		printf("trust offsets NULL!!!!\n");
+	}else{	
+		tr_off.index = -1;
+		for (i = 0;i<MAX_OFFSETS_ALLOCATED;i++) {
+			tr_off.offsets_start[i] = t_off->offsets_start[i];
+			tr_off.offsets_end[i] = t_off->offsets_end[i];
+			if((tr_off.offsets_start[i]> 0)&&(tr_off.offsets_end[i]>0))
+				tr_off.index ++;	
+		}
+	}
+	printf("trust offsets index %d\n",tr_off.index);
+	for(i=0;i<=tr_off.index;i++) {
+		printf("s[%d]=%d;e[%d]=%d ",i,tr_off.offsets_start[i],i,tr_off.offsets_end[i]);
+	}
+	printf("\n");
+
+	ctx->t_off = &tr_off;
 	ctx->t_off->index = 0;
         ctx->memory = tracer->executable_segment;
 	parent_pid = getpid();
@@ -603,15 +629,16 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
 	do {
 
 		// TODO check all the trusted offsets to avoid fork operations
-		if((t_off->offsets_start[index]==0)&&(t_off->offsets_end[index]>0) ){
+		if((tr_off.offsets_start[index]==0)&&(tr_off.offsets_end[index]>0) ){
 #ifdef DEBUG
 			LOG(POLYLOG_PRIORITY_DEBUG,
 				"avoid offset %d due to is trusted (%d,%d)",
-				ctx->virtualeip,t_off->offsets_start[index],t_off->offsets_end[index]);
+				ctx->virtualeip,tr_off.offsets_start[index],tr_off.offsets_end[index]);
 #endif
-			ctx->virtualeip = t_off->offsets_end[index]+1;
+			ctx->virtualeip = tr_off.offsets_end[index]+1;
 			index++;	
 		}	
+		printf("forking process on %d offset\n",ctx->virtualeip);
 		ctx->isptracechild = FALSE;
 		ctx->incbytracer++;
 		got_child_signal = 0;
@@ -648,6 +675,7 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
 				//DEBUG_TRACER("Avoid overflow execution,virtualeip(%d)size(%d)\n",ctx->virtualeip,ctx->size);
                                 exit(0);
                         }
+			printf("child.....\n");
                         SYSU_NewExecutionProcess(ctx);
                         exit(0);
                 }

@@ -30,7 +30,7 @@ pvfe_SOURCES = main.c
 pvfe_LDFLAGS = $(DEPS_LIBS) -lpolyvaccine -lpcap 
 pvfe_LDADD = -lpolyvaccine $(DEPS_LIBS)
 
-EXTRA_DIST = polyvaccine.i setup.py
+EXTRA_DIST = polyvaccine.i setup.py log4crc
 
 CLEANFILES = $(srcdir)/polyvaccine_wrap.c $(srcdir)/_polyvaccine.so *.pyc polyvaccine.py 
 
