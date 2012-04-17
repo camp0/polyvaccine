@@ -38,19 +38,57 @@ class Test_01(unittest.TestCase):
 		arch = platform.architecture()[0]
 		if("32" in arch):
 			for i in xrange(0,5):
-				subprocess.Popen(["../src/detection/sendexploit","6"])
+				subprocess.Popen(["../src/detection/sendexploit","-c","6"],stdout=None)
 				time.sleep(0.01)	
 		elif("64" in arch):
 			for i in xrange(0,5):
-				subprocess.Popen(["../src/detection/sendexploit","9"])
+				subprocess.Popen(["../src/detection/sendexploit","-c","9"],stdout=None)
 				time.sleep(0.09)
 		value = d.GetProperty("ShellcodesDetected")
-		print value
-#		value = d.ShellcodesDetected()
                 pp.kill()
                 pp.wait()
 		self.assertEqual(value,5)
 
+        def test_01_2(self):
+                "Test the pvde by sending 1 exploits with incorrect offset"
+                pp = subprocess.Popen(["../src/detection/pvde"])
+
+                time.sleep(1)
+                bus = dbus.SessionBus()
+                s = bus.get_object('polyvaccine.detector', '/polyvaccine/detector')
+                d = dbus.Interface(s,dbus_interface='polyvaccine.detector')
+                time.sleep(1)
+
+                arch = platform.architecture()[0]
+                if("64" in arch):
+                	subprocess.Popen(["../src/detection/sendexploit","-c","1","-o","8"],stdout=None)
+                        time.sleep(0.1)
+
+                value = d.GetProperty("ShellcodesDetected")
+                pp.kill()
+                pp.wait()
+                self.assertEqual(value,0)
+
+
+        def test_01_3(self):
+                "Test the pvde by sending 1 HTTP request."
+                pp = subprocess.Popen(["../src/detection/pvde"])
+
+                time.sleep(1)
+                bus = dbus.SessionBus()
+                s = bus.get_object('polyvaccine.detector', '/polyvaccine/detector')
+                d = dbus.Interface(s,dbus_interface='polyvaccine.detector')
+                time.sleep(1)
+
+                arch = platform.architecture()[0]
+                if("64" in arch):
+                        subprocess.Popen(["../src/detection/sendexploit","-c","15"],stdout=None)
+                        time.sleep(0.1)
+
+                value = d.GetProperty("ShellcodesDetected")
+                pp.kill()
+                pp.wait()
+                self.assertEqual(value,0)
 
 class Test_02(unittest.TestCase):
 
@@ -79,29 +117,11 @@ class Test_02(unittest.TestCase):
 		self.assertEqual(value1,0)
 		self.assertEqual(value2,1)
 
-class Test_03(unittest.TestCase):
-	" Unit test for the false positives"
-
-        def setUp(self):
-                pass
-
-        def tearDown(self):
-                pass
-
-        def test_03_1(self):
-		d.SYSU_Init()
-
-		segment = "get bu bubluasdifjiennnna"
-		print "len=",len(segment)
-		ret = d.SYSU_AnalyzeSegmentMemory(segment,len(segment),None)
-		print ret
-		d.SYSU_Destroy()	
-	
 if __name__ == '__main__':
 	print "Testing the detection engine"
 	suite=unittest.TestSuite()
-    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_03))
-    	#suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
-#    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_02))
+    	#suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_03))
+    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
+    	#suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_02))
 	result=testrunner.BasicTestRunner().run(suite)
 	

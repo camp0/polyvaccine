@@ -24,6 +24,11 @@
 
 #include "context.h"
 
+/**
+ * COXT_GetContext - Gets the shared context between the parent and his child. 
+ *
+ * @return ST_SharedContext 
+ */
 ST_SharedContext *COXT_GetContext(){
 	ST_SharedContext *c = COXT_AttachContext();
 
@@ -31,6 +36,11 @@ ST_SharedContext *COXT_GetContext(){
 	return c;
 }
 
+/**
+ * COXT_AttachContext - Attach to a shared context between the parent and his child. 
+ *
+ * @return ST_SharedContext 
+ */
 ST_SharedContext *COXT_AttachContext(){
         int fd;
         caddr_t result;
@@ -46,9 +56,16 @@ ST_SharedContext *COXT_AttachContext(){
 }
 
 
+/**
+ * COXT_FreeContext - Free the shared context  
+ *
+ * @param ST_SharedContext c 
+ */
+
 void COXT_FreeContext(ST_SharedContext *c){
 	munmap(c,sizeof(ST_SharedContext));	
 }
+
 
 void COXT_Printf(ST_SharedContext *c) {
 

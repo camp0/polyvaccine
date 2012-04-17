@@ -24,6 +24,11 @@
 
 #include "pvtrace.h"
 
+/**
+ * PTRC_TraceMe 
+ *
+ * @return ret 
+ */
 int PTRC_TraceMe(void){
 	int ret = 0;
 
@@ -36,6 +41,15 @@ int PTRC_TraceMe(void){
 	return ret;
 }
 
+/**
+ * PTRC_TraceContinue
+ *
+ * @param pid
+ * @param sig
+ * @param addr
+ *
+ * @return ret 
+ */
 int PTRC_TraceContinue(pid_t pid,int sig, char *addr){
 	int ret = 0;
 #ifdef __LINUX__
@@ -47,6 +61,13 @@ int PTRC_TraceContinue(pid_t pid,int sig, char *addr){
 	return ret;
 }
 
+/**
+ * PTRC_TraceKill
+ *
+ * @param pid
+ *
+ * @return ret 
+ */
 int PTRC_TraceKill(pid_t pid){
 	int ret = 0;
 #ifdef __LINUX__
@@ -58,6 +79,14 @@ int PTRC_TraceKill(pid_t pid){
 	return ret;
 }
 
+/**
+ * PTRC_TraceSyscall
+ *
+ * @param pid
+ * @param sig
+ *
+ * @return ret 
+ */
 int PTRC_TraceSyscall(pid_t pid,int sig){
         int ret = 0;
 #ifdef __LINUX__
@@ -69,7 +98,14 @@ int PTRC_TraceSyscall(pid_t pid,int sig){
         return ret;
 }
 
-
+/**
+ * PTRC_TraceGetRegisters 
+ *
+ * @param pid
+ * @param regs
+ *
+ * @return ret 
+ */
 int PTRC_TraceGetRegisters(pid_t pid, void *regs){
 	int ret = 0;
 #ifdef __LINUX__
@@ -81,6 +117,14 @@ int PTRC_TraceGetRegisters(pid_t pid, void *regs){
 	return ret;
 }
 
+/**
+ * PTRC_TraceSetRegisters 
+ *      
+ * @param pid
+ * @param regs
+ *
+ * @return ret 
+ */
 int PTRC_TraceSetRegisters(pid_t pid, void *regs){
         int ret = 0;
 #ifdef __LINUX__

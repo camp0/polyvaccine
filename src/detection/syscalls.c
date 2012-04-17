@@ -361,7 +361,7 @@ void SYSU_NewExecutionProcess(ST_SharedContext *c) {
 	LOG(POLYLOG_PRIORITY_DEBUG,
         	"child(%d) size=%d",getpid(),ctx->size);
 #endif
-        	printf("child(%d) preparing to execute %d bytes from offset %d",getpid(),ctx->size,ctx->virtualeip);
+//        	printf("child(%d) preparing to execute %d bytes from offset %d",getpid(),ctx->size,ctx->virtualeip);
 	if (ctx->isptracechild == FALSE) {
 
                 if((ctx->virtualeip >= ctx->size)||(ctx->virtualeip < 0)) {
@@ -404,7 +404,6 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 	struct reg u_in;
 #endif
 
-	printf("trace sending signal1 to child\n");
         SYSU_Kill(child_pid, SIGUSR1);
         ret = SYSU_Wait(child_pid, EXPECT_STOPPED, SIGUSR1);
         if (ret != PROCESS_RUNNING) {
@@ -412,14 +411,11 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
                 return 0;
         }
 
-	printf("trace sending signal1 to child DONE\n");
-//       	SYSU_SetSysGood(child_pid);
 	PTRC_TraceSyscall(child_pid,SIGUSR1);
 //	SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, TRACE_O_TRACEFORK, (void*)SIGUSR1);
 	SYSU_DestroySuspiciousSyscalls();
 	LOG(POLYLOG_PRIORITY_INFO,
 		"parent(%d)ready for child(%d) execution",getpid(),child_pid);
-	printf("parent(%d)ready for child(%d) execution",getpid(),child_pid);
         alarm(3);
         while(1) {
                 struct ST_SysCallFlow *scf;
@@ -476,7 +472,6 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
 						"unsupported syscall number %d",syscall);
 				}
                         }
-//                        SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, 0, 0);
 			PTRC_TraceSyscall(child_pid,0);
                 }else
                         break;
@@ -510,12 +505,24 @@ void sigusr(int signal) {
 
 #define POLYLOG_CATEGORY_NAME POLYVACCINE_DETECTION_INTERFACE ".tracer.child"
 
-void sigsegv_handler(int sig, siginfo_t *info, void *data) {
+/**
+ * SYSU_SigSegvHandler - Callback for manage the SIGSEGV signal and others on the child process.
+ * 	Most of the request executed dont have shellcodes but generates lost CPU cycles.
+ * 	By reusing the same child process and we increase the performance of the pvde, due to
+ *	the pvde reduce the number of forks operations.
+ *
+ * @param sig 
+ * @param info 
+ * @param data 
+ *  
+ */
+
+void SYSU_SigSegvHandler(int sig, siginfo_t *info, void *data) {
 #ifdef DEBUG
 	LOG(POLYLOG_PRIORITY_DEBUG,
 		"child(%d) receives signal %d on virtualeip %d",getpid(),sig,ctx->virtualeip);
 #endif
-	printf("child(%d) receives signal %d on virtualeip %d",getpid(),sig,ctx->virtualeip);
+//	printf("child(%d) receives signal %d on virtualeip %d",getpid(),sig,ctx->virtualeip);
         if((ctx->virtualeip>=ctx->size)||(ctx->virtualeip < 0)) {
 #ifdef DEBUG
 		LOG(POLYLOG_PRIORITY_DEBUG,
@@ -540,6 +547,14 @@ void sigsegv_handler(int sig, siginfo_t *info, void *data) {
 
 #define POLYLOG_CATEGORY_NAME POLYVACCINE_DETECTION_INTERFACE ".tracer"
 
+/**
+ * SYSU_AnalyzeSegmentMemory - Main function that test if a buffer contains a shellcode. 
+ *
+ * @param buffer 
+ * @param size 
+ * @param t_off 
+ *  
+ */
 int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
 	ST_TrustOffsets tr_off;
 	void (*oldsig)(int);
@@ -581,7 +596,7 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
                 return 0;
         }
 
-	memset(tracer->executable_segment,"\x90",real_size);              /* Init all with nops */
+	memset(tracer->executable_segment,"\x90",real_size); /* Init all with nops */
 #if __WORDSIZE == 64
         memcpy(tracer->executable_segment,"\x48\x31\xc0" "\x48\x31\xdb" "\x48\x31\xc9" "\x48\x31\xd2",init_regs_size);/* Init Registers */
 #else
@@ -601,7 +616,6 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
 		tr_off.offsets_start[0] = 0;
 		tr_off.offsets_end[0] = 0;
 		tr_off.index = 0;
-		printf("trust offsets NULL!!!!\n");
 	}else{	
 		tr_off.index = -1;
 		for (i = 0;i<MAX_OFFSETS_ALLOCATED;i++) {
@@ -611,12 +625,12 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
 				tr_off.index ++;	
 		}
 	}
-	printf("trust offsets index %d\n",tr_off.index);
+	/*printf("trust offsets index %d\n",tr_off.index);
 	for(i=0;i<=tr_off.index;i++) {
 		printf("s[%d]=%d;e[%d]=%d ",i,tr_off.offsets_start[i],i,tr_off.offsets_end[i]);
 	}
 	printf("\n");
-
+	*/
 	ctx->t_off = &tr_off;
 	ctx->t_off->index = 0;
         ctx->memory = tracer->executable_segment;
@@ -638,7 +652,7 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
 			ctx->virtualeip = tr_off.offsets_end[index]+1;
 			index++;	
 		}	
-		printf("forking process on %d offset\n",ctx->virtualeip);
+//		printf("forking process on %d offset\n",ctx->virtualeip);
 		ctx->isptracechild = FALSE;
 		ctx->incbytracer++;
 		got_child_signal = 0;
@@ -651,7 +665,7 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
         		struct sigaction sa;
 			
                         sigemptyset (&sa.sa_mask);
-                        sa.sa_sigaction = (void *)sigsegv_handler;
+                        sa.sa_sigaction = (void *)SYSU_SigSegvHandler;
                         sa.sa_flags = SA_RESTART | SA_NODEFER; // el flag SA_NODEFER es el que hace que se itere 
 			
                         sigaction(SIGSEGV, &sa, NULL); // Invalid memory Reference 
@@ -675,7 +689,7 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
 				//DEBUG_TRACER("Avoid overflow execution,virtualeip(%d)size(%d)\n",ctx->virtualeip,ctx->size);
                                 exit(0);
                         }
-			printf("child.....\n");
+			//printf("child.....\n");
                         SYSU_NewExecutionProcess(ctx);
                         exit(0);
                 }

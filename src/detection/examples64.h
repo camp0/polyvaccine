@@ -27,6 +27,18 @@
 
 /* 64 bits examples */
 
+int size_exit_1_nops_64bits = 39;
+char exit_1_nops_64bits[] =
+        "\x90\x90\x90\x90\x90\x90\x90"
+        "\x48\xbb\x01\x00\x00\x00\x00"
+        "\x00\x00\x00"
+        "\x48\xb8\x3c\x00\x00\x00\x00"
+        "\x00\x00\x00"
+        "\x48\xbf\x01\x00\x00\x00\x00"
+        "\x00\x00\x00"
+        "\x0f\x05";
+
+
 /*
    0:	48 bb 01 00 00 00 00 	mov    rbx,0x1
    7:	00 00 00 
@@ -357,6 +369,9 @@ char *disable_aslr_64bits =
            "\xb0\x3c"                                    // mov    $0x3c,%al
            "\x0f\x05";                                   // syscall
 
-
+char *http_request_header = "GET /blabla/blabla/index.html HTTP/1.1"
+	"User-Agent: Some agent"
+	"Host: somehost.com"
+	"Cache-Control: no-cache"; 
 
 #endif
