@@ -161,7 +161,7 @@ class Test_01(unittest.TestCase):
 			h = p.FLPO_GetFlow(self.pool)
 			self.assertEqual(None,h)
 
-		self.assertEqual(5,self.pool.total_errors)
+		self.assertEqual(5,self.pool.pool.total_errors)
                 for h in temp:
                         p.FLPO_AddFlow(self.pool,h)
 
@@ -181,7 +181,7 @@ class Test_01(unittest.TestCase):
                         h = p.FLPO_GetFlow(pool)
                         self.assertEqual(None,h)
 
-                self.assertEqual(5,pool.total_errors)
+                self.assertEqual(5,pool.pool.total_errors)
                 for h in temp:
                         p.FLPO_AddFlow(pool,h)
 		
@@ -202,7 +202,8 @@ class Test_01(unittest.TestCase):
                         h = p.FLPO_GetFlow(pool)
                         temp.append(h)
 
-                self.assertEqual(0,pool.total_errors)
+		dir(pool)
+                self.assertEqual(0,pool.pool.total_errors)
                 for h in temp:
 			p.GEFW_Destroy(h)
 

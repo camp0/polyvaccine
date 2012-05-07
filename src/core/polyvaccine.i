@@ -1,6 +1,7 @@
 %module polyvaccine 
 
 %{
+#include "pool.h"
 #include "cache.h"
 #include "flowpool.h"
 #include "packetcontext.h"
@@ -18,6 +19,7 @@
 %apply unsigned int { time_t }
 
 #define __attribute__(x)
+%include "pool.h"
 %include "cache.h"
 %include "flowpool.h"
 %include "memorypool.h"
