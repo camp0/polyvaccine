@@ -26,7 +26,7 @@
 #include <signal.h>
 #include "polyfilter.h"
 #include <getopt.h>
-#include "callgrind.h"
+//#include "callgrind.h"
 
 static struct option long_options[] = {
         {"learning",	no_argument,       	0, 'l'},
@@ -221,10 +221,10 @@ void main(int argc, char **argv) {
 
 	POFR_Start();
 
-	CALLGRIND_START_INSTRUMENTATION;
+	//CALLGRIND_START_INSTRUMENTATION;
 	POFR_Run();
-  	CALLGRIND_STOP_INSTRUMENTATION;
-  	CALLGRIND_DUMP_STATS;
+  	//CALLGRIND_STOP_INSTRUMENTATION;
+  	//CALLGRIND_DUMP_STATS;
 
 	//POFR_Stop();
         if(show_statistics == TRUE) {

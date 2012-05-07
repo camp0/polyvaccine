@@ -166,7 +166,7 @@ void *HTAZ_Destroy() {
  * @param ret the result of the analisys.
  */
 
-void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
+void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_User *user,ST_GenericFlow *f , int *ret){
 	ST_MemorySegment *seg = f->memory;
 	ST_CacheNode *nod = NULL;
 	int lret,i,process_bytes;
@@ -378,7 +378,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f , int *ret){
  * @param f The ST_GenericFlow to analyze.
  */
 
-void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_GenericFlow *f){
+void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_User *user, ST_GenericFlow *f){
         ST_MemorySegment *seg = f->memory;
         ST_CacheNode *nod = NULL;
         int lret,i;

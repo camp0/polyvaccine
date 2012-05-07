@@ -31,16 +31,14 @@
 
 #include <sys/types.h>
 #include <glib.h>
+#include "pool.h"
 #include "genericflow.h"
 #include "interfaces.h"
 
 #define MAX_FLOWS_PER_POOL 1024 * 256 
 
 struct ST_FlowPool {
-	GSList *flows;
-	int32_t total_releases;
-	int32_t total_acquires;
-	int32_t total_errors;
+	ST_Pool *pool;
 };
 
 typedef struct ST_FlowPool ST_FlowPool;

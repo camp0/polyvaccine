@@ -39,6 +39,8 @@
 #include "packetdecoder.h"
 #include "connection.h"
 #include "flowpool.h"
+#include "userpool.h"
+#include "usertable.h"
 #include "memorypool.h"
 #include "cache.h"
 #include "forwarder.h"
@@ -64,8 +66,10 @@ struct ST_PolyFilter {
 	int when_pcap_done_exit;
 	DBusConnection *bus;
 	ST_Connection *conn;
+	ST_UserTable *users;
 	ST_FlowPool *flowpool;
 	ST_MemoryPool *memorypool;
+	ST_UserPool *userpool;
 	ST_Cache *httpcache;
 	ST_Cache *sipcache;
 	ST_AuthorizedHost *hosts;

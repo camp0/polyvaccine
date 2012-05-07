@@ -282,7 +282,7 @@ void PRCA_Property_GetFlowPoolTotalReleases(DBusConnection *conn,DBusMessage *ms
 	ST_PolyFilter *p =(ST_PolyFilter*)data;
 	dbus_int32_t value = 0;
 
-	value = p->flowpool->total_releases;
+	value = p->flowpool->pool->total_releases;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
@@ -291,7 +291,7 @@ void PRCA_Property_GetFlowPoolTotalAcquires(DBusConnection *conn,DBusMessage *ms
         ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-        value = p->flowpool->total_acquires;
+        value = p->flowpool->pool->total_acquires;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
@@ -300,7 +300,7 @@ void PRCA_Property_GetFlowPoolTotalErrors(DBusConnection *conn,DBusMessage *msg,
         ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-        value = p->flowpool->total_errors;
+        value = p->flowpool->pool->total_errors;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
@@ -309,7 +309,7 @@ void PRCA_Property_GetMemoryPoolTotalReleases(DBusConnection *conn,DBusMessage *
         ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-        value = p->memorypool->total_releases;
+        value = p->memorypool->pool->total_releases;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
@@ -318,7 +318,7 @@ void PRCA_Property_GetMemoryPoolTotalAcquires(DBusConnection *conn,DBusMessage *
         ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-        value = p->memorypool->total_acquires;
+        value = p->memorypool->pool->total_acquires;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
@@ -327,7 +327,7 @@ void PRCA_Property_GetMemoryPoolTotalErrors(DBusConnection *conn,DBusMessage *ms
         ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-        value = p->memorypool->total_errors;
+        value = p->memorypool->pool->total_errors;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }

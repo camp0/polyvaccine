@@ -274,7 +274,7 @@ static ST_HTTPField ST_HTTPFields [] = {
 	{}
 };
 
-int HT_GetHeaderMethod(char *data) {
+static int HT_GetHeaderMethod(char *data) {
 	register int i;
 
 	for (i = HTTP_HEADER_GET;i< HTTP_HEADER_UNKNOWN;i++)

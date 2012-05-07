@@ -35,11 +35,8 @@
 ST_FlowPool *FLPO_Init() {
 	ST_FlowPool *pool = NULL;
 
-	pool = (ST_FlowPool*)g_new(ST_FlowPool,1);
-	pool->flows = NULL;	
-        pool->total_releases = 0;
-        pool->total_acquires = 0;
-        pool->total_errors = 0;
+	pool = g_new(ST_FlowPool,1);
+	pool->pool = POOL_Init(); 
 
 	FLPO_IncrementFlowPool(pool,MAX_FLOWS_PER_POOL);
 	return pool;
@@ -66,8 +63,8 @@ void FLPO_Stats(ST_FlowPool *p){
 	fprintf(stdout,"FlowPool statistics\n");
 	fprintf(stdout,"\tflow size:%d bytes\n",sizeof(ST_GenericFlow));
 	fprintf(stdout,"\tallocated memory:%d %s\n",value,unit);
-	fprintf(stdout,"\tflows:%d\n\treleases:%d\n",g_slist_length(p->flows),p->total_releases);
-	fprintf(stdout,"\tacquires:%d\n\terrors:%d\n",p->total_acquires,p->total_errors);
+	fprintf(stdout,"\tflows:%d\n\treleases:%d\n",g_slist_length(p->pool->items),p->pool->total_releases);
+	fprintf(stdout,"\tacquires:%d\n\terrors:%d\n",p->pool->total_acquires,p->pool->total_errors);
 	return;
 }
 
@@ -77,14 +74,14 @@ void FLPO_Stats(ST_FlowPool *p){
  * @param p the ST_FlowPool to free
  */
 void FLPO_Destroy(ST_FlowPool *p){
-	FLPO_DecrementFlowPool(p,g_slist_length(p->flows));
-	g_slist_free(p->flows);
+	FLPO_DecrementFlowPool(p,POOL_GetNumberItems(p->pool));
+	POOL_Destroy(p->pool);
 	g_free(p);
 	p = NULL;
 }
 
 int FLPO_GetNumberFlows(ST_FlowPool *p){
-	return g_slist_length(p->flows);
+	return POOL_GetNumberItems(p->pool);
 }
 
 /**
@@ -100,13 +97,13 @@ int FLPO_IncrementFlowPool(ST_FlowPool *p,int value){
         if (value < 1)
                 return FALSE;
 	LOG(POLYLOG_PRIORITY_INFO,
-		"Allocating %d flows on pool, current flows on pool %d",value,g_slist_length(p->flows));
+		"Allocating %d flows on pool, current flows on pool %d",value,POOL_GetNumberItems(p->pool));
 
         for (i = 0;i<value;i++){
 		ST_GenericFlow *f = g_new0(ST_GenericFlow,1);
 		f->memory = NULL;
 		GEFW_Reset(f);	
-                p->flows = g_slist_prepend(p->flows,f);
+		POOL_AddItem(p->pool,f);
 	}
         return TRUE;
 }
@@ -122,20 +119,17 @@ int FLPO_DecrementFlowPool(ST_FlowPool *p,int value) {
 	ST_GenericFlow *f;
 	int i,r;
 
-        if (value > g_slist_length(p->flows))
-                r = g_slist_length(p->flows);
+        if (value > POOL_GetNumberItems(p->pool))
+                r = POOL_GetNumberItems(p->pool);
         else
                 r = value;
 
 	LOG(POLYLOG_PRIORITY_INFO,
 		"Freeing %d flows on pool",r);
         for (i = 0;i<r;i++){
-                GSList *item = g_slist_nth(p->flows,0);
-                if (item != NULL) {
-                        p->flows = g_slist_remove_link(p->flows,item);
-                        f = (ST_GenericFlow*)item->data;
+		f = (ST_GenericFlow*)POOL_GetItem(p->pool);
+		if(f)
 			GEFW_Destroy(f);
-                }
         }
 	return TRUE;
 }
@@ -150,8 +144,7 @@ int FLPO_DecrementFlowPool(ST_FlowPool *p,int value) {
 void FLPO_AddFlow(ST_FlowPool *p,ST_GenericFlow *flow){
 	if(flow != NULL){ 
         	GEFW_Reset(flow);
-        	p->total_releases++;
-        	p->flows = g_slist_prepend(p->flows,flow);
+		POOL_AddItem(p->pool,flow);
 	}
 }
 
@@ -164,16 +157,10 @@ void FLPO_AddFlow(ST_FlowPool *p,ST_GenericFlow *flow){
  */
 
 ST_GenericFlow *FLPO_GetFlow(ST_FlowPool *p){
-        GSList *item = NULL;
+	ST_GenericFlow *f = NULL;
 
-        item = g_slist_nth(p->flows,0);
-        if (item!= NULL) {
-                p->flows = g_slist_remove_link(p->flows,item);
-                p->total_acquires++;
-                return (ST_GenericFlow*)item->data;
-        }
-        p->total_errors++;
-        return NULL;
+	f = POOL_GetItem(p->pool);
+	return f;
 }
 
 

@@ -182,8 +182,8 @@ ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw, int16_t protocol,int16_t 
  */
 void FORD_AddAnalyzer(ST_Forwarder *fw, ST_Cache *cache, char *name,int16_t protocol,int16_t port,
 	void (*init)(void), void (*destroy)(void),void (*stats)(void),
-	void (*analyze)(ST_Cache *c,ST_GenericFlow *f,int *ret),
-	void (*learn)(ST_Cache *c,ST_GenericFlow *f)){
+	void (*analyze)(ST_Cache *c,ST_User *user,ST_GenericFlow *f,int *ret),
+	void (*learn)(ST_Cache *c, ST_User *user,ST_GenericFlow *f)){
 
 	ST_GenericAnalyzer *ga = NULL;
 	GHashTable *t = NULL;

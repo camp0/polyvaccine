@@ -33,6 +33,7 @@
 #include <log4c.h>
 #include "genericflow.h"
 #include "cache.h"
+#include "user.h"
 #include "trustoffset.h"
 #include <sys/types.h>
 #include <glib.h>
@@ -70,9 +71,9 @@ typedef struct ST_HTTPAnalyzer ST_HTTPAnalyzer;
 
 void *HTAZ_Init(void);
 void *HTAZ_Destroy(void);
-void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_GenericFlow *f, int *ret);
+void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_User *user,ST_GenericFlow *f, int *ret);
 void *HTAZ_Stats(void);
-void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_GenericFlow *f);
+void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c,ST_User *user, ST_GenericFlow *f);
 void HTAZ_SetForceAnalyzeHTTPPostData(int value);
 void HTAZ_ShowUnknownHTTP(int value);
 

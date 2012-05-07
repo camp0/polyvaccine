@@ -22,44 +22,28 @@
  *
  */
 
-#ifndef _MEMORYPOOL_H_
-#define _MEMORYPOOL_H_
+#include "user.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+void USER_Reset(ST_User *user){
+        user->ip = 0;
+        user->total_request = 0;
+        user->total_flows = 0;
+        user->total_gets = 0;
+        user->total_posts = 0;
+	user->arrive_time.tv_sec = 0;
+	user->arrive_time.tv_usec = 0;
+	user->current_time.tv_sec = 0;
+	user->current_time.tv_usec = 0;
+}
 
-#include <sys/types.h>
-#include <glib.h>
-#include "memory.h"
-#include "pool.h"
-#include "debug.h"
+ST_User *USER_Init(){
+	ST_User *user = g_new(ST_User,1);
 
-#define MAX_MEMORY_SEGMENTS_PER_POOL 1024 * 256 
+	USER_Reset(user);
+	return user;
+}
 
-struct ST_MemoryPool {
-	ST_Pool *pool;
-//	GSList *mem;
-//	int32_t total_releases;
-//	int32_t total_acquires;
-//	int32_t total_errors;
-	int64_t total_release_bytes;
-	int64_t total_acquire_bytes;
-};
-
-typedef struct ST_MemoryPool ST_MemoryPool;
-
-ST_MemoryPool *MEPO_Init(void);
-void MEPO_Destroy(ST_MemoryPool *mp);
-void MEPO_AddMemorySegment(ST_MemoryPool *mp,ST_MemorySegment *m);
-ST_MemorySegment *MEPO_GetMemorySegment(ST_MemoryPool *mp);	
-int MEPO_GetNumberMemorySegments(ST_MemoryPool *mp);
-int MEPO_IncrementMemoryPool(ST_MemoryPool *mp,int value);
-int MEPO_DecrementMemoryPool(ST_MemoryPool *mp,int value);
-void MEPO_Stats(ST_MemoryPool *mp);
-
-/// TODO
-/// Need a function which reallocates the memory segments on the memorypool
-
-
-#endif
+void USER_Destroy(ST_User *user){
+	g_free(user);
+	user = NULL;
+}

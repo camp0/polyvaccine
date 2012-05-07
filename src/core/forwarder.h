@@ -34,6 +34,7 @@
 #include <log4c.h>
 #include "debug.h"
 #include "cache.h"
+#include "user.h"
 #include "genericflow.h"
 #include "interfaces.h"
 
@@ -45,8 +46,8 @@ struct ST_GenericAnalyzer{
 	void (*init)(void);
 	void (*destroy)(void);
 	void (*stats)(void);
-	void (*analyze)(ST_Cache *c,ST_GenericFlow *f,int *ret);
-	void (*learn)(ST_Cache *c,ST_GenericFlow *f);
+	void (*analyze)(ST_Cache *c,ST_User *user,ST_GenericFlow *f,int *ret);
+	void (*learn)(ST_Cache *c,ST_User *user,ST_GenericFlow *f);
 };
 typedef struct ST_GenericAnalyzer ST_GenericAnalyzer;
 
@@ -67,8 +68,8 @@ void FORD_AddAnalyzer(ST_Forwarder *fw,ST_Cache *cache,char *name,int16_t protoc
 	void (*init)(void), 
 	void (*destroy)(void),
 	void (*stats)(void),
-	void (*analyze)(ST_Cache *c,ST_GenericFlow *f,int *ret),
-	void (*learn)(ST_Cache *c,ST_GenericFlow *f));
+	void (*analyze)(ST_Cache *c,ST_User *user,ST_GenericFlow *f,int *ret),
+	void (*learn)(ST_Cache *c,ST_User *user,ST_GenericFlow *f));
 
 void FORD_ChangeAnalyzerToPlugOnPort(ST_Forwarder *fw,int16_t src_protocol, int16_t src_port,
 	int16_t dst_protocol,int16_t dst_port);

@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef _MEMORYPOOL_H_
-#define _MEMORYPOOL_H_
+#ifndef _POOL_H_
+#define _POOL_H_
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -31,35 +31,20 @@
 
 #include <sys/types.h>
 #include <glib.h>
-#include "memory.h"
-#include "pool.h"
-#include "debug.h"
 
-#define MAX_MEMORY_SEGMENTS_PER_POOL 1024 * 256 
-
-struct ST_MemoryPool {
-	ST_Pool *pool;
-//	GSList *mem;
-//	int32_t total_releases;
-//	int32_t total_acquires;
-//	int32_t total_errors;
-	int64_t total_release_bytes;
-	int64_t total_acquire_bytes;
+struct ST_Pool {
+	GSList *items;
+	int32_t total_releases;
+	int32_t total_acquires;
+	int32_t total_errors;
 };
 
-typedef struct ST_MemoryPool ST_MemoryPool;
+typedef struct ST_Pool ST_Pool;
 
-ST_MemoryPool *MEPO_Init(void);
-void MEPO_Destroy(ST_MemoryPool *mp);
-void MEPO_AddMemorySegment(ST_MemoryPool *mp,ST_MemorySegment *m);
-ST_MemorySegment *MEPO_GetMemorySegment(ST_MemoryPool *mp);	
-int MEPO_GetNumberMemorySegments(ST_MemoryPool *mp);
-int MEPO_IncrementMemoryPool(ST_MemoryPool *mp,int value);
-int MEPO_DecrementMemoryPool(ST_MemoryPool *mp,int value);
-void MEPO_Stats(ST_MemoryPool *mp);
-
-/// TODO
-/// Need a function which reallocates the memory segments on the memorypool
-
+ST_Pool *POOL_Init(void);
+void POOL_Destroy(ST_Pool *p);
+void POOL_AddItem(ST_Pool *p,void *item);
+void *POOL_GetItem(ST_Pool *p);	
+int POOL_GetNumberItems(ST_Pool *p);
 
 #endif

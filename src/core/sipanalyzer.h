@@ -30,6 +30,7 @@
 #endif
 
 #include <pcre.h>
+#include "user.h"
 #include "genericflow.h"
 #include "cache.h"
 #include "trustoffset.h"
@@ -67,9 +68,9 @@ typedef struct ST_SIPAnalyzer ST_SIPAnalyzer;
 
 void *SPAZ_Init(void);
 void *SPAZ_Destroy(void);
-void *SPAZ_AnalyzeSIPRequest(ST_Cache *c,ST_GenericFlow *f, int *ret);
+void *SPAZ_AnalyzeSIPRequest(ST_Cache *c,ST_User *user,ST_GenericFlow *f, int *ret);
 void *SPAZ_Stats(void);
-void *SPAZ_AnalyzeDummySIPRequest(ST_Cache *c, ST_GenericFlow *f);
+void *SPAZ_AnalyzeDummySIPRequest(ST_Cache *c, ST_User *user,ST_GenericFlow *f);
 void SPAZ_SetForceAnalyzeSIPSdpData(int value);
 void SPAZ_ShowUnknownSIP(int value);
 

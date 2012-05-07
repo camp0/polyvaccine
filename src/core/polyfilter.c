@@ -95,20 +95,24 @@ void POFR_Init() {
 	TCAZ_Init();
 
 	_polyFilter->conn = COMN_Init();
+	_polyFilter->users = USTA_Init();
 	_polyFilter->flowpool = FLPO_Init();
 	_polyFilter->memorypool = MEPO_Init();
+	_polyFilter->userpool = USPO_Init();
 	_polyFilter->httpcache = CACH_Init();
 	_polyFilter->sipcache = CACH_Init();
 	_polyFilter->hosts = AUHT_Init();
 	_polyFilter->forwarder = FORD_Init();
+
 	COMN_SetFlowPool(_polyFilter->conn,_polyFilter->flowpool);
 	COMN_SetMemoryPool(_polyFilter->conn,_polyFilter->memorypool);
-
+	USTA_SetUserPool(_polyFilter->users,_polyFilter->userpool);
 #ifdef DEBUG
 	LOG(POLYLOG_PRIORITY_DEBUG,"Initialized engine....");
 	LOG(POLYLOG_PRIORITY_DEBUG,"connection manager (0x%x)",_polyFilter->conn);
 	LOG(POLYLOG_PRIORITY_DEBUG,"flowpool (0x%x)",_polyFilter->flowpool);
 	LOG(POLYLOG_PRIORITY_DEBUG,"memorypool (0x%x)",_polyFilter->memorypool);
+	LOG(POLYLOG_PRIORITY_DEBUG,"userpool (0x%x)",_polyFilter->userpool);
 	LOG(POLYLOG_PRIORITY_DEBUG,"httpcache (0x%x)",_polyFilter->httpcache);
 	LOG(POLYLOG_PRIORITY_DEBUG,"sipcache (0x%x)",_polyFilter->sipcache);
 #endif
@@ -261,10 +265,15 @@ void POFR_Destroy() {
 	// COMN_ReleaseFlows(_polyFilter->conn);
 	COMN_ReleaseFlows(_polyFilter->conn);
 
+	// TODO 
+	USTA_ReleaseUsers(_polyFilter->users);
+
 	g_string_free(_polyFilter->source,TRUE);
 	FLPO_Destroy(_polyFilter->flowpool);
 	MEPO_Destroy(_polyFilter->memorypool);
+	USPO_Destroy(_polyFilter->userpool);
 	COMN_Destroy(_polyFilter->conn);
+	USTA_Destroy(_polyFilter->users);
 	CACH_Destroy(_polyFilter->httpcache);
 	CACH_Destroy(_polyFilter->sipcache);
 	AUHT_Destroy(_polyFilter->hosts);
@@ -283,9 +292,11 @@ void POFR_Destroy() {
 void POFR_Stats() {
         PKDE_PrintfStats();
         TCAZ_Stats();
+        USPO_Stats(_polyFilter->userpool);
         MEPO_Stats(_polyFilter->memorypool);
         FLPO_Stats(_polyFilter->flowpool);
         COMN_Stats(_polyFilter->conn);
+        USTA_Stats(_polyFilter->users);
         CACH_Stats(_polyFilter->httpcache);
         CACH_Stats(_polyFilter->sipcache);
         FORD_Stats(_polyFilter->forwarder);
@@ -377,10 +388,11 @@ void POFR_SetLearningMode() {
  *
  */
 void POFR_Run() {
-	ST_GenericFlow *flow;
-	ST_GenericAnalyzer *ga;
-	ST_MemorySegment *memseg;
+	ST_GenericFlow *flow = NULL;
+	ST_GenericAnalyzer *ga = NULL;
+	ST_MemorySegment *memseg = NULL;
 	ST_TrustOffsets *trust_offsets = NULL;
+	ST_User *user = NULL;
 	register int i;
 	int nfds,usepcap,ret,update_timers;
         DBusWatch *local_watches[MAX_WATCHES];
@@ -493,7 +505,7 @@ void POFR_Run() {
 						}
 						// Update the direction of the flow
 						flow->direction = ga->direction;
-
+				
 						if(protocol == IPPROTO_TCP){
 							// Update the tcp flow
 							TCAZ_Analyze(flow);
@@ -513,6 +525,7 @@ void POFR_Run() {
 								COMN_ReleaseConnection(_polyFilter->conn,flow);
 								continue;
 							}
+							// Lets get the user struct associated	
 						}
 						// TODO problem with retransmisions with post
 						// check test/pcapfiles directory
@@ -520,15 +533,27 @@ void POFR_Run() {
 						flow->total_packets++;
 						flow->total_bytes += segment_size;
 						if((segment_size > 0)&&(flow->direction == FLOW_FORW)) {
+							// Retrive the corresponding user struct
+							user = USTA_FindUser(_polyFilter->users,PKCX_GetIPSrcAddr());
+							if(user == NULL){
+								user = USPO_GetUser(_polyFilter->userpool);
+								if(user != NULL){
+									USTA_InsertUser(_polyFilter->users,user,PKCX_GetIPSrcAddr());
+								}else{
+									WARNING("No user pool allocated\n");
+									continue;
+								}
+							}
+
 							MESG_AppendPayloadNew(flow->memory,PKCX_GetPayload(),segment_size);
 							//  TODO check the upstream datagrams, we dont need to analyze donwstream
 							// try to find something efficient
 							if((protocol == IPPROTO_UDP)||((protocol == IPPROTO_TCP)&&(PKCX_IsTCPPush() == 1))) {
 								if(AUHT_IsAuthorized(_polyFilter->hosts,PKCX_GetSrcAddrDotNotation())) {
-									ga->learn(ga->cache,flow);	
+									ga->learn(ga->cache,user,flow);	
 								}else{
 									//ret = HTAZ_AnalyzeHTTPRequest(_polyFilter->httpcache,flow);
-									ga->analyze(ga->cache,flow,&ret);
+									ga->analyze(ga->cache,user,flow,&ret);
 									if(ret) { // the segment is suspicious
 										trust_offsets =  HTAZ_GetTrustOffsets();
 										POFR_SendSuspiciousSegmentToExecute(flow->memory,
