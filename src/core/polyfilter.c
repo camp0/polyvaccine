@@ -30,6 +30,7 @@
 #include "tcpanalyzer.h"
 #include "httpanalyzer.h"
 #include "sipanalyzer.h"
+#include "dosanalyzer.h"
 
 #define POLYLOG_CATEGORY_NAME POLYVACCINE_FILTER_INTERFACE
 #include "log.h"
@@ -101,6 +102,7 @@ void POFR_Init() {
 	_polyFilter->userpool = USPO_Init();
 	_polyFilter->httpcache = CACH_Init();
 	_polyFilter->sipcache = CACH_Init();
+	_polyFilter->graphcache = GACH_Init();
 	_polyFilter->hosts = AUHT_Init();
 	_polyFilter->forwarder = FORD_Init();
 
@@ -115,10 +117,20 @@ void POFR_Init() {
 	LOG(POLYLOG_PRIORITY_DEBUG,"userpool (0x%x)",_polyFilter->userpool);
 	LOG(POLYLOG_PRIORITY_DEBUG,"httpcache (0x%x)",_polyFilter->httpcache);
 	LOG(POLYLOG_PRIORITY_DEBUG,"sipcache (0x%x)",_polyFilter->sipcache);
+	LOG(POLYLOG_PRIORITY_DEBUG,"graphcache (0x%x)",_polyFilter->graphcache);
 #endif
 	// Plugin the analyzers
+
+        FORD_AddAnalyzer(_polyFilter->forwarder,_polyFilter->graphcache,
+                "DDoS Analyzer",IPPROTO_TCP,80,
+                (void*)DSAZ_Init,
+                (void*)DSAZ_Destroy,
+                (void*)DSAZ_Stats,
+                (void*)DSAZ_AnalyzeHTTPRequest,
+                (void*)DSAZ_AnalyzeDummyHTTPRequest);
+
 	FORD_AddAnalyzer(_polyFilter->forwarder,_polyFilter->httpcache,
-		"HTTP Analyzer",IPPROTO_TCP,80,
+		"HTTP Analyzer",IPPROTO_TCP,8080,
 		(void*)HTAZ_Init,
 		(void*)HTAZ_Destroy,
 		(void*)HTAZ_Stats,	
@@ -276,6 +288,7 @@ void POFR_Destroy() {
 	USTA_Destroy(_polyFilter->users);
 	CACH_Destroy(_polyFilter->httpcache);
 	CACH_Destroy(_polyFilter->sipcache);
+	GACH_Destroy(_polyFilter->graphcache);
 	AUHT_Destroy(_polyFilter->hosts);
 	FORD_Destroy(_polyFilter->forwarder);
 	PKCX_Destroy();
@@ -297,9 +310,10 @@ void POFR_Stats() {
         FLPO_Stats(_polyFilter->flowpool);
         COMN_Stats(_polyFilter->conn);
         USTA_Stats(_polyFilter->users);
+        FORD_Stats(_polyFilter->forwarder);
         CACH_Stats(_polyFilter->httpcache);
         CACH_Stats(_polyFilter->sipcache);
-        FORD_Stats(_polyFilter->forwarder);
+        GACH_Stats(_polyFilter->graphcache);
 	return;
 }
 
@@ -533,12 +547,13 @@ void POFR_Run() {
 						flow->total_packets++;
 						flow->total_bytes += segment_size;
 						if((segment_size > 0)&&(flow->direction == FLOW_FORW)) {
-							// Retrive the corresponding user struct
+							// Retrieve the corresponding user struct
 							user = USTA_FindUser(_polyFilter->users,PKCX_GetIPSrcAddr());
 							if(user == NULL){
 								user = USPO_GetUser(_polyFilter->userpool);
 								if(user != NULL){
-									USTA_InsertUser(_polyFilter->users,user,PKCX_GetIPSrcAddr());
+									user->ip = PKCX_GetIPSrcAddr();
+									USTA_InsertUser(_polyFilter->users,user);
 								}else{
 									WARNING("No user pool allocated\n");
 									continue;

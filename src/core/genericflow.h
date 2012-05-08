@@ -47,7 +47,10 @@ struct ST_GenericFlow {
 
 	struct timeval arrive_time;
 	struct timeval current_time;
-	ST_MemorySegment *memory;	
+	struct timeval last_uri_seen; // used on the dosanalyzer;
+	ST_MemorySegment *memory;
+	
+	char *lasturi; // This parameter is used to know the last URI visited for the dosanalyzer	
 } __attribute__((packed));
 
 typedef struct ST_GenericFlow ST_GenericFlow;
@@ -67,11 +70,13 @@ static void GEFW_Reset(ST_GenericFlow *f) {
 	f->total_bytes = 0;f->total_packets= 0;
 	f->arrive_time.tv_sec = 0;f->arrive_time.tv_usec = 0;
 	f->current_time.tv_sec = 0;f->current_time.tv_usec = 0;
+	f->last_uri_seen.tv_sec = 0;f->last_uri_seen.tv_usec = 0;
 	f->tcp_state_prev = 0; // Corresponds to TCP_CLOSE state
 	f->tcp_state_curr = 0;
 	f->aborted = 0;
 	f->direction = FLOW_FORW;
-	f->memory = NULL; 
+	f->memory = NULL;
+	f->lasturi = NULL;
 	return;
 };
 

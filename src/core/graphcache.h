@@ -22,56 +22,48 @@
  *
  */
 
-#ifndef _DOSANALYZER_H_
-#define _DOSANALYZER_H_
+#ifndef _GRAPHGACHE_H_
+#define _GRAPHGACHE_H_
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#include <pcre.h>
-#include <log4c.h>
-#include "user.h"
-#include "genericflow.h"
-#include "cache.h"
-#include "graphcache.h"
 #include <sys/types.h>
 #include <glib.h>
 #include "debug.h"
-#include "interfaces.h"
 
-#define OVECCOUNT 30
-
-struct ST_DoSAnalyzer{
-	GHashTable *methods;
-	GHashTable *parameters;
-        pcre *expr_header;
-        pcre_extra *pe_header;
-        const char *errstr;
-        int ovector[OVECCOUNT];
-
-	/* configuration options */	
-	int on_suspicious_header_break;
-	int on_suspicious_parameter_break;
-	int analyze_post_data;
-	int show_unknown_http;
-	
-	/* statistics */
-	int32_t suspicious_headers;
-	int32_t suspicious_parameters;
-	int32_t total_http_invalid_decode;
-	int32_t total_suspicious_segments;
-	int32_t total_valid_segments;
-	int64_t total_http_bytes;
-	int64_t total_http_segments;
+struct ST_GraphNode {
+	GString *uri;
+	int cost;
 };
 
-typedef struct ST_DoSAnalyzer ST_DoSAnalyzer;
+typedef struct ST_GraphNode ST_GraphNode;
 
-void *DSAZ_Init(void);
-void *DSAZ_Destroy(void);
-void *DSAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_User *user,ST_GenericFlow *f, int *ret);
-void *DSAZ_Stats(void);
-void *DSAZ_AnalyzeDummyHTTPRequest(ST_Cache *c,ST_User *user, ST_GenericFlow *f);
+struct ST_GraphLink {
+	GHashTable *uris;
+	GString *uri;
+};
+
+typedef struct ST_GraphLink ST_GraphLink;
+
+struct ST_GraphCache {
+	GHashTable *uris;
+	int32_t total_links;
+	int32_t total_hits;
+	int32_t total_fails;
+};
+
+typedef struct ST_GraphCache ST_GraphCache;
+
+ST_GraphCache *GACH_Init(void);
+void GACH_Destroy(ST_GraphCache *gc);
+void GACH_Stats(ST_GraphCache *gc);
+void GACH_AddLink(ST_GraphCache *gc,char *urisrc, char *uridst, int cost);
+void GACH_AddBaseLink(ST_GraphCache *gc,char *uri);
+ST_GraphLink *GACH_GetBaseLink(ST_GraphCache *gc,char *uri);
+ST_GraphNode *GACH_GetGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, char *uri); 
+ST_GraphNode *GACH_GetGraphNode(ST_GraphCache *gc,char *urisrc, char *uridst); 
+int GACH_GetLinkCost(ST_GraphCache *gc, char *urisrc, char *uridst); 
 
 #endif

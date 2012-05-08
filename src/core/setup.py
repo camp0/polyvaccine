@@ -11,7 +11,7 @@ source_files = ['polyvaccine_wrap.c', 'cache.c','polyfilter.c','flowpool.c','con
 source_files = source_files + ['privatecallbacks.c','packetdecoder.c','memory.c','memorypool.c','httpanalyzer.c','system.c']
 source_files = source_files + ['../bus/polydbus.c','../opcodes/counter.c','authorized.c','trustoffset.c','tcpanalyzer.c']
 source_files = source_files + ['userpool.c','user.c','dosanalyzer.c','pool.c','usertable.c']
-source_files = source_files + ['sipanalyzer.c']
+source_files = source_files + ['sipanalyzer.c','graphcache.c']
 
 polyvaccine_module = Extension('_polyvaccine',
 	sources = source_files,

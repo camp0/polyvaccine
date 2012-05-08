@@ -43,6 +43,7 @@
 #include "usertable.h"
 #include "memorypool.h"
 #include "cache.h"
+#include "graphcache.h"
 #include "forwarder.h"
 #include "system.h"
 #include "privatecallbacks.h"
@@ -72,6 +73,7 @@ struct ST_PolyFilter {
 	ST_UserPool *userpool;
 	ST_Cache *httpcache;
 	ST_Cache *sipcache;
+	ST_GraphCache *graphcache;
 	ST_AuthorizedHost *hosts;
 	ST_Forwarder *forwarder;
 	GString *source;

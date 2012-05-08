@@ -22,56 +22,41 @@
  *
  */
 
-#ifndef _DOSANALYZER_H_
-#define _DOSANALYZER_H_
+#ifndef _USERTABLE_H_
+#define _USERTABLE_H_
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#include <pcre.h>
 #include <log4c.h>
-#include "user.h"
-#include "genericflow.h"
-#include "cache.h"
-#include "graphcache.h"
-#include <sys/types.h>
-#include <glib.h>
+#include "userpool.h"
 #include "debug.h"
 #include "interfaces.h"
+#include <netinet/in.h>
 
-#define OVECCOUNT 30
-
-struct ST_DoSAnalyzer{
-	GHashTable *methods;
-	GHashTable *parameters;
-        pcre *expr_header;
-        pcre_extra *pe_header;
-        const char *errstr;
-        int ovector[OVECCOUNT];
-
-	/* configuration options */	
-	int on_suspicious_header_break;
-	int on_suspicious_parameter_break;
-	int analyze_post_data;
-	int show_unknown_http;
-	
-	/* statistics */
-	int32_t suspicious_headers;
-	int32_t suspicious_parameters;
-	int32_t total_http_invalid_decode;
-	int32_t total_suspicious_segments;
-	int32_t total_valid_segments;
-	int64_t total_http_bytes;
-	int64_t total_http_segments;
+struct ST_UserTable {
+	GHashTable *table;
+	GList *timers;
+	int inactivitytime;
+	int32_t expiretimers;
+	int32_t inserts;
+	int32_t releases;
+	int32_t current_users;
+	ST_UserPool *userpool;
 };
 
-typedef struct ST_DoSAnalyzer ST_DoSAnalyzer;
+typedef struct ST_UserTable ST_UserTable;
 
-void *DSAZ_Init(void);
-void *DSAZ_Destroy(void);
-void *DSAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_User *user,ST_GenericFlow *f, int *ret);
-void *DSAZ_Stats(void);
-void *DSAZ_AnalyzeDummyHTTPRequest(ST_Cache *c,ST_User *user, ST_GenericFlow *f);
+ST_UserTable *USTA_Init(void);
+void USTA_Destroy(ST_UserTable *ut); 
+
+ST_User *USTA_FindUser(ST_UserTable *ut,u_int32_t saddr);
+void USTA_InsertUser(ST_UserTable *ut,ST_User *user);
+void USTA_UpdateTimers(ST_UserTable *ut,struct timeval *currenttime);
+void USTA_SetUserPool(ST_UserTable *ut,ST_UserPool *userpool);
+void USTA_ReleaseUsers(ST_UserTable *ut);
+void USTA_Stats(ST_UserTable *ut);
 
 #endif
+

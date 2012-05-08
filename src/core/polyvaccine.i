@@ -3,6 +3,7 @@
 %{
 #include "pool.h"
 #include "cache.h"
+#include "graphcache.h"
 #include "flowpool.h"
 #include "packetcontext.h"
 #include "memorypool.h"
@@ -21,6 +22,7 @@
 #define __attribute__(x)
 %include "pool.h"
 %include "cache.h"
+%include "graphcache.h"
 %include "flowpool.h"
 %include "memorypool.h"
 %include "memory.h"
