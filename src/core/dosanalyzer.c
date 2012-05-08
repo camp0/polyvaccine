@@ -167,13 +167,9 @@ void *DSAZ_Destroy() {
 
 void *DSAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_User *user,ST_GenericFlow *f , int *ret){
 	ST_MemorySegment *seg = f->memory;
-	ST_CacheNode *nod = NULL;
+        ST_GraphLink *link = NULL;
+        ST_GraphNode *node = NULL;
 	int lret,i,process_bytes;
-	int have_data = FALSE;
-	ST_HTTPField *h_field = NULL;
-	ST_HTTPField *p_field = NULL;
-	gpointer pointer = NULL;
-	int valid_segment = TRUE;
 
 #ifdef DEBUG
         LOG(POLYLOG_PRIORITY_DEBUG,
@@ -202,6 +198,21 @@ void *DSAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_User *user,ST_GenericFlow *f , int 
 		memcpy(uri,&(seg->mem[0]),urilen-5);
 		uri[urilen] = '\0';
 
+		if(f->lasturi == NULL) { // Is the first request of the flow
+			link = GACH_GetBaseLink(c,uri);
+			if(link != NULL) { // The uri is on the graphcache
+				f->lasturi = link->uri->str;
+			}			
+
+		}else{
+			node = GACH_GetGraphNode(c,f->lasturi,uri);
+			if(node != NULL){ 
+				// Check if the time is on the cost range
+				// TODO
+
+				f->lasturi = node->uri->str;
+			}
+		}
 //		printf("URI(%s)\n",uri);
 
 

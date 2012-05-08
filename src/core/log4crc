@@ -14,7 +14,7 @@
         <!-- <category name="polyvaccine.filter.http" priority="debug" appender="none"/> -->
         <!-- <category name="polyvaccine.filter.tcp" priority="debug" appender="none"/> -->
         <!-- <category name="polyvaccine.filter.connection" priority="debug" appender="none"/> -->
-        <category name="polyvaccine.filter" priority="debug" appender="none"/>
+        <!-- <category name="polyvaccine.filter" priority="debug" appender="none"/> -->
         <category name="polyvaccine.filter" priority="info" appender="stdout"/>
         <category name="polyvaccine.bus" priority="info" appender="stdout"/>
 

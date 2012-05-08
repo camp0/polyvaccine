@@ -130,14 +130,24 @@ ST_GraphNode *GACH_GetGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, ch
 	ST_GraphNode *node = NULL;
 
         node = (ST_GraphNode*)g_hash_table_lookup(link->uris,(gchar*)uri);
+	if(node == NULL)
+		gc->total_fails++;
+	else
+		gc->total_hits++;
 	return node;
 }
 
 ST_GraphNode *GACH_GetGraphNode(ST_GraphCache *gc,char *urisrc,char *uridst){
 	ST_GraphLink *link = GACH_GetBaseLink(gc,urisrc);
+	ST_GraphNode *node = NULL;
 
 	if(link != NULL) {
-		return GACH_GetGraphNodeFromLink(gc,link,uridst);
+		node = GACH_GetGraphNodeFromLink(gc,link,uridst);
+		if(node == NULL)
+			gc->total_fails++;
+		else
+			gc->total_hits++;
+		return node;	
 	}
 	return NULL;
 }
