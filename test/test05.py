@@ -31,7 +31,6 @@ class Test_01(unittest.TestCase):
 
 		cost = pv.GACH_GetLinkCost(self.c,uri_1,uri_1)
 		self.assertEqual(cost , 10)
-		pv.GACH_Stats(self.c)
 
 	def test_01_2(self):
 		"Test the graph with two URIs"
@@ -44,7 +43,6 @@ class Test_01(unittest.TestCase):
 		self.assertEqual(self.c.total_hits,0)
 		self.assertEqual(self.c.total_fails,1)
 		self.assertEqual(cost,-1)	
-		pv.GACH_Stats(self.c)
 
 if __name__ == '__main__':
 	print "Testing the graph cache"

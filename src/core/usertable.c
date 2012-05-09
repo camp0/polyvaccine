@@ -27,6 +27,10 @@
 #define POLYLOG_CATEGORY_NAME POLYVACCINE_FILTER_CONNECTION_INTERFACE
 #include "log.h"
 
+void USTA_ShowUserStatistics(ST_UserTable *ut,int value){
+	ut->show_current_users = value;
+	return;
+}
 /**
  * USTA_SetUserPool - Sets the reference of the userpool on the ST_UserTable.
  *
@@ -45,12 +49,27 @@ void USTA_SetUserPool(ST_UserTable *ut,ST_UserPool *userpool){
  */
 
 void USTA_Stats(ST_UserTable *ut) {
+        GHashTableIter iter;
+	gpointer k,v;
  
         fprintf(stdout,"User table statistics\n");
         fprintf(stdout,"\ttimeout:%d seconds\n",ut->inactivitytime);
         fprintf(stdout,"\treleases:%d\n",ut->releases);
         fprintf(stdout,"\tinserts:%d\n",ut->inserts);
         fprintf(stdout,"\texpires:%d\n",ut->expiretimers);
+
+	if(ut->show_current_users == TRUE) {
+		fprintf(stdout,"Users information\n");
+		g_hash_table_iter_init(&iter,ut->table);
+		while( g_hash_table_iter_next(&iter,&k,&v)){
+			ST_User *user = (ST_User*)v;
+			char ip[INET_ADDRSTRLEN];
+
+			inet_ntop(AF_INET, &(user->ip), ip, INET_ADDRSTRLEN);
+			fprintf(stdout,"\tUserIP(%s)Request(%d)Duration(%d)Cost(%d)\n",ip,user->total_request,
+				user->current_time.tv_sec - user->arrive_time.tv_sec,user->acumulated_cost);
+		}
+	}
 	return;
 }
 
@@ -151,6 +170,7 @@ ST_UserTable *USTA_Init() {
 	//ut->table = g_hash_table_new_full(g_direct_hash,g_direct_equal,NULL,USTA_DestroyCallback);
 	ut->timers = NULL;
 	ut->inactivitytime = 60 * 60;
+	ut->show_current_users = FALSE;
 	ut->expiretimers = 0;
 	ut->releases = 0;
 	ut->inserts = 0;

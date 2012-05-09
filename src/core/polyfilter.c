@@ -150,6 +150,10 @@ void POFR_Init() {
 }
 
 
+void POFR_ShowUserStatistics(int value){
+	USTA_ShowUserStatistics(_polyFilter->users,value);
+	return;
+}
 
 /**
  * POFR_ShowUnknownHTTP - Shows the unknown http traffic. 
@@ -397,6 +401,12 @@ void POFR_SetLearningMode() {
 	return;
 }
 
+void POFR_AddTrustedUser(char *ip) {
+
+	AUHT_AddHost(_polyFilter->hosts,ip);
+	return;
+}
+
 /**
  * POFR_Run - Main loop, for manage the packets and the dbus-messages. 
  *
@@ -539,7 +549,6 @@ void POFR_Run() {
 								COMN_ReleaseConnection(_polyFilter->conn,flow);
 								continue;
 							}
-							// Lets get the user struct associated	
 						}
 						// TODO problem with retransmisions with post
 						// check test/pcapfiles directory
@@ -553,12 +562,17 @@ void POFR_Run() {
 								user = USPO_GetUser(_polyFilter->userpool);
 								if(user != NULL){
 									user->ip = PKCX_GetIPSrcAddr();
+									user->arrive_time.tv_sec = currenttime.tv_sec;
+									user->arrive_time.tv_usec = currenttime.tv_usec;
 									USTA_InsertUser(_polyFilter->users,user);
 								}else{
 									WARNING("No user pool allocated\n");
 									continue;
 								}
 							}
+
+							user->current_time.tv_sec = currenttime.tv_sec;
+							user->current_time.tv_usec = currenttime.tv_usec;
 
 							MESG_AppendPayloadNew(flow->memory,PKCX_GetPayload(),segment_size);
 							//  TODO check the upstream datagrams, we dont need to analyze donwstream

@@ -177,8 +177,8 @@ void *SPAZ_AnalyzeSIPRequest(ST_Cache *c,ST_User *user,ST_GenericFlow *f , int *
 
 #ifdef DEBUG
 	LOG(POLYLOG_PRIORITY_DEBUG,
-		"Analyzing flow(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]\n",
-		f,f->total_bytes,f->total_packets,seg,seg->real_size,seg->virtual_size);
+		"User(0x%x)flow(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]\n",
+		user,f,f->total_bytes,f->total_packets,seg,seg->real_size,seg->virtual_size);
 #endif
 	lret = pcre_exec(_sip.expr_header,_sip.pe_header,(char*)seg->mem,seg->virtual_size,
 		0 /* Start offset */,
@@ -369,8 +369,8 @@ void *SPAZ_AnalyzeDummySIPRequest(ST_Cache *c, ST_User *user,ST_GenericFlow *f){
 
 #ifdef DEBUG
 	LOG(POLYLOG_PRIORITY_DEBUG,
-        	"Analyzing authorized flow(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]\n",
-                f,f->total_bytes,f->total_packets,seg,seg->real_size,seg->virtual_size);
+        	"UserAuthorized(0x%x)flow(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]\n",
+                user,f,f->total_bytes,f->total_packets,seg,seg->real_size,seg->virtual_size);
 #endif
         lret = pcre_exec(_sip.expr_header,_sip.pe_header,(char*)seg->mem,seg->virtual_size,
                 0 /* Start offset */,

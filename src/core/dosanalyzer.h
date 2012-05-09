@@ -43,25 +43,20 @@
 #define OVECCOUNT 30
 
 struct ST_DoSAnalyzer{
-	GHashTable *methods;
-	GHashTable *parameters;
         pcre *expr_header;
         pcre_extra *pe_header;
         const char *errstr;
         int ovector[OVECCOUNT];
 
 	/* configuration options */	
-	int on_suspicious_header_break;
-	int on_suspicious_parameter_break;
-	int analyze_post_data;
-	int show_unknown_http;
 	
 	/* statistics */
-	int32_t suspicious_headers;
-	int32_t suspicious_parameters;
-	int32_t total_http_invalid_decode;
-	int32_t total_suspicious_segments;
-	int32_t total_valid_segments;
+	int32_t total_valid_links;
+	int32_t total_invalid_links;
+	int32_t total_exist_uri;
+	int32_t total_nonexist_uri;
+	int32_t total_exist_links;
+	int32_t total_nonexist_links;
 	int64_t total_http_bytes;
 	int64_t total_http_segments;
 };

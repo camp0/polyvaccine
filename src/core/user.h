@@ -42,6 +42,8 @@ struct ST_User{
 	int16_t total_gets;
 	int16_t total_posts;	
 
+	int acumulated_cost;
+
 	struct timeval arrive_time;
 	struct timeval current_time;
 };

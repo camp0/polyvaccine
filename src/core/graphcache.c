@@ -201,7 +201,7 @@ void GACH_Stats(ST_GraphCache *gc) {
 	fprintf(stdout,"\tLinks = %d \n",gc->total_links);
 	fprintf(stdout,"\tLink hits = %d\n\tLink fails = %d\n",gc->total_hits,gc->total_fails);
 	fprintf(stdout,"\tLink effectiveness = %d\%\n",effectiveness);
-
+/*
 	fprintf(stdout,"\tLink nodes\n");
 	g_hash_table_iter_init (&iter, gc->uris);
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
@@ -211,11 +211,9 @@ void GACH_Stats(ST_GraphCache *gc) {
 		while (g_hash_table_iter_next (&initer, &kk, &vv)) {
 			ST_GraphNode *node = (ST_GraphNode*)vv;
 			fprintf(stdout,"\t\t\tUri(%s)Cost(%d)\n",node->uri->str,node->cost);
-
 		}
 	}
-
-
+*/
 	return;
 }
 

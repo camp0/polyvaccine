@@ -34,6 +34,7 @@ void USER_Reset(ST_User *user){
 	user->arrive_time.tv_usec = 0;
 	user->current_time.tv_sec = 0;
 	user->current_time.tv_usec = 0;
+	user->acumulated_cost = 0;
 }
 
 ST_User *USER_Init(){

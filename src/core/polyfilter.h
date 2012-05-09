@@ -110,4 +110,6 @@ int32_t POFR_GetHTTPParameterCacheFails(void);
 /* SIP Functions */
 void POFR_SetSIPSourcePort(int port);
 
+void POFR_AddTrustedUser(char *ip);
+void POFR_ShowUserStatistics(int value);
 #endif

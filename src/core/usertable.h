@@ -39,6 +39,7 @@ struct ST_UserTable {
 	GHashTable *table;
 	GList *timers;
 	int inactivitytime;
+	int show_current_users;
 	int32_t expiretimers;
 	int32_t inserts;
 	int32_t releases;
@@ -57,6 +58,7 @@ void USTA_UpdateTimers(ST_UserTable *ut,struct timeval *currenttime);
 void USTA_SetUserPool(ST_UserTable *ut,ST_UserPool *userpool);
 void USTA_ReleaseUsers(ST_UserTable *ut);
 void USTA_Stats(ST_UserTable *ut);
+void USTA_ShowUserStatistics(ST_UserTable *ut,int value);
 
 #endif
 

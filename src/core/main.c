@@ -33,17 +33,20 @@ static struct option long_options[] = {
         {"interface",  	required_argument, 	0, 'i'},
         {"hport",  	required_argument, 	0, 'p'},
         {"sport",  	required_argument, 	0, 's'},
+        {"dport",  	required_argument, 	0, 'd'},
         {"force-post", 	no_argument, 		0, 'f'},
         {"unknown", 	no_argument, 		0, 'u'},
         {"cache", 	no_argument, 		0, 'c'},
         {"stats", 	no_argument, 		0, 'S'},
+        {"users", 	no_argument, 		0, 'U'},
         {"exit", 	no_argument, 		0, 'e'},
+        {"dummy", 	required_argument, 	0, 'D'},
         {"help",    	no_argument, 		0, 'h'},
         {"version",    	no_argument, 		0, 'V'},
         {0, 0, 0, 0}
 };
 
-static char *short_options = "li:p:hVfuces:S";
+static char *short_options = "li:p:hVfuces:Sd:UD:";
 
 static char *common_http_headers [] = {
 	"GET /index.phtml HTTP/1.1",
@@ -85,6 +88,8 @@ static char *show_options = {
 	"\t-i, --interface=<device>             Device or pcapfile.\n"
 	"\t-e, --exit                           Exits when analisys is done(for pcapfiles).\n"
 	"\t-S, --stats                          Show statistics.\n"
+	"\t-U, --users                          Show User statistics.\n"
+	"\t-D, --dummy                          Add dummy IP for updates caches.\n"
 	"\n"
 	"\tHTTP options\n"
 	"\t-p, --hport=<port number>            Web-server port number (80 default).\n"
@@ -96,13 +101,18 @@ static char *show_options = {
 	"\tSIP options\n"
 	"\t-s, --sport=<port number>            Sip-server port number (5060 default).\n"
 	"\n"
+	"\tDDoS options\n"
+	"\t-d, --dport=<port number>            Web-server port number (80 default).\n"
+	"\n"
 	"\t-h, --help                           Display this information.\n"
 	"\t-V, --version                        Display this program's version number.\n"
 	"\n"
 };
 
 /* options of the daemon */
+char *dummy_ip = NULL;
 int show_statistics = FALSE;
+int show_user_statistics = FALSE;
 int force_post = FALSE;
 int show_unknown = FALSE;
 int learning = FALSE;
@@ -160,6 +170,12 @@ void main(int argc, char **argv) {
            		case 'S':
              			show_statistics = TRUE;
              			break;
+           		case 'U':
+             			show_user_statistics = TRUE;
+             			break;
+           		case 'D':
+             			dummy_ip = optarg;	
+             			break;
            		case 'l':
              			learning = TRUE;
              			break;
@@ -190,6 +206,11 @@ void main(int argc, char **argv) {
 
 	if(learning)
 		POFR_SetLearningMode();
+
+	if(dummy_ip!= NULL)
+		POFR_AddTrustedUser(dummy_ip);
+
+	POFR_ShowUserStatistics(show_user_statistics);
 
 	/* Configuring the Http options */
 	POFR_SetForceAnalyzeHTTPPostData(force_post);
