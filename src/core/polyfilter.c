@@ -149,6 +149,11 @@ void POFR_Init() {
 	return;
 }
 
+void POFR_ShowGraphCacheLinks(int value){
+
+	GACH_ShowGraphCacheLinks(_polyFilter->graphcache,value);
+	return;
+}
 
 void POFR_ShowUserStatistics(int value){
 	USTA_ShowUserStatistics(_polyFilter->users,value);
@@ -581,7 +586,6 @@ void POFR_Run() {
 								if(AUHT_IsAuthorized(_polyFilter->hosts,PKCX_GetSrcAddrDotNotation())) {
 									ga->learn(ga->cache,user,flow);	
 								}else{
-									//ret = HTAZ_AnalyzeHTTPRequest(_polyFilter->httpcache,flow);
 									ga->analyze(ga->cache,user,flow,&ret);
 									if(ret) { // the segment is suspicious
 										trust_offsets =  HTAZ_GetTrustOffsets();

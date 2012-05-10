@@ -369,6 +369,108 @@ static ST_Callback ST_StaticConnectionMethodCallbacks [] = {
 	{}
 };
 
+/* Functions related to the user manager */
+void PRCA_Property_GetTotalReleaseUsers(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetTotalCurrentUsers(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetTotalTimeoutUsers(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetTotalInsertUsers(DBusConnection *conn,DBusMessage *msg, void *data);
+
+void PRCA_Property_GetUserPoolTotalReleases(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetUserPoolTotalAcquires(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetUserPoolTotalErrors(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetTotalUsersOnUserPool(DBusConnection *conn,DBusMessage *msg, void *data);
+
+static ST_Callback ST_StaticUserPropertiesCallbacks [] = {
+        {
+                .name   =       "InsertUsers",
+                .in     =       NULL,
+                .out    =       "i",
+                .func   =       PRCA_Property_GetTotalInsertUsers
+        },
+        {
+                .name   =       "CurrentUsers",
+                .in     =       NULL,
+                .out    =       "i",
+                .func   =       PRCA_Property_GetTotalCurrentConnections
+        },
+        {
+                .name   =       "ReleaseUserss",
+                .in     =       NULL,
+                .out    =       "i",
+                .func   =       PRCA_Property_GetTotalReleaseUsers
+        },
+        {
+                .name   =       "TimeExpireUsers",
+                .in     =       NULL,
+                .out    =       "i",
+                .func   =       PRCA_Property_GetTotalTimeoutUsers
+        },
+        {
+                .name   =       "UsersOnPool",
+                .in     =       NULL,
+                .out    =       "i",
+                .func   =       PRCA_Property_GetTotalUsersOnUserPool
+        },
+        {
+                .name   =       "UserReleases",
+                .in     =       NULL,
+                .out    =       "i",
+                .func   =       PRCA_Property_GetUserPoolTotalReleases
+        },
+        {
+                .name   =       "UserAcquires",
+                .in     =       NULL,
+                .out    =       "i",
+                .func   =       PRCA_Property_GetUserPoolTotalAcquires
+        },
+        {
+                .name   =       "UserErrors",
+                .in     =       NULL,
+                .out    =       "i",
+                .func   =       PRCA_Property_GetUserPoolTotalErrors
+        },
+	{}
+};
+
+/* Functions related to the graph cache */
+void PRCA_Property_GetNumberGraphCacheLinks(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetNumberGraphCacheHits(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetNumberGraphCacheFails(DBusConnection *conn,DBusMessage *msg, void *data);
+
+static ST_Callback ST_StaticGraphCachePropertiesCallbacks [] = {
+        {
+                .name   =       "Links",
+                .in     =       NULL,
+                .out    =       "i",
+                .func   =      	PRCA_Property_GetNumberGraphCacheLinks 
+        },
+        {
+                .name   =       "LinkHits",
+                .in     =       NULL,
+                .out    =       "i",
+                .func   =      	PRCA_Property_GetNumberGraphCacheHits 
+        },
+        {
+                .name   =       "LinkFails",
+                .in     =       NULL,
+                .out    =       "i",
+                .func   =      	PRCA_Property_GetNumberGraphCacheFails 
+        },
+        {}
+};
+
+void PRCA_Method_AddLinkToGraphCache(DBusConnection *conn,DBusMessage *msg, void *data);
+
+static ST_Callback ST_StaticGraphCacheMethodCallbacks [] = {
+        {
+                .name   =       "AddLink",
+                .in     =       "ssi",
+                .out    =       "b",
+                .func   =      	PRCA_Method_AddLinkToGraphCache 
+        },
+        {}
+};
+
 static ST_Interface ST_PublicInterfaces [] = {
         { 
 		.name		=	POLYVACCINE_FILTER_INTERFACE,
@@ -376,6 +478,12 @@ static ST_Interface ST_PublicInterfaces [] = {
 		.signals 	= 	NULL,
 		.properties 	= 	ST_StaticPropertiesCallbacks	
 	},
+        {
+                .name           =       POLYVACCINE_FILTER_USER_INTERFACE,
+                .methods        =       NULL,
+                .signals        =       NULL,
+                .properties     =       ST_StaticUserPropertiesCallbacks
+        },
 	{	
 		.name		= 	POLYVACCINE_FILTER_HTTP_INTERFACE,
 		.methods	=	NULL,
@@ -394,6 +502,12 @@ static ST_Interface ST_PublicInterfaces [] = {
 		.signals	=	NULL,
 		.properties	=	ST_StaticConnectionPropertiesCallbacks	
 	},
+        {
+                .name           =       POLYVACCINE_FILTER_GRAPHCACHE_INTERFACE,
+                .methods        =       ST_StaticGraphCacheMethodCallbacks,
+                .signals        =       NULL,
+                .properties     =       ST_StaticGraphCachePropertiesCallbacks
+        },
 	{}
 };
 

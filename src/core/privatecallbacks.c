@@ -629,4 +629,136 @@ void PRCA_Method_AddAuthorizedHost(DBusConnection *conn,DBusMessage *msg, void *
         return;
 }
 
+/* Functions for the user manager */
+void PRCA_Property_GetTotalReleaseUsers(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
+        dbus_int32_t value = p->users->releases;
+
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+        return;
+}
+
+void PRCA_Property_GetTotalCurrentUsers(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
+        dbus_int32_t value = p->users->current_users;
+
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+
+        return;
+}
+
+void PRCA_Property_GetTotalInsertUsers(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
+        dbus_int32_t value = p->conn->inserts;
+
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+
+        return;
+}
+
+void PRCA_Property_GetTotalTimeoutUsers(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
+        dbus_int32_t value = p->users->expiretimers;
+
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+
+        return;
+}
+
+void PRCA_Property_GetTotalUsersOnUserPool(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
+        dbus_int32_t value = 0;
+
+	value = USPO_GetNumberUsers(p->userpool);
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+        return;
+}
+
+void PRCA_Property_GetUserPoolTotalReleases(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
+        dbus_int32_t value = 0;
+
+        value = p->userpool->pool->total_releases;
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+        return;
+}
+
+void PRCA_Property_GetUserPoolTotalAcquires(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
+        dbus_int32_t value = 0;
+
+        value = p->userpool->pool->total_acquires;
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+        return;
+}
+
+void PRCA_Property_GetUserPoolTotalErrors(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
+        dbus_int32_t value = 0;
+
+        value = p->userpool->pool->total_errors;
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+        return;
+}
+
+/* Functions related to the graph cache */
+void PRCA_Property_GetNumberGraphCacheLinks(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
+        dbus_int32_t value = 0;
+
+        value = p->graphcache->total_links;
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+	return;
+}
+
+void PRCA_Property_GetNumberGraphCacheHits(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
+        dbus_int32_t value = 0;
+
+        value = p->graphcache->total_hits;
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+        return;
+}
+
+void PRCA_Property_GetNumberGraphCacheFails(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p =(ST_PolyFilter*)data;
+        dbus_int32_t value = 0;
+
+        value = p->graphcache->total_fails;
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+        return;
+}
+
+void PRCA_Method_AddLinkToGraphCache(DBusConnection *conn,DBusMessage *msg, void *data){
+        DBusMessageIter args;
+        ST_PolyFilter *p = (ST_PolyFilter*)data;
+	DBusMessage *reply = NULL;
+        DBusError error;
+	char *urisrc = NULL;
+	char *uridst = NULL;
+	dbus_int32_t cost = 0;       
+	dbus_int32_t ret = 0;
+ 
+	dbus_error_init(&error);
+        
+	reply = dbus_message_new_method_return(msg);
+
+        /*
+         * Receives a Link from a external process
+         * uri1,uri2,cost
+         */
+
+        dbus_message_get_args(msg,&error,
+		DBUS_TYPE_STRING,&urisrc,
+		DBUS_TYPE_STRING,&uridst,
+                DBUS_TYPE_INT32,&cost,
+                DBUS_TYPE_INVALID);
+
+	if((urisrc)&&(uridst)){
+		GACH_AddLink(p->graphcache,urisrc,uridst,cost);
+		ret = 1;
+	}
+        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,ret);
+	return;
+}
 

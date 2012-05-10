@@ -35,7 +35,9 @@
 
 struct ST_GraphNode {
 	GString *uri;
+	int id_uri;
 	int cost;
+	int32_t hits;
 };
 
 typedef struct ST_GraphNode ST_GraphNode;
@@ -43,6 +45,7 @@ typedef struct ST_GraphNode ST_GraphNode;
 struct ST_GraphLink {
 	GHashTable *uris;
 	GString *uri;
+	int id_uri;
 };
 
 typedef struct ST_GraphLink ST_GraphLink;
@@ -52,6 +55,9 @@ struct ST_GraphCache {
 	int32_t total_links;
 	int32_t total_hits;
 	int32_t total_fails;
+	int32_t total_nodes;
+	int show_cache;
+	int64_t size_memory; // total bytes allocated
 };
 
 typedef struct ST_GraphCache ST_GraphCache;
@@ -66,4 +72,5 @@ ST_GraphNode *GACH_GetGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, ch
 ST_GraphNode *GACH_GetGraphNode(ST_GraphCache *gc,char *urisrc, char *uridst); 
 int GACH_GetLinkCost(ST_GraphCache *gc, char *urisrc, char *uridst); 
 
+void GACH_ShowGraphCacheLinks(ST_GraphCache *gc,int value);
 #endif

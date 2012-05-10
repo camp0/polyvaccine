@@ -37,6 +37,7 @@ static struct option long_options[] = {
         {"force-post", 	no_argument, 		0, 'f'},
         {"unknown", 	no_argument, 		0, 'u'},
         {"cache", 	no_argument, 		0, 'c'},
+        {"graph", 	no_argument, 		0, 'g'},
         {"stats", 	no_argument, 		0, 'S'},
         {"users", 	no_argument, 		0, 'U'},
         {"exit", 	no_argument, 		0, 'e'},
@@ -46,7 +47,7 @@ static struct option long_options[] = {
         {0, 0, 0, 0}
 };
 
-static char *short_options = "li:p:hVfuces:Sd:UD:";
+static char *short_options = "li:p:hVfuces:Sd:UD:g";
 
 static char *common_http_headers [] = {
 	"GET /index.phtml HTTP/1.1",
@@ -103,6 +104,7 @@ static char *show_options = {
 	"\n"
 	"\tDDoS options\n"
 	"\t-d, --dport=<port number>            Web-server port number (80 default).\n"
+	"\t-g, --graph                          Shows the graph cache links.\n"
 	"\n"
 	"\t-h, --help                           Display this information.\n"
 	"\t-V, --version                        Display this program's version number.\n"
@@ -111,6 +113,7 @@ static char *show_options = {
 
 /* options of the daemon */
 char *dummy_ip = NULL;
+int show_graphcache = FALSE;
 int show_statistics = FALSE;
 int show_user_statistics = FALSE;
 int force_post = FALSE;
@@ -169,6 +172,9 @@ void main(int argc, char **argv) {
              			break;
            		case 'S':
              			show_statistics = TRUE;
+             			break;
+           		case 'g':
+             			show_graphcache = TRUE;
              			break;
            		case 'U':
              			show_user_statistics = TRUE;
@@ -234,6 +240,9 @@ void main(int argc, char **argv) {
 			value = common_http_headers[i];
 		}	
 	}
+
+	/* Configuring the DDoS options */
+	POFR_ShowGraphCacheLinks(show_graphcache);
 
 	/* Configuring the SIP options */
 	POFR_SetSIPSourcePort(sport);
