@@ -58,7 +58,12 @@ struct ST_DoSAnalyzer{
 	int32_t total_exist_links;
 	int32_t total_nonexist_links;
 	int64_t total_http_bytes;
-	int64_t total_http_segments;
+	int64_t total_http_request;
+
+	/* statistics related to the flows */
+	struct timeval prev_sample;
+	struct timeval curr_sample;
+	int32_t request_per_minute;
 };
 
 typedef struct ST_DoSAnalyzer ST_DoSAnalyzer;

@@ -412,6 +412,18 @@ void POFR_AddTrustedUser(char *ip) {
 	return;
 }
 
+
+
+void POFR_GetTimeOfDay(struct timeval *t,struct pcap_pkthdr *hdr){
+
+	if(_polyFilter->is_pcap_file == TRUE){
+		t->tv_sec = hdr->ts.tv_sec;
+		t->tv_usec = hdr->ts.tv_usec;
+	}else{
+                gettimeofday(t,NULL);
+	}
+} 
+
 /**
  * POFR_Run - Main loop, for manage the packets and the dbus-messages. 
  *
@@ -482,6 +494,7 @@ void POFR_Run() {
                                         	break;
                                 }
 			}else {
+				POFR_GetTimeOfDay(&currenttime,header);
 				if(PKDE_Decode(header,pkt_data) == TRUE){
 					ga = FORD_GetAnalyzer(_polyFilter->forwarder,
 						PKCX_GetIPProtocol(),

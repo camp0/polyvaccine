@@ -56,6 +56,7 @@ struct ST_GraphCache {
 	int32_t total_hits;
 	int32_t total_fails;
 	int32_t total_nodes;
+	int32_t total_ids;
 	int show_cache;
 	int64_t size_memory; // total bytes allocated
 };

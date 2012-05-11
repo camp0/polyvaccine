@@ -44,13 +44,17 @@ void *DSAZ_Init() {
 	ST_HTTPField *f;
 
         _dos.total_http_bytes = 0;
-        _dos.total_http_segments = 0;
+        _dos.total_http_request = 0;
 	_dos.total_exist_links = 0;
 	_dos.total_exist_uri = 0;
 	_dos.total_nonexist_uri = 0;
 	_dos.total_nonexist_links = 0;
 	_dos.total_valid_links = 0;
 	_dos.total_invalid_links = 0;
+	_dos.request_per_minute = 0;
+	_dos.prev_sample.tv_sec = 0;
+	_dos.prev_sample.tv_usec = 0;
+	gettimeofday(&_dos.curr_sample,NULL);
 
 	_dos.expr_header = pcre_compile((char*)HTTP_HEADER_PARAM, PCRE_FIRSTLINE, &_dos.errstr, &erroffset, 0);
 #ifdef PCRE_HAVE_JIT
@@ -85,7 +89,7 @@ void *DSAZ_Stats(void) {
 	register int i;
 
 	fprintf(stdout,"DDoS analyzer statistics\n");
-	fprintf(stdout,"\ttotal segments %ld\n",_dos.total_http_segments);
+	fprintf(stdout,"\ttotal request %ld\n",_dos.total_http_request);
 	fprintf(stdout,"\ttotal bytes %ld\n",_dos.total_http_bytes);
 	fprintf(stdout,"\ttotal valid links %ld\n",_dos.total_valid_links);
 	fprintf(stdout,"\ttotal invalid links %ld\n",_dos.total_invalid_links);
@@ -214,8 +218,18 @@ void *DSAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_User *user,ST_GenericFlow *f , int 
 
 		user->total_request++;
 
+		if(_dos.prev_sample.tv_sec + 60 < f->current_time.tv_sec) {
+			_dos.prev_sample.tv_sec = f->current_time.tv_sec;
+			_dos.prev_sample.tv_usec = f->current_time.tv_usec;
+			_dos.request_per_minute = _dos.total_http_request - _dos.request_per_minute;
+#ifdef DEBUG
+        		LOG(POLYLOG_PRIORITY_DEBUG,
+                		"DDoS request/min(%d)",_dos.request_per_minute);
+#endif
+		} 
+
 		_dos.total_http_bytes += seg->virtual_size;	
-		_dos.total_http_segments ++;
+		_dos.total_http_request ++;
 	}else{
 		(*ret) = 0;
 		return ;
@@ -287,7 +301,7 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_User *user,ST_GenericFlow *f)
 		user->total_request++;
 
                 _dos.total_http_bytes += seg->virtual_size;
-                _dos.total_http_segments ++;
+                _dos.total_http_request ++;
         }
 	return;
 }
