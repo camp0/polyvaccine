@@ -58,7 +58,7 @@ struct ST_GraphCache {
 	int32_t total_nodes;
 	int32_t total_ids;
 	int show_cache;
-	int64_t size_memory; // total bytes allocated
+	int32_t size_memory; // total bytes allocated
 };
 
 typedef struct ST_GraphCache ST_GraphCache;

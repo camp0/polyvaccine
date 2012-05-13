@@ -25,8 +25,6 @@
 #ifndef _GENERICFLOW_H_
 #define _GENERICFLOW_H_
 
-//#include <netinet/tcp.h>
-//#include "tcpanalyzer.h"
 #include "memory.h"
 #include <sys/types.h>
 

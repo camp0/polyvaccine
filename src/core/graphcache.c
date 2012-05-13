@@ -92,7 +92,7 @@ void GACH_AddLink(ST_GraphCache *gc,char *urisrc, char *uridst, int cost){
 		// There is no source uri
 		linksrc = GACH_NewGraphLink(urisrc);
 		
-		gc->size_memory += sizeof(linksrc)+strlen(urisrc);
+		gc->size_memory += sizeof(ST_GraphLink)+strlen(urisrc);
 		gc->total_nodes++;
 		gc->total_ids ++;
 		
@@ -110,7 +110,7 @@ void GACH_AddLink(ST_GraphCache *gc,char *urisrc, char *uridst, int cost){
 		linkdst = (ST_GraphLink *)g_hash_table_lookup(gc->uris,(gchar*)uridst);
 		if(linkdst == NULL) {
 			linkdst = GACH_NewGraphLink(uridst);
-			gc->size_memory += sizeof(linkdst)+strlen(uridst);
+			gc->size_memory += sizeof(ST_GraphLink)+strlen(uridst);
 			gc->total_nodes++;
 
 			linkdst->id_uri = gc->total_ids;
@@ -120,7 +120,7 @@ void GACH_AddLink(ST_GraphCache *gc,char *urisrc, char *uridst, int cost){
 		node = (ST_GraphNode*)g_hash_table_lookup(linksrc->uris,(gchar*)uridst);
 		if(node == NULL) {
 			node = GACH_NewGraphNode(uridst,cost);
-			gc->size_memory += sizeof(node)+strlen(uridst);
+			gc->size_memory += sizeof(ST_GraphNode)+strlen(uridst);
 			g_hash_table_insert(linksrc->uris,g_strdup(uridst),node);
 			gc->total_links ++;
 			gc->total_ids++;
@@ -128,7 +128,7 @@ void GACH_AddLink(ST_GraphCache *gc,char *urisrc, char *uridst, int cost){
 			linkdst = (ST_GraphLink *)g_hash_table_lookup(gc->uris,(gchar*)uridst);
 			if(linkdst == NULL) {
 				linkdst = GACH_NewGraphLink(uridst);
-				gc->size_memory += sizeof(linkdst)+strlen(uridst);
+				gc->size_memory += sizeof(ST_GraphLink)+strlen(uridst);
 				gc->total_nodes++;
 				linkdst->id_uri = gc->total_ids;
 				g_hash_table_insert(gc->uris,g_strdup(uridst),linkdst);
@@ -226,13 +226,26 @@ ST_GraphCache *GACH_Init(){
 /**
  * GACH_Destroy - Destroy all the fields of the graphcache
  */
-void GACH_Destroy(ST_GraphCache *c) {
-/*        g_hash_table_foreach_remove(c->header_cache,CACH_DestroyCallback,NULL);
-        g_hash_table_foreach_remove(c->parameter_cache,CACH_DestroyCallback,NULL);
-        g_hash_table_destroy(c->header_cache);
-        g_hash_table_destroy(c->parameter_cache);
-	g_free(c);
-*/	
+void GACH_Destroy(ST_GraphCache *gc) {
+        GHashTableIter iter,initer;
+        gpointer k,v,kk,vv;
+
+        g_hash_table_iter_init (&iter, gc->uris);
+        while (g_hash_table_iter_next (&iter, &k, &v)) {
+        	ST_GraphLink *link = (ST_GraphLink*)v;
+                g_hash_table_iter_init(&initer,link->uris);
+                while (g_hash_table_iter_next (&initer, &kk, &vv)) {
+                	ST_GraphNode *node = (ST_GraphNode*)vv;
+			//g_free(node->uri);
+			g_free(node);
+		}
+		g_hash_table_destroy(link->uris);
+		//g_free(link->uri);
+		//g_free(link);
+        }
+	//g_hash_table_destroy(gc->uris);
+	//g_free(gc);
+	//gc = NULL;
 }
 
 void __GACH_DumpGraphOnGraphviz(ST_GraphCache *gc) {
@@ -269,7 +282,7 @@ void GACH_Stats(ST_GraphCache *gc) {
 	gpointer k,v,kk,vv;
 	int effectiveness;
 	int p_effectiveness;
-	int64_t value = gc->size_memory;
+	int32_t value = gc->size_memory;
         char *unit = "Bytes";
 
         if((value / 1024)>0){
