@@ -78,6 +78,7 @@ void *DSAZ_Init() {
                 	"PCRE study failed '%s'",_dos.errstr);
 #endif
 
+	_dos.pathcache = PACH_Init();
 	return;
 }
 
@@ -134,7 +135,7 @@ void *DSAZ_Destroy() {
 #else
 	pcre_free(_dos.pe_header);
 #endif
-
+	PACH_Destroy(_dos.pathcache);
 }
 
 /**
@@ -251,6 +252,7 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_User *user,ST_GenericFlow *f)
 	ST_GraphLink *link = NULL;
 	ST_GraphNode *node = NULL;
 	int lret,costvalue;
+	int uri_id;
 
 #ifdef DEBUG
         LOG(POLYLOG_PRIORITY_DEBUG,
@@ -282,6 +284,7 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_User *user,ST_GenericFlow *f)
 			GACH_AddBaseLink(c,uri);
 			link = GACH_GetBaseLink(c,uri);
 			f->lasturi = link->uri->str;
+			uri_id = link->id_uri;
 		}else{
 			// At least is the second or more uri on the flow
 			struct timeval t_cost;
@@ -290,8 +293,12 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_Cache *c, ST_User *user,ST_GenericFlow *f)
 			costvalue = t_cost.tv_sec/1000 + (t_cost.tv_usec);
 			GACH_AddLink(c,f->lasturi,uri,costvalue);
 			node = GACH_GetGraphNode(c,f->lasturi,uri);
-			f->lasturi = node->uri->str;	
+			f->lasturi = node->uri->str;
+			uri_id = node->id_uri;	
 		}
+
+		// Updates the pathcache;
+
 #ifdef DEBUG
                 LOG(POLYLOG_PRIORITY_DEBUG,
                         "User(0x%x)Flow(0x%x) Updating the graph cost(%d)",user,f,costvalue);

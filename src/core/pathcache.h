@@ -22,58 +22,41 @@
  *
  */
 
-#ifndef _DOSANALYZER_H_
-#define _DOSANALYZER_H_
+#ifndef _PATHPACHE_H_
+#define _PATHPACHE_H_
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#include <pcre.h>
-#include <log4c.h>
-#include "user.h"
-#include "genericflow.h"
-#include "cache.h"
-#include "graphcache.h"
-#include "pathcache.h"
 #include <sys/types.h>
 #include <glib.h>
 #include "debug.h"
-#include "interfaces.h"
 
-#define OVECCOUNT 30
-
-struct ST_DoSAnalyzer{
-        pcre *expr_header;
-        pcre_extra *pe_header;
-        const char *errstr;
-        int ovector[OVECCOUNT];
-
-	ST_PathCache *pathcache;
-	/* configuration options */	
-	
-	/* statistics */
-	int32_t total_valid_links;
-	int32_t total_invalid_links;
-	int32_t total_exist_uri;
-	int32_t total_nonexist_uri;
-	int32_t total_exist_links;
-	int32_t total_nonexist_links;
-	int64_t total_http_bytes;
-	int64_t total_http_request;
-
-	/* statistics related to the flows */
-	struct timeval prev_sample;
-	struct timeval curr_sample;
-	int32_t request_per_minute;
+struct ST_PathNode {
+	GString *path;
+	int32_t hits;
 };
 
-typedef struct ST_DoSAnalyzer ST_DoSAnalyzer;
+typedef struct ST_PathNode ST_PathNode;
 
-void *DSAZ_Init(void);
-void *DSAZ_Destroy(void);
-void *DSAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_User *user,ST_GenericFlow *f, int *ret);
-void *DSAZ_Stats(void);
-void *DSAZ_AnalyzeDummyHTTPRequest(ST_Cache *c,ST_User *user, ST_GenericFlow *f);
+struct ST_PathCache {
+	GHashTable *paths;
+	int32_t total_paths;
+	int32_t total_hits;
+	int32_t total_fails;
+	int show_cache;
+	int64_t size_memory; // total bytes allocated
+};
+
+typedef struct ST_PathCache ST_PathCache;
+
+ST_PathCache *PACH_Init(void);
+ST_PathNode *PACH_InitPathNode(void);
+void PACH_Destroy(ST_PathCache *pc);
+void PACH_Stats(ST_PathCache *pc);
+ST_PathNode *PACH_GetPath(ST_PathCache *pc,gchar *path);
+void PACH_AddPath(ST_PathCache *pc, gchar *path);
+void PACH_ShowPathCache(ST_PathCache *pc);
 
 #endif

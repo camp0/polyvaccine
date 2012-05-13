@@ -12,11 +12,11 @@ BUILT_SOURCES = $(srcdir)/polyvaccine_wrap.c
 libpolyvaccine_la_SOURCES =	system.c memory.c pool.c memorypool.c privatecallbacks.c flowpool.c \
 				connection.c packetdecoder.c authorized.c trustoffset.c tcpanalyzer.c \
 				httpanalyzer.c sipanalyzer.c user.c userpool.c dosanalyzer.c cache.c \
-				forwarder.c polyfilter.c usertable.c graphcache.c 
+				forwarder.c polyfilter.c pathcache.c usertable.c graphcache.c 
 
 noinst_HEADERS =	httpvalues.h flowpool.h connection.h cache.h polyfilter.h forwarder.h tcpanalyzer.h \
 			packetdecoder.h packetcontext.h genericflow.h authorized.h privatecallbacks.h \
-			httpanalyzer.h memory.h memorypool.h system.h trustoffset.h sipvalues.h \
+			httpanalyzer.h memory.h memorypool.h system.h trustoffset.h sipvalues.h pathcache.h \
 			sipanalyzer.h userpool.h user.h dosanalyzer.h pool.h usertable.h graphcache.h 
 
 libpolyvaccine_la_LIBADD = ../opcodes/libopcodes.la ../bus/libpolybus.la $(DEPS_LIBS) 
