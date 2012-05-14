@@ -40,20 +40,21 @@
 
 struct ST_GenericAnalyzer{
 	int16_t port;
+	int16_t protocol;
 	short direction;
 	char name[32];
-	ST_Cache *cache;
 	void (*init)(void);
 	void (*destroy)(void);
 	void (*stats)(void);
-	void (*analyze)(ST_Cache *c,ST_User *user,ST_GenericFlow *f,int *ret);
-	void (*learn)(ST_Cache *c,ST_User *user,ST_GenericFlow *f);
+	void (*analyze)(ST_User *user,ST_GenericFlow *f,int *ret);
+	void (*learn)(ST_User *user,ST_GenericFlow *f);
 };
 typedef struct ST_GenericAnalyzer ST_GenericAnalyzer;
 
 struct ST_Forwarder {
-	GHashTable *tcp_analyzers;
-	GHashTable *udp_analyzers;
+	GHashTable *tcp_analyzers; // active tcp analyzers
+	GHashTable *udp_analyzers; // active udp analyzers
+	GHashTable *analyzers; // All the analyzers available
 };
 typedef struct ST_Forwarder ST_Forwarder;
 
@@ -63,18 +64,20 @@ void FORD_InitAnalyzers(ST_Forwarder *fw);
 void FORD_ShowAnalyzers(ST_Forwarder *fw);
 void FORD_Stats(ST_Forwarder *fw);
 ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw,int16_t protocol,int16_t sport,int16_t dport);
+ST_GenericAnalyzer *FORD_GetAnalyzerByName(ST_Forwarder *fw,int16_t protocol,char *name);
 
-void FORD_AddAnalyzer(ST_Forwarder *fw,ST_Cache *cache,char *name,int16_t protocol, int16_t port,
+void FORD_AddAnalyzer(ST_Forwarder *fw,char *name,int16_t protocol, int16_t port,
 	void (*init)(void), 
 	void (*destroy)(void),
 	void (*stats)(void),
-	void (*analyze)(ST_Cache *c,ST_User *user,ST_GenericFlow *f,int *ret),
-	void (*learn)(ST_Cache *c,ST_User *user,ST_GenericFlow *f));
+	void (*analyze)(ST_User *user,ST_GenericFlow *f,int *ret),
+	void (*learn)(ST_User *user,ST_GenericFlow *f));
 
 void FORD_ChangeAnalyzerToPlugOnPort(ST_Forwarder *fw,int16_t src_protocol, int16_t src_port,
 	int16_t dst_protocol,int16_t dst_port);
 
 void FORD_AddPortToAnalyzer(ST_Forwarder *fw,char *name,int16_t protocol,int16_t port);
 
+void FORD_EnableAnalyzerByName(ST_Forwarder *fw, char *name);
 
 #endif

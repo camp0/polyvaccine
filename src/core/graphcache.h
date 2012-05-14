@@ -67,6 +67,7 @@ ST_GraphCache *GACH_Init(void);
 void GACH_Destroy(ST_GraphCache *gc);
 void GACH_Stats(ST_GraphCache *gc);
 void GACH_AddLink(ST_GraphCache *gc,char *urisrc, char *uridst, int cost);
+void GACH_AddGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, char *uridst, int cost);
 void GACH_AddBaseLink(ST_GraphCache *gc,char *uri);
 ST_GraphLink *GACH_GetBaseLink(ST_GraphCache *gc,char *uri);
 ST_GraphNode *GACH_GetGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, char *uri); 

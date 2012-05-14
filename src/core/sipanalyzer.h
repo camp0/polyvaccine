@@ -49,6 +49,7 @@ struct ST_SIPAnalyzer{
         const char *errstr;
 	ST_TrustOffsets *t_off;
         int ovector[OVECCOUNT];
+	ST_Cache *sipcache;
 	/* configuration options */	
 	int on_suspicious_header_break;
 	int on_suspicious_parameter_break;
@@ -68,9 +69,9 @@ typedef struct ST_SIPAnalyzer ST_SIPAnalyzer;
 
 void *SPAZ_Init(void);
 void *SPAZ_Destroy(void);
-void *SPAZ_AnalyzeSIPRequest(ST_Cache *c,ST_User *user,ST_GenericFlow *f, int *ret);
+void *SPAZ_AnalyzeSIPRequest(ST_User *user,ST_GenericFlow *f, int *ret);
 void *SPAZ_Stats(void);
-void *SPAZ_AnalyzeDummySIPRequest(ST_Cache *c, ST_User *user,ST_GenericFlow *f);
+void *SPAZ_AnalyzeDummySIPRequest(ST_User *user,ST_GenericFlow *f);
 void SPAZ_SetForceAnalyzeSIPSdpData(int value);
 void SPAZ_ShowUnknownSIP(int value);
 

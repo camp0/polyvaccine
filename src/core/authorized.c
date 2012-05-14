@@ -45,6 +45,12 @@ void AUHT_AddHost(ST_AuthorizedHost *a,char *ip){
 	return;
 }
 
+void AUHT_RemoveHost(ST_AuthorizedHost *a,char *ip){
+
+	g_hash_table_remove(a->hosts,(gchar*)ip);
+	return;
+}
+
 int AUHT_IsAuthorized(ST_AuthorizedHost *a, char *ip) {
 
 	if(a->all == TRUE)

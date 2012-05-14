@@ -25,6 +25,7 @@
 #ifndef _GENERICFLOW_H_
 #define _GENERICFLOW_H_
 
+#include "pathcache.h"
 #include "memory.h"
 #include <sys/types.h>
 
@@ -48,7 +49,10 @@ struct ST_GenericFlow {
 	struct timeval last_uri_seen; // used on the dosanalyzer;
 	ST_MemorySegment *memory;
 	
-	char *lasturi; // This parameter is used to know the last URI visited for the dosanalyzer	
+	char *lasturi; // This parameter is used to know the last URI visited for the dosanalyzer
+	int lasturi_id;
+
+	ST_PathNode *path;	
 } __attribute__((packed));
 
 typedef struct ST_GenericFlow ST_GenericFlow;
@@ -75,6 +79,8 @@ static void GEFW_Reset(ST_GenericFlow *f) {
 	f->direction = FLOW_FORW;
 	f->memory = NULL;
 	f->lasturi = NULL;
+	f->lasturi_id = 0;
+	f->path = NULL;
 	return;
 };
 

@@ -45,6 +45,12 @@ ST_PathNode *PACH_GetPath(ST_PathCache *pc,gchar *path){
 	return path_n;
 }
 
+/**
+ * PACH_InitPathNode 
+ *
+ * @return ST_PathNode 
+ */
+
 ST_PathNode *PACH_InitPathNode(){
 	ST_PathNode *path_n = NULL;
 
@@ -133,13 +139,13 @@ void PACH_Stats(ST_PathCache *pc) {
 	fprintf(stdout,"\tPath hits = %d\n\tPath fails = %d\n",pc->total_hits,pc->total_fails);
 	fprintf(stdout,"\tPath effectiveness = %d\%\n",effectiveness);
 
-	
+	//pc->show_cache = TRUE;	
 	if(pc->show_cache == TRUE) {
 		fprintf(stdout,"\tPath nodes\n");
 		g_hash_table_iter_init (&iter, pc->paths);
 		while (g_hash_table_iter_next (&iter, &k, &v)) {
 			ST_PathNode *nod = (ST_PathNode*)v;
-			fprintf(stdout,"\tPath(%s)Hits(%d)\n",nod->path->str,nod->hits);
+			fprintf(stdout,"\t\tPath(%s)Hits(%d)\n",nod->path->str,nod->hits);
 		}
 	}
 	return;

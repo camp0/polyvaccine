@@ -100,9 +100,6 @@ void POFR_Init() {
 	_polyFilter->flowpool = FLPO_Init();
 	_polyFilter->memorypool = MEPO_Init();
 	_polyFilter->userpool = USPO_Init();
-	_polyFilter->httpcache = CACH_Init();
-	_polyFilter->sipcache = CACH_Init();
-	_polyFilter->graphcache = GACH_Init();
 	_polyFilter->hosts = AUHT_Init();
 	_polyFilter->forwarder = FORD_Init();
 
@@ -112,33 +109,31 @@ void POFR_Init() {
 #ifdef DEBUG
 	LOG(POLYLOG_PRIORITY_DEBUG,"Initialized engine....");
 	LOG(POLYLOG_PRIORITY_DEBUG,"connection manager (0x%x)",_polyFilter->conn);
+	LOG(POLYLOG_PRIORITY_DEBUG,"user manager (0x%x)",_polyFilter->users);
 	LOG(POLYLOG_PRIORITY_DEBUG,"flowpool (0x%x)",_polyFilter->flowpool);
 	LOG(POLYLOG_PRIORITY_DEBUG,"memorypool (0x%x)",_polyFilter->memorypool);
 	LOG(POLYLOG_PRIORITY_DEBUG,"userpool (0x%x)",_polyFilter->userpool);
-	LOG(POLYLOG_PRIORITY_DEBUG,"httpcache (0x%x)",_polyFilter->httpcache);
-	LOG(POLYLOG_PRIORITY_DEBUG,"sipcache (0x%x)",_polyFilter->sipcache);
-	LOG(POLYLOG_PRIORITY_DEBUG,"graphcache (0x%x)",_polyFilter->graphcache);
 #endif
 	// Plugin the analyzers
 
-        FORD_AddAnalyzer(_polyFilter->forwarder,_polyFilter->graphcache,
-                "DDoS Analyzer",IPPROTO_TCP,80,
+        FORD_AddAnalyzer(_polyFilter->forwarder,
+                "ddos",IPPROTO_TCP,80,
                 (void*)DSAZ_Init,
                 (void*)DSAZ_Destroy,
                 (void*)DSAZ_Stats,
                 (void*)DSAZ_AnalyzeHTTPRequest,
                 (void*)DSAZ_AnalyzeDummyHTTPRequest);
 
-	FORD_AddAnalyzer(_polyFilter->forwarder,_polyFilter->httpcache,
-		"HTTP Analyzer",IPPROTO_TCP,8080,
+	FORD_AddAnalyzer(_polyFilter->forwarder,
+		"http",IPPROTO_TCP,8080,
 		(void*)HTAZ_Init,
 		(void*)HTAZ_Destroy,
 		(void*)HTAZ_Stats,	
 		(void*)HTAZ_AnalyzeHTTPRequest,
 		(void*)HTAZ_AnalyzeDummyHTTPRequest);
 
-	FORD_AddAnalyzer(_polyFilter->forwarder,_polyFilter->sipcache,
-		"SIP Analyzer",IPPROTO_UDP,5060,
+	FORD_AddAnalyzer(_polyFilter->forwarder,
+		"sip",IPPROTO_UDP,5060,
 		(void*)SPAZ_Init,
 		(void*)SPAZ_Destroy,
 		(void*)SPAZ_Stats,	
@@ -151,7 +146,8 @@ void POFR_Init() {
 
 void POFR_ShowGraphCacheLinks(int value){
 
-	GACH_ShowGraphCacheLinks(_polyFilter->graphcache,value);
+	// TODO
+	//GACH_ShowGraphCacheLinks(_polyFilter->graphcache,value);
 	return;
 }
 
@@ -159,6 +155,16 @@ void POFR_ShowUserStatistics(int value){
 	USTA_ShowUserStatistics(_polyFilter->users,value);
 	return;
 }
+
+void POFR_EnableAnalyzers(char *analyzers){
+
+	// Tells the forwarder to enable the analyzers
+	// TODO
+	FORD_EnableAnalyzerByName(_polyFilter->forwarder,analyzers);
+	return;
+}
+
+
 
 /**
  * POFR_ShowUnknownHTTP - Shows the unknown http traffic. 
@@ -295,10 +301,9 @@ void POFR_Destroy() {
 	USPO_Destroy(_polyFilter->userpool);
 	COMN_Destroy(_polyFilter->conn);
 	USTA_Destroy(_polyFilter->users);
-	CACH_Destroy(_polyFilter->httpcache);
-	CACH_Destroy(_polyFilter->sipcache);
-	GACH_Destroy(_polyFilter->graphcache);
 	AUHT_Destroy(_polyFilter->hosts);
+
+	// TODO: verify if the forwarder destroy the analyzers
 	FORD_Destroy(_polyFilter->forwarder);
 	PKCX_Destroy();
 	POLG_Destroy();
@@ -320,9 +325,6 @@ void POFR_Stats() {
         COMN_Stats(_polyFilter->conn);
         USTA_Stats(_polyFilter->users);
         FORD_Stats(_polyFilter->forwarder);
-        CACH_Stats(_polyFilter->httpcache);
-        CACH_Stats(_polyFilter->sipcache);
-        GACH_Stats(_polyFilter->graphcache);
 	return;
 }
 
@@ -334,12 +336,11 @@ void POFR_Stats() {
  * 
  */
 void POFR_AddToHTTPCache(int type,char *value){
-	if(_polyFilter->httpcache) {
-		if (type == CACHE_HEADER )
-			CACH_AddHeaderToCache(_polyFilter->httpcache,value,NODE_TYPE_STATIC);
-		else if (type == CACHE_PARAMETER) 
-			CACH_AddParameterToCache(_polyFilter->httpcache,value,NODE_TYPE_STATIC);
-	}
+
+	if (type == CACHE_HEADER )
+		HTAZ_AddHeaderToCache(value,NODE_TYPE_STATIC);
+	else if (type == CACHE_PARAMETER) 
+		HTAZ_AddParameterToCache(value,NODE_TYPE_STATIC);
 }
 
 /**
@@ -406,13 +407,44 @@ void POFR_SetLearningMode() {
 	return;
 }
 
+/**
+ * POFR_AddTrustedUser - Adds a IP user so the caches will be update on real-time 
+ *
+ * @param ip
+ */
 void POFR_AddTrustedUser(char *ip) {
 
 	AUHT_AddHost(_polyFilter->hosts,ip);
 	return;
 }
 
+/**
+ * POFR_RemoveTrustedUser - Destroy a IP user from the authorized list 
+ *
+ * @param ip
+ */
+void POFR_RemoveTrustedUser(char *ip) {
 
+        AUHT_RemoveHost(_polyFilter->hosts,ip);
+        return;
+}
+
+
+void POFR_SetInitialFlowsOnPool(int value){
+	int pflows;
+	
+	if(value>0){
+		pflows = FLPO_GetNumberFlows(_polyFilter->flowpool);
+		if(value > pflows) { // We should increment the flow pool
+			FLPO_IncrementFlowPool(_polyFilter->flowpool,value - pflows);
+		}else{
+			if(value < pflows) {
+				FLPO_DecrementFlowPool(_polyFilter->flowpool,pflows - value);
+			}
+		}
+	}
+	return;
+}
 
 void POFR_GetTimeOfDay(struct timeval *t,struct pcap_pkthdr *hdr){
 
@@ -597,9 +629,9 @@ void POFR_Run() {
 							// try to find something efficient
 							if((protocol == IPPROTO_UDP)||((protocol == IPPROTO_TCP)&&(PKCX_IsTCPPush() == 1))) {
 								if(AUHT_IsAuthorized(_polyFilter->hosts,PKCX_GetSrcAddrDotNotation())) {
-									ga->learn(ga->cache,user,flow);	
+									ga->learn(user,flow);	
 								}else{
-									ga->analyze(ga->cache,user,flow,&ret);
+									ga->analyze(user,flow,&ret);
 									if(ret) { // the segment is suspicious
 										trust_offsets =  HTAZ_GetTrustOffsets();
 										POFR_SendSuspiciousSegmentToExecute(flow->memory,
@@ -645,35 +677,23 @@ void POFR_Run() {
 
 
 int32_t POFR_GetHTTPHeaderCacheHits(){
-	int32_t value = 0;
 
-	if((_polyFilter)&&(_polyFilter->httpcache))
-		value = _polyFilter->httpcache->header_hits;
-	return value;
+	return HTAZ_GetHeaderHits();
 }
 	
 int32_t POFR_GetHTTPHeaderCacheFails() {
-	int32_t value = 0;
-
-	if((_polyFilter)&&(_polyFilter->httpcache))
-		value = _polyFilter->httpcache->header_fails;
-	return value;
+	
+	return HTAZ_GetHeaderFails();
 }
 
 int32_t POFR_GetHTTPParameterCacheHits(){
-        int32_t value = 0;
 
-        if((_polyFilter)&&(_polyFilter->httpcache))
-                value = _polyFilter->httpcache->parameter_hits;
-        return value;
+        return HTAZ_GetParameterHits();
 }
 
 int32_t POFR_GetHTTPParameterCacheFails() {
-        int32_t value = 0;
 
-        if((_polyFilter)&&(_polyFilter->httpcache))
-                value = _polyFilter->httpcache->parameter_fails;
-        return value;
+        return HTAZ_GetParameterFails(); 
 }
 
 

@@ -452,7 +452,8 @@ void PRCA_Method_GetHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void
         dbus_message_iter_init(reply, &iter);
         dbus_message_iter_init_append(reply, &iter);
 
-	l = g_hash_table_get_keys(p->httpcache->header_cache);
+	// TODO
+	//l = g_hash_table_get_keys(p->httpcache->header_cache);
 	while(l != NULL) {
 		/** TODO 
 		 * Dbus have a bug or some limit, so only 255 items of 
@@ -486,7 +487,8 @@ void PRCA_Method_GetHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, v
         dbus_message_iter_init(reply, &iter);
         dbus_message_iter_init_append(reply, &iter);
 
-        l = g_hash_table_get_keys(p->httpcache->parameter_cache);
+	// TODO
+        //l = g_hash_table_get_keys(p->httpcache->parameter_cache);
 
         while(l != NULL) {
 		 /** TODO 
@@ -524,7 +526,8 @@ void PRCA_Method_AddHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void
         else
                 dbus_message_iter_get_basic(&args, &value);
 
-	CACH_AddHeaderToCache(p->httpcache,value,NODE_TYPE_DYNAMIC);
+	HTAZ_AddHeaderToCache(value,NODE_TYPE_DYNAMIC);
+	//CACH_AddHeaderToCache(p->httpcache,value,NODE_TYPE_DYNAMIC);
 
         __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,ret);
 	return;
@@ -546,7 +549,8 @@ void PRCA_Method_AddHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, v
         else
                 dbus_message_iter_get_basic(&args, &value);
 
-	CACH_AddParameterToCache(p->httpcache,value,NODE_TYPE_DYNAMIC);
+	HTAZ_AddParameterToCache(value,NODE_TYPE_DYNAMIC);
+//	CACH_AddParameterToCache(p->httpcache,value,NODE_TYPE_DYNAMIC);
 
         __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,ret);
         return;
@@ -557,7 +561,8 @@ void PRCA_Property_GetNumberHttpCacheHeaders(DBusConnection *conn,DBusMessage *m
         ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-        value = CACH_GetNumberHeaders(p->httpcache); 
+        value = HTAZ_GetNumberHeaders(); 
+        //value = CACH_GetNumberHeaders(p->httpcache); 
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
@@ -566,7 +571,8 @@ void PRCA_Property_GetNumberHttpCacheParameters (DBusConnection *conn,DBusMessag
         ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-        value = CACH_GetNumberParameters(p->httpcache);
+        value = HTAZ_GetNumberParameters();
+        //value = CACH_GetNumberParameters(p->httpcache);
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
@@ -575,7 +581,8 @@ void PRCA_Property_GetNumberHttpHeaderHits(DBusConnection *conn,DBusMessage *msg
 	ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-        value = p->httpcache->header_hits;
+        value = HTAZ_GetHeaderHits(); 
+        //value = p->httpcache->header_hits;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
@@ -584,7 +591,8 @@ void PRCA_Property_GetNumberHttpHeaderFails(DBusConnection *conn,DBusMessage *ms
         ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-        value = p->httpcache->header_fails;
+        value = HTAZ_GetHeaderFails(); 
+        //value = p->httpcache->header_fails;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
@@ -592,7 +600,8 @@ void PRCA_Property_GetNumberHttpParameterHits(DBusConnection *conn,DBusMessage *
         ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-        value = p->httpcache->parameter_hits;
+        value = HTAZ_GetParameterHits(); 
+        //value = p->httpcache->parameter_hits;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
@@ -601,7 +610,8 @@ void PRCA_Property_GetNumberHttpParameterFails(DBusConnection *conn,DBusMessage 
         ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-        value = p->httpcache->parameter_fails;
+        value = HTAZ_GetParameterFails(); 
+        //value = p->httpcache->parameter_fails;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
@@ -628,6 +638,30 @@ void PRCA_Method_AddAuthorizedHost(DBusConnection *conn,DBusMessage *msg, void *
         __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,value);
         return;
 }
+
+void PRCA_Method_RemoveAuthorizedHost(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p = (ST_PolyFilter*)data;
+        DBusMessageIter args;
+        dbus_int32_t param;
+        DBusMessage *reply = NULL;
+        char *value;
+
+        reply = dbus_message_new_method_return(msg);
+
+        // read the arguments
+        if (!dbus_message_iter_init(msg, &args))
+                fprintf(stderr, "Message has no arguments!\n");
+        else if (DBUS_TYPE_STRING != dbus_message_iter_get_arg_type(&args))
+                fprintf(stderr, "Argument is not string!\n");
+        else
+                dbus_message_iter_get_basic(&args, &param);
+
+        AUHT_RemoveHost(p->hosts,param);
+
+        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,value);
+        return;
+}
+
 
 /* Functions for the user manager */
 void PRCA_Property_GetTotalReleaseUsers(DBusConnection *conn,DBusMessage *msg, void *data){
@@ -706,7 +740,8 @@ void PRCA_Property_GetNumberGraphCacheLinks(DBusConnection *conn,DBusMessage *ms
         ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-        value = p->graphcache->total_links;
+	// TODO
+        //value = p->graphcache->total_links;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
 	return;
 }
@@ -715,7 +750,8 @@ void PRCA_Property_GetNumberGraphCacheHits(DBusConnection *conn,DBusMessage *msg
         ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-        value = p->graphcache->total_hits;
+	// TODO
+        //value = p->graphcache->total_hits;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
@@ -724,7 +760,8 @@ void PRCA_Property_GetNumberGraphCacheFails(DBusConnection *conn,DBusMessage *ms
         ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-        value = p->graphcache->total_fails;
+	// TODO
+        //value = p->graphcache->total_fails;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
@@ -755,7 +792,8 @@ void PRCA_Method_AddLinkToGraphCache(DBusConnection *conn,DBusMessage *msg, void
                 DBUS_TYPE_INVALID);
 
 	if((urisrc)&&(uridst)){
-		GACH_AddLink(p->graphcache,urisrc,uridst,cost);
+		// TODO
+		//GACH_AddLink(p->graphcache,urisrc,uridst,cost);
 		ret = 1;
 	}
         __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,ret);

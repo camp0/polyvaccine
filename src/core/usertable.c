@@ -66,8 +66,10 @@ void USTA_Stats(ST_UserTable *ut) {
 			char ip[INET_ADDRSTRLEN];
 
 			inet_ntop(AF_INET, &(user->ip), ip, INET_ADDRSTRLEN);
-			fprintf(stdout,"\tUserIP(%s)Request(%d)Duration(%d)Cost(%d)\n",ip,user->total_request,
-				user->current_time.tv_sec - user->arrive_time.tv_sec,user->acumulated_cost);
+			fprintf(stdout,"\tUserIP(%s)Request(%d)Duration(%d)Cost(%d)CorrectPaths(%d)IncorrectPaths(%d)\n",
+				ip,user->total_request,
+				user->current_time.tv_sec - user->arrive_time.tv_sec,user->acumulated_cost,
+				user->correct_paths, user->incorrect_paths);
 		}
 	}
 	return;

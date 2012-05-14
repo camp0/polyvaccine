@@ -49,6 +49,7 @@ struct ST_DoSAnalyzer{
         const char *errstr;
         int ovector[OVECCOUNT];
 
+	ST_GraphCache *graphcache;
 	ST_PathCache *pathcache;
 	/* configuration options */	
 	
@@ -72,8 +73,8 @@ typedef struct ST_DoSAnalyzer ST_DoSAnalyzer;
 
 void *DSAZ_Init(void);
 void *DSAZ_Destroy(void);
-void *DSAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_User *user,ST_GenericFlow *f, int *ret);
+void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f, int *ret);
 void *DSAZ_Stats(void);
-void *DSAZ_AnalyzeDummyHTTPRequest(ST_Cache *c,ST_User *user, ST_GenericFlow *f);
+void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user, ST_GenericFlow *f);
 
 #endif

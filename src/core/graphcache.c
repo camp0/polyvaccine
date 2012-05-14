@@ -74,6 +74,43 @@ int GACH_GetLinkCost(ST_GraphCache *gc, char *urisrc, char *uridst){
 }
 
 /**
+ * GACH_AddGraphNodeFromLink - Adds a new header cacheable field to the cache
+ *
+ * @param gc The cache
+ * @param link
+ * @param uri
+ * @param cost
+ *
+ */
+
+void GACH_AddGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, char *uri, int cost){
+	ST_GraphNode *node = NULL;
+	ST_GraphLink *linkdst = NULL;
+
+	node = (ST_GraphNode*)g_hash_table_lookup(link->uris,(gchar*)uri);
+        if(node == NULL) {
+        	node = GACH_NewGraphNode(uri,cost);
+                gc->size_memory += sizeof(ST_GraphNode)+strlen(uri);
+                g_hash_table_insert(link->uris,g_strdup(uri),node);
+                gc->total_links ++;
+                gc->total_ids++;
+                node->id_uri=gc->total_ids;
+                linkdst = (ST_GraphLink *)g_hash_table_lookup(gc->uris,(gchar*)uri);
+                if(linkdst == NULL) {
+                	linkdst = GACH_NewGraphLink(uri);
+                        gc->size_memory += sizeof(ST_GraphLink)+strlen(uri);
+                        gc->total_nodes++;
+                        linkdst->id_uri = gc->total_ids;
+                        g_hash_table_insert(gc->uris,g_strdup(uri),linkdst);
+                }
+	}else{
+		// Update the cost of the link
+                node->cost = cost;
+        }
+	return;
+}
+
+/**
  * GACH_AddLink - Adds a new header cacheable field to the cache
  *
  * @param c The cache
@@ -304,7 +341,6 @@ void GACH_Stats(ST_GraphCache *gc) {
 	fprintf(stdout,"\tLink hits = %d\n\tLink fails = %d\n",gc->total_hits,gc->total_fails);
 	fprintf(stdout,"\tLink effectiveness = %d\%\n",effectiveness);
 
-/*
 	if(gc->show_cache == TRUE) {
 		fprintf(stdout,"\tLink nodes\n");
 		g_hash_table_iter_init (&iter, gc->uris);
@@ -317,9 +353,8 @@ void GACH_Stats(ST_GraphCache *gc) {
 				fprintf(stdout,"\t\t\tUriDst(%s)id(%d)cost(%d)hits(%d)\n",node->uri->str,node->id_uri,node->cost,node->hits);
 			}
 		}
+		__GACH_DumpGraphOnGraphviz(gc);
 	}
-*/
-	__GACH_DumpGraphOnGraphviz(gc);
 	return;
 }
 

@@ -39,6 +39,7 @@ typedef struct ST_AuthorizedHost ST_AuthorizedHost;
 ST_AuthorizedHost *AUHT_Init(void);
 void AUHT_Destroy(ST_AuthorizedHost *a);
 void AUHT_AddHost(ST_AuthorizedHost *a,char *ip);
+void AUHT_RemoveHost(ST_AuthorizedHost *a,char *ip);
 int AUHT_IsAuthorized(ST_AuthorizedHost *a, char *ip);
 void AUTH_SetAuthorizedAll(ST_AuthorizedHost *a);
 

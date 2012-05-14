@@ -51,6 +51,7 @@ struct ST_HTTPAnalyzer{
         const char *errstr;
 	ST_TrustOffsets *t_off;
         int ovector[OVECCOUNT];
+	ST_Cache *httpcache;
 	/* configuration options */	
 	int on_suspicious_header_break;
 	int on_suspicious_parameter_break;
@@ -71,9 +72,9 @@ typedef struct ST_HTTPAnalyzer ST_HTTPAnalyzer;
 
 void *HTAZ_Init(void);
 void *HTAZ_Destroy(void);
-void *HTAZ_AnalyzeHTTPRequest(ST_Cache *c,ST_User *user,ST_GenericFlow *f, int *ret);
+void *HTAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f, int *ret);
 void *HTAZ_Stats(void);
-void *HTAZ_AnalyzeDummyHTTPRequest(ST_Cache *c,ST_User *user, ST_GenericFlow *f);
+void *HTAZ_AnalyzeDummyHTTPRequest(ST_User *user, ST_GenericFlow *f);
 void HTAZ_SetForceAnalyzeHTTPPostData(int value);
 void HTAZ_ShowUnknownHTTP(int value);
 
@@ -88,4 +89,15 @@ int32_t HTAZ_GetNumberSuspiciousHTTPHeaders(void);
 int32_t HTAZ_GetNumberSuspiciousHTTPParameters(void);
 int32_t HTAZ_GetNumberSuspiciousSegments(void);
 int32_t HTAZ_GetNumberValidSegments(void);
+
+void HTAZ_AddHeaderToCache(char *value,int type);
+void HTAZ_AddParameterToCache(char *value,int type);
+int HTAZ_GetNumberHeaders(void);
+int HTAZ_GetNumberParameters(void);
+int32_t HTAZ_GetHeaderHits(void);
+int32_t HTAZ_GetHeaderFails(void);
+int32_t HTAZ_GetParameterHits(void);
+int32_t HTAZ_GetParameterFails(void);
+
+
 #endif

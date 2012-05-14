@@ -33,9 +33,12 @@
  */
 ST_Forwarder *FORD_Init(){
 	ST_Forwarder *fw = g_new(ST_Forwarder,1);
-	
+
+	// analyzers that are running(enabled)	
 	fw->tcp_analyzers = g_hash_table_new(g_direct_hash,g_direct_equal);
 	fw->udp_analyzers = g_hash_table_new(g_direct_hash,g_direct_equal);
+	// analyzers disabled
+	fw->analyzers = g_hash_table_new(g_str_hash,g_str_equal);
 	return fw;
 }
 
@@ -48,16 +51,10 @@ void FORD_InitAnalyzers(ST_Forwarder *fw){
 	GHashTableIter iter;
 	gpointer k,v;
 
-	g_hash_table_iter_init (&iter, fw->tcp_analyzers);
+	g_hash_table_iter_init (&iter, fw->analyzers);
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
 		ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
-		LOG(POLYLOG_PRIORITY_INFO,"TCP %s plugged on port %d",ga->name,ga->port);
-		ga->init();
-	}
-	g_hash_table_iter_init (&iter, fw->udp_analyzers);
-	while (g_hash_table_iter_next (&iter, &k, &v)) {
-		ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
-		LOG(POLYLOG_PRIORITY_INFO,"UDP %s plugged on port %d",ga->name,ga->port);
+		LOG(POLYLOG_PRIORITY_INFO,"Analyzer %s plugged on port %d",ga->name,ga->port);
 		ga->init();
 	}
 	return;
@@ -87,7 +84,7 @@ void FORD_ShowAnalyzers(ST_Forwarder *fw){
 
 
 /**
- * FORD_InitAnalyzers - Executes the statistics of every analyzer. 
+ * FORD_InitAnalyzers - Executes the statistics of every enable analyzer. 
  *
  * @param ST_Forwarder
  */
@@ -106,6 +103,54 @@ void FORD_Stats(ST_Forwarder *fw){
                 ga->stats();
         }
         return;
+}
+
+/**
+ * FORD_GetAnalyzerByName - Search a analyzer by name and return it 
+ *
+ * @param ST_Forwarder
+ * @param protocol 
+ * @param name
+ * 
+ * @return ST_GenericAnalyzer 
+ */
+
+ST_GenericAnalyzer *FORD_GetAnalyzerByName(ST_Forwarder *fw,int16_t protocol,char *name){
+	GHashTableIter iter;
+	gpointer k,v;
+
+	if(protocol == 6)
+		g_hash_table_iter_init(&iter,fw->tcp_analyzers);
+	else
+		g_hash_table_iter_init(&iter,fw->udp_analyzers);
+	
+        while (g_hash_table_iter_next (&iter, &k, &v)) {
+                ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
+		if(strncmp(name,ga->name,strlen(name)) == 0) 
+			return ga;
+        }
+	return NULL;
+}
+
+void FORD_EnableAnalyzerByName(ST_Forwarder *fw, char *name){
+        ST_GenericAnalyzer *ga = NULL;
+        GHashTable *t = NULL;
+	gpointer k = NULL;
+	gpointer v = NULL;
+
+	if(g_hash_table_lookup_extended(fw->analyzers,(gchar*)name,&k,&v) == TRUE) {
+		ga = (ST_GenericAnalyzer*)v;	
+		if(g_hash_table_remove(fw->analyzers,k) == TRUE) {
+			if(ga->protocol == 6)
+				t = fw->tcp_analyzers;
+			else
+				t = fw->udp_analyzers;
+
+			g_hash_table_insert(t,GINT_TO_POINTER(ga->port),ga);
+			LOG(POLYLOG_PRIORITY_INFO,"Enable analyzer '%s' on port %d",name,ga->port);
+		}
+	}
+	return;
 }
 
 /**
@@ -131,8 +176,16 @@ void FORD_Destroy(ST_Forwarder *fw){
 		ga->destroy();
 		g_free(ga);
 	}
+
+	g_hash_table_iter_init (&iter, fw->analyzers);
+	while (g_hash_table_iter_next (&iter, &k, &v)) {
+		ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
+		ga->destroy();
+		g_free(ga);
+	} 
 	g_hash_table_destroy(fw->tcp_analyzers);
 	g_hash_table_destroy(fw->udp_analyzers);
+	g_hash_table_destroy(fw->analyzers);
 	g_free(fw);	
 	return;
 }
@@ -169,7 +222,6 @@ ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw, int16_t protocol,int16_t 
  * FORD_AddAnalyzer - Adss a analyzer to a specific port 
  *
  * @param fw
- * @param cache 
  * @param name
  * @param protocol
  * @param port
@@ -180,34 +232,28 @@ ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw, int16_t protocol,int16_t 
  * @param learn 
  * 
  */
-void FORD_AddAnalyzer(ST_Forwarder *fw, ST_Cache *cache, char *name,int16_t protocol,int16_t port,
+void FORD_AddAnalyzer(ST_Forwarder *fw, char *name,int16_t protocol,int16_t port,
 	void (*init)(void), void (*destroy)(void),void (*stats)(void),
-	void (*analyze)(ST_Cache *c,ST_User *user,ST_GenericFlow *f,int *ret),
-	void (*learn)(ST_Cache *c, ST_User *user,ST_GenericFlow *f)){
+	void (*analyze)(ST_User *user,ST_GenericFlow *f,int *ret),
+	void (*learn)(ST_User *user,ST_GenericFlow *f)){
 
 	ST_GenericAnalyzer *ga = NULL;
-	GHashTable *t = NULL;
 	
-	if(protocol == 6) 
-		t = fw->tcp_analyzers;
-	else
-		t = fw->udp_analyzers;
-
 	LOG(POLYLOG_PRIORITY_INFO,"Adding analyzer '%s' on port %d",name,port);
-	ga = (ST_GenericAnalyzer*)g_hash_table_lookup(t,GINT_TO_POINTER(port));
+	ga = (ST_GenericAnalyzer*)g_hash_table_lookup(fw->analyzers,(gchar*)name);
 	if (ga == NULL){ // the analyzer dont exist
 		ga = g_new(ST_GenericAnalyzer,1);
 		snprintf(ga->name,32,"%s",name);
-		ga->cache = cache;
 		ga->port = port;
+		ga->protocol = protocol;
 		ga->direction = FLOW_FORW; // used to know the direction of the packet upstrem, donwstream;
 		ga->init = init;
 		ga->stats = stats;
 		ga->destroy = destroy;
 		ga->analyze = analyze;
 		ga->learn = learn;
-		g_hash_table_insert(t,GINT_TO_POINTER(port),ga);
-		LOG(POLYLOG_PRIORITY_INFO,"Analyzer '%s' instanciated 0x%x",name,ga);
+		g_hash_table_insert(fw->analyzers,g_strdup(name),ga);
+		LOG(POLYLOG_PRIORITY_INFO,"Analyzer '%s' instanciated 0x%x disabled",name,ga);
 	}	
 	return;
 }

@@ -7,4 +7,5 @@
 - Optimize the number of executions on the pvde, the offsets of the cacheable information could not be executed.
 - Load and unload the analyzers, as well as, use several analyzers on the same port.
 - Add methods for increase/decrease the userpool via dbus.
-- Add command option for limit the flows on the pool(usefull for generate small http graphs).
+- Add command option for limit the flows on the pool(usefull for generate small http graphs)(Done).
+- The analyzers should destroy their own memory(httpcache,sipcache, graphcache and pathcache) should be on their corresponding analyzers.

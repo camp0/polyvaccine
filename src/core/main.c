@@ -34,20 +34,22 @@ static struct option long_options[] = {
         {"hport",  	required_argument, 	0, 'p'},
         {"sport",  	required_argument, 	0, 's'},
         {"dport",  	required_argument, 	0, 'd'},
-        {"force-post", 	no_argument, 		0, 'f'},
+        {"flows",  	required_argument, 	0, 'f'},
+        {"enable",  	required_argument, 	0, 'e'},
+        {"force-post", 	no_argument, 		0, 'F'},
         {"unknown", 	no_argument, 		0, 'u'},
         {"cache", 	no_argument, 		0, 'c'},
         {"graph", 	no_argument, 		0, 'g'},
         {"stats", 	no_argument, 		0, 'S'},
         {"users", 	no_argument, 		0, 'U'},
-        {"exit", 	no_argument, 		0, 'e'},
+        {"exit", 	no_argument, 		0, 'x'},
         {"dummy", 	required_argument, 	0, 'D'},
         {"help",    	no_argument, 		0, 'h'},
         {"version",    	no_argument, 		0, 'V'},
         {0, 0, 0, 0}
 };
 
-static char *short_options = "li:p:hVfuces:Sd:UD:g";
+static char *short_options = "li:p:hVf:Fuce:xs:Sd:UD:g";
 
 static char *common_http_headers [] = {
 	"GET /index.phtml HTTP/1.1",
@@ -87,14 +89,16 @@ static char *common_http_parameters [] = {
 static char *show_options = {
 	"The options are:\n"
 	"\t-i, --interface=<device>             Device or pcapfile.\n"
-	"\t-e, --exit                           Exits when analisys is done(for pcapfiles).\n"
+	"\t-e, --enable=<analyzer list>         Enables the analyzers(http,sip,ddos).\n"
+	"\t-x, --exit                           Exits when analisys is done(for pcapfiles).\n"
 	"\t-S, --stats                          Show statistics.\n"
 	"\t-U, --users                          Show User statistics.\n"
 	"\t-D, --dummy                          Add dummy IP for updates caches.\n"
+	"\t-f, --flows                          Sets the number of flows of the flowpool to process(default 262144).\n"
 	"\n"
 	"\tHTTP options\n"
 	"\t-p, --hport=<port number>            Web-server port number (80 default).\n"
-	"\t-f, --force-post                     Force the HTTP analyzer to analyze the post data content.\n"
+	"\t-F, --force-post                     Force the HTTP analyzer to analyze the post data content.\n"
 	"\t-l, --learning                       Cache all the HTTP request on the HTTP cache.\n"
 	"\t-u, --unknown                        Shows the unknown HTTP supported.\n"
 	"\t-c, --cache                          Use common HTTP values on the cache to test cache effectivity.\n"
@@ -112,6 +116,8 @@ static char *show_options = {
 };
 
 /* options of the daemon */
+char *enable_analyzers = NULL; // String with the name of the analyzers to enable
+int flows_on_pool = 0; // non set
 char *dummy_ip = NULL;
 int show_graphcache = FALSE;
 int show_statistics = FALSE;
@@ -161,10 +167,16 @@ void main(int argc, char **argv) {
            		case 's':
              			sport = atoi(optarg);
              			break;
+           		case 'f':
+             			flows_on_pool = atoi(optarg);
+             			break;
+           		case 'e':
+             			enable_analyzers = optarg;
+             			break;
            		case 'c':
              			use_cache = TRUE;	
              			break;
-           		case 'e':
+           		case 'x':
              			exit_on_pcap = TRUE;	
              			break;
            		case 'u':
@@ -185,7 +197,7 @@ void main(int argc, char **argv) {
            		case 'l':
              			learning = TRUE;
              			break;
-           		case 'f':
+           		case 'F':
              			force_post = TRUE;
              			break;
 			case 'h':
@@ -240,6 +252,12 @@ void main(int argc, char **argv) {
 			value = common_http_headers[i];
 		}	
 	}
+
+	if(flows_on_pool>0)
+		POFR_SetInitialFlowsOnPool(flows_on_pool);
+
+	if(enable_analyzers!=NULL)
+		POFR_EnableAnalyzers(enable_analyzers);
 
 	/* Configuring the DDoS options */
 	POFR_ShowGraphCacheLinks(show_graphcache);

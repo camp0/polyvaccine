@@ -43,6 +43,7 @@ void PRCA_Method_StartEngine(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Method_StopEngine(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Method_SetSource(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Method_AddAuthorizedHost(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Method_RemoveAuthorizedHost(DBusConnection *conn,DBusMessage *msg, void *data);
 
 static ST_Callback ST_StaticEngineMethods[] = {
 	{ 
@@ -69,6 +70,12 @@ static ST_Callback ST_StaticEngineMethods[] = {
 		.out	=	"b",
 		.func	=	PRCA_Method_AddAuthorizedHost		
 	},
+        {
+                .name   =       "RemoveAuthorizedHost",
+                .in     =       "s",
+                .out    =       "b",
+                .func   =       PRCA_Method_RemoveAuthorizedHost
+        },
 	{} 
 };
 

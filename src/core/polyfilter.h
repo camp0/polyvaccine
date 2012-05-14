@@ -43,7 +43,6 @@
 #include "usertable.h"
 #include "memorypool.h"
 #include "cache.h"
-#include "graphcache.h"
 #include "forwarder.h"
 #include "system.h"
 #include "privatecallbacks.h"
@@ -71,9 +70,6 @@ struct ST_PolyFilter {
 	ST_FlowPool *flowpool;
 	ST_MemoryPool *memorypool;
 	ST_UserPool *userpool;
-	ST_Cache *httpcache;
-	ST_Cache *sipcache;
-	ST_GraphCache *graphcache;
 	ST_AuthorizedHost *hosts;
 	ST_Forwarder *forwarder;
 	GString *source;
@@ -101,6 +97,8 @@ void POFR_AddToHTTPCache(int type,char *value);
 void POFR_SetHTTPSourcePort(int port);
 void POFR_SetForceAnalyzeHTTPPostData(int value);
 void POFR_ShowUnknownHTTP(int value);
+void POFR_SetInitialFlowsOnPool(int value);
+void POFR_EnableAnalyzers(char *analyzers);
 
 int32_t POFR_GetHTTPHeaderCacheHits(void);
 int32_t POFR_GetHTTPHeaderCacheFails(void);
@@ -111,6 +109,7 @@ int32_t POFR_GetHTTPParameterCacheFails(void);
 void POFR_SetSIPSourcePort(int port);
 
 void POFR_AddTrustedUser(char *ip);
+void POFR_DestroyTrustedUser(char *ip);
 void POFR_ShowUserStatistics(int value);
 void POFR_ShowGraphCacheLinks(int value);
 
