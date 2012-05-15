@@ -109,21 +109,27 @@ void FORD_Stats(ST_Forwarder *fw){
  * FORD_GetAnalyzerByName - Search a analyzer by name and return it 
  *
  * @param ST_Forwarder
- * @param protocol 
  * @param name
  * 
  * @return ST_GenericAnalyzer 
  */
 
-ST_GenericAnalyzer *FORD_GetAnalyzerByName(ST_Forwarder *fw,int16_t protocol,char *name){
+ST_GenericAnalyzer *FORD_GetAnalyzerByName(ST_Forwarder *fw,char *name){
+	ST_GenericAnalyzer *ga = NULL;
 	GHashTableIter iter;
 	gpointer k,v;
 
-	if(protocol == 6)
-		g_hash_table_iter_init(&iter,fw->tcp_analyzers);
-	else
-		g_hash_table_iter_init(&iter,fw->udp_analyzers);
-	
+	ga = (ST_GenericAnalyzer*)g_hash_table_lookup(fw->analyzers,(gchar*)name);
+	if (ga != NULL){ 
+		return ga;
+	}
+	g_hash_table_iter_init(&iter,fw->tcp_analyzers);
+        while (g_hash_table_iter_next (&iter, &k, &v)) {
+                ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
+		if(strncmp(name,ga->name,strlen(name)) == 0) 
+			return ga;
+        }
+	g_hash_table_iter_init(&iter,fw->udp_analyzers);
         while (g_hash_table_iter_next (&iter, &k, &v)) {
                 ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
 		if(strncmp(name,ga->name,strlen(name)) == 0) 
@@ -191,7 +197,7 @@ void FORD_Destroy(ST_Forwarder *fw){
 }
 
 /**
- * FORD_GetAnalyzer - Returns the analyzer pluged on the specific port
+ * FORD_GetAnalyzer - Returns the analyzer enable pluged on the specific port
  *
  * @param ST_Forwarder
  * @param protocol 
@@ -219,7 +225,7 @@ ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw, int16_t protocol,int16_t 
 }
 
 /**
- * FORD_AddAnalyzer - Adss a analyzer to a specific port 
+ * FORD_AddAnalyzer - Adss a analyzer to the forwarder 
  *
  * @param fw
  * @param name

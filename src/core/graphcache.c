@@ -267,6 +267,7 @@ void GACH_Destroy(ST_GraphCache *gc) {
         GHashTableIter iter,initer;
         gpointer k,v,kk,vv;
 
+	// TODO
         g_hash_table_iter_init (&iter, gc->uris);
         while (g_hash_table_iter_next (&iter, &k, &v)) {
         	ST_GraphLink *link = (ST_GraphLink*)v;
@@ -341,6 +342,7 @@ void GACH_Stats(ST_GraphCache *gc) {
 	fprintf(stdout,"\tLink hits = %d\n\tLink fails = %d\n",gc->total_hits,gc->total_fails);
 	fprintf(stdout,"\tLink effectiveness = %d\%\n",effectiveness);
 
+	gc->show_cache = TRUE;
 	if(gc->show_cache == TRUE) {
 		fprintf(stdout,"\tLink nodes\n");
 		g_hash_table_iter_init (&iter, gc->uris);

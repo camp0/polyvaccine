@@ -64,7 +64,7 @@ void FORD_InitAnalyzers(ST_Forwarder *fw);
 void FORD_ShowAnalyzers(ST_Forwarder *fw);
 void FORD_Stats(ST_Forwarder *fw);
 ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw,int16_t protocol,int16_t sport,int16_t dport);
-ST_GenericAnalyzer *FORD_GetAnalyzerByName(ST_Forwarder *fw,int16_t protocol,char *name);
+ST_GenericAnalyzer *FORD_GetAnalyzerByName(ST_Forwarder *fw,char *name);
 
 void FORD_AddAnalyzer(ST_Forwarder *fw,char *name,int16_t protocol, int16_t port,
 	void (*init)(void), 

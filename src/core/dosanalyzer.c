@@ -185,7 +185,6 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 		uri[urilen] = '\0';
 
 		if(f->lasturi == NULL) { // Is the first request of the flow
-			printf("checking(%s)\n",uri);
 			link = GACH_GetBaseLink(_dos.graphcache,uri);
 			if(link != NULL) { // The uri is on the graphcache
 				f->lasturi = link->uri->str;

@@ -139,7 +139,7 @@ void PACH_Stats(ST_PathCache *pc) {
 	fprintf(stdout,"\tPath hits = %d\n\tPath fails = %d\n",pc->total_hits,pc->total_fails);
 	fprintf(stdout,"\tPath effectiveness = %d\%\n",effectiveness);
 
-	//pc->show_cache = TRUE;	
+	pc->show_cache = TRUE;	
 	if(pc->show_cache == TRUE) {
 		fprintf(stdout,"\tPath nodes\n");
 		g_hash_table_iter_init (&iter, pc->paths);
