@@ -61,7 +61,9 @@ ST_PathNode *PACH_InitPathNode(){
 	return path_n;
 }
 
-void PACH_AddPath(ST_PathCache *pc, gchar *path){
+
+
+ST_PathNode *PACH_AddPath(ST_PathCache *pc, gchar *path){
 	ST_PathNode *path_n = PACH_InitPathNode();
 
         g_string_printf(path_n->path,"%s",path);
@@ -69,7 +71,7 @@ void PACH_AddPath(ST_PathCache *pc, gchar *path){
 	g_hash_table_insert(pc->paths,g_strdup(path),path_n);
 	pc->total_paths++;
 	pc->size_memory += sizeof(path_n)+strlen(path);
-	return;
+	return path_n;
 }
 
 
@@ -89,7 +91,7 @@ ST_PathCache *PACH_Init(){
 	pc->total_paths = 0;
 	pc->total_fails = 0;
 	pc->total_hits = 0;
-	pc->show_cache = FALSE;	
+	pc->statistics_level = 0;	
 	pc->size_memory = 0;
 	return pc;
 }
@@ -117,7 +119,7 @@ void PACH_Stats(ST_PathCache *pc) {
 	gpointer k,v,kk,vv;
 	int effectiveness;
 	int p_effectiveness;
-	int64_t value = pc->size_memory;
+	int32_t value = pc->size_memory;
         char *unit = "Bytes";
 
         if((value / 1024)>0){
@@ -139,8 +141,7 @@ void PACH_Stats(ST_PathCache *pc) {
 	fprintf(stdout,"\tPath hits = %d\n\tPath fails = %d\n",pc->total_hits,pc->total_fails);
 	fprintf(stdout,"\tPath effectiveness = %d\%\n",effectiveness);
 
-	pc->show_cache = TRUE;	
-	if(pc->show_cache == TRUE) {
+	if(pc->statistics_level > 0 ) {
 		fprintf(stdout,"\tPath nodes\n");
 		g_hash_table_iter_init (&iter, pc->paths);
 		while (g_hash_table_iter_next (&iter, &k, &v)) {
@@ -152,4 +153,4 @@ void PACH_Stats(ST_PathCache *pc) {
 }
 
 
-void PACH_ShowPathCacheLinks(ST_PathCache *gc,int value) {gc->show_cache = value;};
+void PACH_SetStatisticsLevel(ST_PathCache *gc,int level) {gc->statistics_level = level;};

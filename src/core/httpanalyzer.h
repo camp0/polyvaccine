@@ -57,6 +57,7 @@ struct ST_HTTPAnalyzer{
 	int on_suspicious_parameter_break;
 	int analyze_post_data;
 	int show_unknown_http;
+	int statistics_level;
 	
 	/* statistics */
 	int32_t suspicious_headers;
@@ -77,6 +78,7 @@ void *HTAZ_Stats(void);
 void *HTAZ_AnalyzeDummyHTTPRequest(ST_User *user, ST_GenericFlow *f);
 void HTAZ_SetForceAnalyzeHTTPPostData(int value);
 void HTAZ_ShowUnknownHTTP(int value);
+void HTAZ_SetStatisticsLevel(int level);
 
 ST_TrustOffsets *HTAZ_GetTrustOffsets(void);
 

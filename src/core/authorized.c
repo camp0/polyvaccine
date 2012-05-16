@@ -65,3 +65,7 @@ int AUHT_IsAuthorized(ST_AuthorizedHost *a, char *ip) {
 }
 
 void AUTH_SetAuthorizedAll(ST_AuthorizedHost *a) { a->all = TRUE; }
+
+int AUHT_GetNumberOfAuthorizedHosts(ST_AuthorizedHost *a) { 
+	return g_hash_table_size(a->hosts);
+}

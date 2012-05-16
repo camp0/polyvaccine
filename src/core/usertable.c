@@ -27,8 +27,8 @@
 #define POLYLOG_CATEGORY_NAME POLYVACCINE_FILTER_CONNECTION_INTERFACE
 #include "log.h"
 
-void USTA_ShowUserStatistics(ST_UserTable *ut,int value){
-	ut->show_current_users = value;
+void USTA_SetStatisticsLevel(ST_UserTable *ut,int level){
+	ut->statistics_level = level;
 	return;
 }
 /**
@@ -58,7 +58,7 @@ void USTA_Stats(ST_UserTable *ut) {
         fprintf(stdout,"\tinserts:%d\n",ut->inserts);
         fprintf(stdout,"\texpires:%d\n",ut->expiretimers);
 
-	if(ut->show_current_users == TRUE) {
+	if(ut->statistics_level > 1) {
 		fprintf(stdout,"Users information\n");
 		g_hash_table_iter_init(&iter,ut->table);
 		while( g_hash_table_iter_next(&iter,&k,&v)){
@@ -66,10 +66,11 @@ void USTA_Stats(ST_UserTable *ut) {
 			char ip[INET_ADDRSTRLEN];
 
 			inet_ntop(AF_INET, &(user->ip), ip, INET_ADDRSTRLEN);
-			fprintf(stdout,"\tUserIP(%s)Request(%d)Duration(%d)Cost(%d)CorrectPaths(%d)IncorrectPaths(%d)\n",
+			fprintf(stdout,"\tUserIP(%s)Request(%d)Duration(%d)Cost(%d)RequestHits(%d)RequestFail(%d)PathHits(%d)PathFails(%d)\n",
 				ip,user->total_request,
 				user->current_time.tv_sec - user->arrive_time.tv_sec,user->acumulated_cost,
-				user->correct_paths, user->incorrect_paths);
+				user->request_hits, user->request_fails,
+				user->path_hits, user->path_fails);
 		}
 	}
 	return;
@@ -172,7 +173,7 @@ ST_UserTable *USTA_Init() {
 	//ut->table = g_hash_table_new_full(g_direct_hash,g_direct_equal,NULL,USTA_DestroyCallback);
 	ut->timers = NULL;
 	ut->inactivitytime = 60 * 60;
-	ut->show_current_users = FALSE;
+	ut->statistics_level = 0;
 	ut->expiretimers = 0;
 	ut->releases = 0;
 	ut->inserts = 0;

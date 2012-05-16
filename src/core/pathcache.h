@@ -45,7 +45,7 @@ struct ST_PathCache {
 	int32_t total_paths;
 	int32_t total_hits;
 	int32_t total_fails;
-	int show_cache;
+	int statistics_level;
 	int64_t size_memory; // total bytes allocated
 };
 
@@ -56,7 +56,8 @@ ST_PathNode *PACH_InitPathNode(void);
 void PACH_Destroy(ST_PathCache *pc);
 void PACH_Stats(ST_PathCache *pc);
 ST_PathNode *PACH_GetPath(ST_PathCache *pc,gchar *path);
-void PACH_AddPath(ST_PathCache *pc, gchar *path);
+ST_PathNode *PACH_AddPath(ST_PathCache *pc, gchar *path);
 void PACH_ShowPathCache(ST_PathCache *pc);
+void PACH_SetStatisticsLevel(ST_PathCache *pc, int level);
 
 #endif

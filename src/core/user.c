@@ -35,8 +35,10 @@ void USER_Reset(ST_User *user){
 	user->current_time.tv_sec = 0;
 	user->current_time.tv_usec = 0;
 	user->acumulated_cost = 0;
-	user->correct_paths = 0;
-	user->incorrect_paths = 0;
+	user->path_hits = 0;
+	user->path_fails = 0;
+	user->request_hits = 0;
+	user->request_fails = 0;
 }
 
 ST_User *USER_Init(){

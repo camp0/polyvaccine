@@ -44,6 +44,7 @@ void *HTAZ_Init() {
 	int erroffset;
 	ST_HTTPField *f;
 
+	_http.statistics_level = 0;
 	_http.total_http_invalid_decode = 0;
         _http.suspicious_headers = 0;
         _http.suspicious_parameters = 0;
@@ -123,22 +124,27 @@ void *HTAZ_Stats(void) {
 	fprintf(stdout,"\ttotal suspicious segments %ld\n",_http.total_suspicious_segments);
 	fprintf(stdout,"\ttotal valid segments %ld\n",_http.total_valid_segments);
 	fprintf(stdout,"\ttotal invalid decodes %ld\n",_http.total_http_invalid_decode);
-	fprintf(stdout,"\tHeaders:\n");
 
-        f = &ST_HTTPTypeHeaders[0];
-        i = 0;
-        while((f->name!= NULL)) {
-		fprintf(stdout,"\t\t%s=%d\n",f->name,f->matchs);
-                i ++;
-                f = &ST_HTTPTypeHeaders[i];
-        }
-	fprintf(stdout,"\tParameters:\n");
-	f = &ST_HTTPFields[0];
-	i = 0;
-	while((f->name!= NULL)) {
-		fprintf(stdout,"\t\t%s=%d\n",f->name,f->matchs);
-		i++;
-		f = &ST_HTTPFields[i];
+	if(_http.statistics_level > 0) 	
+		CACH_Stats(_http.httpcache);
+	if(_http.statistics_level > 1 ) {
+		fprintf(stdout,"\tHeaders:\n");
+
+		f = &ST_HTTPTypeHeaders[0];
+		i = 0;
+		while((f->name!= NULL)) {
+			fprintf(stdout,"\t\t%s=%d\n",f->name,f->matchs);
+			i ++;
+			f = &ST_HTTPTypeHeaders[i];
+		}
+		fprintf(stdout,"\tParameters:\n");
+		f = &ST_HTTPFields[0];
+		i = 0;
+		while((f->name!= NULL)) {
+			fprintf(stdout,"\t\t%s=%d\n",f->name,f->matchs);
+			i++;
+			f = &ST_HTTPFields[i];
+		}
 	}	
 	return;
 }

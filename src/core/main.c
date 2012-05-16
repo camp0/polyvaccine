@@ -29,27 +29,26 @@
 //#include "callgrind.h"
 
 static struct option long_options[] = {
-        {"learning",	no_argument,       	0, 'l'},
-        {"interface",  	required_argument, 	0, 'i'},
+        {"learning",	no_argument,       	0, 'L'},
+        {"interface",  	required_argument, 	0, 'I'},
         {"hport",  	required_argument, 	0, 'p'},
         {"sport",  	required_argument, 	0, 's'},
         {"dport",  	required_argument, 	0, 'd'},
-        {"flows",  	required_argument, 	0, 'f'},
-        {"enable",  	required_argument, 	0, 'e'},
-        {"force-post", 	no_argument, 		0, 'F'},
+        {"flows",  	required_argument, 	0, 'F'},
+        {"enable",  	required_argument, 	0, 'E'},
+        {"force-post", 	no_argument, 		0, 'f'},
         {"unknown", 	no_argument, 		0, 'u'},
         {"cache", 	no_argument, 		0, 'c'},
         {"graph", 	no_argument, 		0, 'g'},
         {"stats", 	no_argument, 		0, 'S'},
-        {"users", 	no_argument, 		0, 'U'},
-        {"exit", 	no_argument, 		0, 'x'},
+        {"exit", 	no_argument, 		0, 'X'},
         {"dummy", 	required_argument, 	0, 'D'},
         {"help",    	no_argument, 		0, 'h'},
         {"version",    	no_argument, 		0, 'V'},
         {0, 0, 0, 0}
 };
 
-static char *short_options = "li:p:hVf:Fuce:xs:Sd:UD:g";
+static char *short_options = "LI:p:hVF:fucE:Xs:Sd:D:g";
 
 static char *common_http_headers [] = {
 	"GET /index.phtml HTTP/1.1",
@@ -88,20 +87,19 @@ static char *common_http_parameters [] = {
 
 static char *show_options = {
 	"The options are:\n"
-	"\t-i, --interface=<device>             Device or pcapfile.\n"
-	"\t-e, --enable=<analyzer list>         Enables the analyzers(http,sip,ddos).\n"
-	"\t-x, --exit                           Exits when analisys is done(for pcapfiles).\n"
+	"\t-I, --interface=<device>             Device or pcapfile.\n"
+	"\t-E, --enable=<analyzer list>         Enables the analyzers(http,sip,ddos).\n"
+	"\t-X, --exit                           Exits when analisys is done(for pcapfiles).\n"
 	"\t-S, --stats                          Show statistics.\n"
-	"\t-U, --users                          Show User statistics.\n"
 	"\t-D, --dummy                          Add dummy IP for updates caches.\n"
-	"\t-f, --flows                          Sets the number of flows of the flowpool to process(default 262144).\n"
+	"\t-L, --learning                       Caches all the information (update mode).\n"
+	"\t-F, --flows                          Sets the number of flows of the flowpool to process(default 262144).\n"
 	"\n"
 	"\tHTTP options\n"
 	"\t-p, --hport=<port number>            Web-server port number (80 default).\n"
-	"\t-F, --force-post                     Force the HTTP analyzer to analyze the post data content.\n"
-	"\t-l, --learning                       Cache all the HTTP request on the HTTP cache.\n"
+	"\t-f, --force-post                     Force the HTTP analyzer to analyze the post data content.\n"
 	"\t-u, --unknown                        Shows the unknown HTTP supported.\n"
-	"\t-c, --cache                          Use common HTTP values on the cache to test cache effectivity.\n"
+	"\t-c, --cache                          Use common HTTP values on the cache to test cache effectivity(Testing).\n"
 	"\n"
 	"\tSIP options\n"
 	"\t-s, --sport=<port number>            Sip-server port number (5060 default).\n"
@@ -119,21 +117,20 @@ static char *show_options = {
 char *enable_analyzers = NULL; // String with the name of the analyzers to enable
 int flows_on_pool = 0; // non set
 char *dummy_ip = NULL;
-int show_graphcache = FALSE;
-int show_statistics = FALSE;
-int show_user_statistics = FALSE;
+int show_graphcache_level = 0;
+int show_statistics_level = 0;
 int force_post = FALSE;
 int show_unknown = FALSE;
 int learning = FALSE;
 int use_cache = FALSE;
 int exit_on_pcap = FALSE;
-int hport = 80;
+int hport = 8080;
 int sport = 5060;
 
 void sigquit(int signal) {
 
 	POFR_Stop();
-	if(show_statistics == TRUE) {
+	if(show_statistics_level > 0 ) {
 		POFR_Stats();
 	}
 	POFR_StopAndExit();
@@ -158,7 +155,7 @@ void main(int argc, char **argv) {
 	while((c = getopt_long(argc,argv,short_options,
                             long_options, &option_index)) != -1) {
         	switch (c) {
-           		case 'i':
+           		case 'I':
              			source = optarg;
              			break;
            		case 'p':
@@ -167,37 +164,34 @@ void main(int argc, char **argv) {
            		case 's':
              			sport = atoi(optarg);
              			break;
-           		case 'f':
+           		case 'F':
              			flows_on_pool = atoi(optarg);
              			break;
-           		case 'e':
+           		case 'E':
              			enable_analyzers = optarg;
              			break;
            		case 'c':
              			use_cache = TRUE;	
              			break;
-           		case 'x':
+           		case 'X':
              			exit_on_pcap = TRUE;	
              			break;
            		case 'u':
              			show_unknown = TRUE;
              			break;
            		case 'S':
-             			show_statistics = TRUE;
+             			show_statistics_level ++;
              			break;
            		case 'g':
-             			show_graphcache = TRUE;
-             			break;
-           		case 'U':
-             			show_user_statistics = TRUE;
+             			show_graphcache_level ++;
              			break;
            		case 'D':
              			dummy_ip = optarg;	
              			break;
-           		case 'l':
+           		case 'L':
              			learning = TRUE;
              			break;
-           		case 'F':
+           		case 'f':
              			force_post = TRUE;
              			break;
 			case 'h':
@@ -228,7 +222,7 @@ void main(int argc, char **argv) {
 	if(dummy_ip!= NULL)
 		POFR_AddTrustedUser(dummy_ip);
 
-	POFR_ShowUserStatistics(show_user_statistics);
+	POFR_SetStatisticsLevel(show_statistics_level);
 
 	/* Configuring the Http options */
 	POFR_SetForceAnalyzeHTTPPostData(force_post);
@@ -260,7 +254,7 @@ void main(int argc, char **argv) {
 		POFR_EnableAnalyzers(enable_analyzers);
 
 	/* Configuring the DDoS options */
-	POFR_ShowGraphCacheLinks(show_graphcache);
+	POFR_ShowGraphCacheLinksLevel(show_graphcache_level);
 
 	/* Configuring the SIP options */
 	POFR_SetSIPSourcePort(sport);
@@ -275,7 +269,7 @@ void main(int argc, char **argv) {
   	//CALLGRIND_DUMP_STATS;
 
 	//POFR_Stop();
-        if(show_statistics == TRUE) {
+        if(show_statistics_level > 0) {
                 POFR_Stats();
         }
 	POFR_StopAndExit();

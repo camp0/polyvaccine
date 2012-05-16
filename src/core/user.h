@@ -43,8 +43,10 @@ struct ST_User{
 	int16_t total_posts;	
 
 	int acumulated_cost;
-	int16_t correct_paths;
-	int16_t incorrect_paths;
+	int16_t path_hits;
+	int16_t path_fails;
+	int16_t request_hits;
+	int16_t request_fails;
 	
 	struct timeval arrive_time;
 	struct timeval current_time;

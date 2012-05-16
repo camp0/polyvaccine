@@ -52,6 +52,7 @@ struct ST_DoSAnalyzer{
 	ST_GraphCache *graphcache;
 	ST_PathCache *pathcache;
 	/* configuration options */	
+	int statistics_level;
 	
 	/* statistics */
 	int32_t total_valid_links;

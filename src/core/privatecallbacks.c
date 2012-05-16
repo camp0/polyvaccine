@@ -156,6 +156,15 @@ void PRCA_Property_GetState(DBusConnection *conn,DBusMessage *msg, void *data){
         return;
 }
 
+void PRCA_Property_GetMode(DBusConnection *conn,DBusMessage *msg, void *data){
+        ST_PolyFilter *p = (ST_PolyFilter*)data;
+        int status = p->mode;
+        char *value = polyfilter_modes_str[status];
+
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_STRING,(void*)value);
+        return;
+}
+
 void PRCA_Property_GetSource(DBusConnection *conn,DBusMessage *msg, void *data){
 	ST_PolyFilter *p = (ST_PolyFilter*)data;
         char *value = p->source->str; 

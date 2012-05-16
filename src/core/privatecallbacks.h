@@ -39,6 +39,7 @@
 /* Properties functions */
 void PRCA_Property_GetState(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetSource(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetMode(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Method_StartEngine(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Method_StopEngine(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Method_SetSource(DBusConnection *conn,DBusMessage *msg, void *data);
@@ -86,6 +87,12 @@ static ST_Callback ST_StaticPropertiesCallbacks [] = {
 		.out	=	"s",       
 		.func	=	PRCA_Property_GetState 
 	},
+        {
+                .name   =       "Mode",
+                .in     =       NULL,
+                .out    =       "s",
+                .func   =       PRCA_Property_GetMode
+        },
         { 
 		.name	=	"Source",
 		.in	=       "s",

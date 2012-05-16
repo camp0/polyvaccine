@@ -41,6 +41,7 @@ void AUHT_Destroy(ST_AuthorizedHost *a);
 void AUHT_AddHost(ST_AuthorizedHost *a,char *ip);
 void AUHT_RemoveHost(ST_AuthorizedHost *a,char *ip);
 int AUHT_IsAuthorized(ST_AuthorizedHost *a, char *ip);
+int AUHT_GetNumberOfAuthorizedHosts(ST_AuthorizedHost *a);
 void AUTH_SetAuthorizedAll(ST_AuthorizedHost *a);
 
 #endif

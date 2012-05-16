@@ -57,6 +57,14 @@ enum {
 
 static const char *polyfilter_states_str [] = { "stop","running"};
 
+enum polyfilter_mode {
+	POLYFILTER_MODE_NONCACHE = 0, // The engine is querying the cache.
+	POLYFILTER_MODE_SOMECACHE, // The engine is querying the cache but with some trusted IP address.
+	POLYFILTER_MODE_FULLCACHE // The engine is updating the cache.
+};
+
+static const char *polyfilter_modes_str [] = { "normal","hybrid","update"};
+
 #define POLYVACCINE_FILTER_ENGINE_NAME "Polyvaccine filter engine"
 
 struct ST_PolyFilter {
@@ -74,6 +82,7 @@ struct ST_PolyFilter {
 	ST_Forwarder *forwarder;
 	GString *source;
 	pcap_t *pcap;
+	enum polyfilter_mode mode;	
 };
 
 typedef struct ST_PolyFilter ST_PolyFilter;
@@ -92,9 +101,11 @@ void POFR_Run(void);
 
 
 /* Service functions */
+void POFR_SetStatisticsLevel(int level);
 void POFR_SetLearningMode(void);
 void POFR_AddToHTTPCache(int type,char *value);
-void POFR_SetHTTPSourcePort(int port);
+
+void POFR_SetSourcePortToAnalyzer(char *name,int port);
 void POFR_SetForceAnalyzeHTTPPostData(int value);
 void POFR_ShowUnknownHTTP(int value);
 void POFR_SetInitialFlowsOnPool(int value);
@@ -110,7 +121,6 @@ void POFR_SetSIPSourcePort(int port);
 
 void POFR_AddTrustedUser(char *ip);
 void POFR_DestroyTrustedUser(char *ip);
-void POFR_ShowUserStatistics(int value);
-void POFR_ShowGraphCacheLinks(int value);
+void POFR_ShowGraphCacheLinksLevel(int value);
 
 #endif

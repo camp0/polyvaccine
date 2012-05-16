@@ -32,6 +32,7 @@ ST_GraphLink *GACH_NewGraphLink(char *uri){
         link = g_new(ST_GraphLink,1);
         link->uris = g_hash_table_new(g_str_hash,g_str_equal);
         link->uri = g_string_new("");
+	link->type = NODE_TYPE_REGULAR;
         g_string_printf(link->uri,"%s",uri);
 
         return link;
@@ -45,6 +46,7 @@ ST_GraphNode *GACH_NewGraphNode(char *uri,int cost){
         g_string_printf(node->uri,"%s",uri);
         node->cost = cost;
         node->hits = 0;
+	node->type = NODE_TYPE_REGULAR;
 	return node;
 }
 
@@ -74,16 +76,17 @@ int GACH_GetLinkCost(ST_GraphCache *gc, char *urisrc, char *uridst){
 }
 
 /**
- * GACH_AddGraphNodeFromLink - Adds a new header cacheable field to the cache
+ * GACH_AddGraphNodeFromLink - Adds a new graphnode from link and return it 
  *
  * @param gc The cache
  * @param link
  * @param uri
  * @param cost
  *
+ * @return ST_GraphNode
  */
 
-void GACH_AddGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, char *uri, int cost){
+ST_GraphNode *GACH_AddGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, char *uri, int cost){
 	ST_GraphNode *node = NULL;
 	ST_GraphLink *linkdst = NULL;
 
@@ -107,7 +110,7 @@ void GACH_AddGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, char *uri, 
 		// Update the cost of the link
                 node->cost = cost;
         }
-	return;
+	return node;
 }
 
 /**
@@ -255,7 +258,7 @@ ST_GraphCache *GACH_Init(){
 	gc->total_links = 0;
 	gc->total_fails = 0;
 	gc->total_hits = 0;
-	gc->show_cache = FALSE;	
+	gc->statistics_level = 0;
 	gc->size_memory = 0;
 	return gc;
 }
@@ -342,8 +345,7 @@ void GACH_Stats(ST_GraphCache *gc) {
 	fprintf(stdout,"\tLink hits = %d\n\tLink fails = %d\n",gc->total_hits,gc->total_fails);
 	fprintf(stdout,"\tLink effectiveness = %d\%\n",effectiveness);
 
-	gc->show_cache = TRUE;
-	if(gc->show_cache == TRUE) {
+	if(gc->statistics_level > 0) {
 		fprintf(stdout,"\tLink nodes\n");
 		g_hash_table_iter_init (&iter, gc->uris);
 		while (g_hash_table_iter_next (&iter, &k, &v)) {
@@ -355,10 +357,13 @@ void GACH_Stats(ST_GraphCache *gc) {
 				fprintf(stdout,"\t\t\tUriDst(%s)id(%d)cost(%d)hits(%d)\n",node->uri->str,node->id_uri,node->cost,node->hits);
 			}
 		}
-		__GACH_DumpGraphOnGraphviz(gc);
+		if(gc->statistics_level > 1) {
+			fprintf(stdout,"Dumping graph to grapcache.viz file\n");
+			__GACH_DumpGraphOnGraphviz(gc);
+		}
 	}
 	return;
 }
 
 
-void GACH_ShowGraphCacheLinks(ST_GraphCache *gc,int value) {gc->show_cache = value;};
+void GACH_SetStatisticsLevel(ST_GraphCache *gc,int level) {gc->statistics_level = level;};

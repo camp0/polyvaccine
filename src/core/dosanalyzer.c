@@ -43,6 +43,7 @@ void *DSAZ_Init() {
 	int erroffset;
 	ST_HTTPField *f;
 
+	_dos.statistics_level = 0;
         _dos.total_http_bytes = 0;
         _dos.total_http_request = 0;
 	_dos.total_exist_links = 0;
@@ -98,6 +99,7 @@ void *DSAZ_Stats(void) {
 	fprintf(stdout,"\ttotal nonexist links %ld\n",_dos.total_nonexist_links);
 	fprintf(stdout,"\ttotal exist URIs %ld\n",_dos.total_exist_uri);
 	fprintf(stdout,"\ttotal nonexist URIs %ld\n",_dos.total_nonexist_uri);
+	fprintf(stdout,"\trequest per minute %ld\n",_dos.request_per_minute);
 	PACH_Stats(_dos.pathcache);
 	GACH_Stats(_dos.graphcache);
 	return;
@@ -185,17 +187,21 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 		uri[urilen] = '\0';
 
 		if(f->lasturi == NULL) { // Is the first request of the flow
+			user->total_flows++;
 			link = GACH_GetBaseLink(_dos.graphcache,uri);
 			if(link != NULL) { // The uri is on the graphcache
 				f->lasturi = link->uri->str;
 				f->lasturi_id = link->id_uri;
 				_dos.total_exist_uri++;
+				user->request_hits++;
 			}else{
 				_dos.total_nonexist_uri++;
+				user->request_fails++;
 			}	
 		}else{
 			node = GACH_GetGraphNode(_dos.graphcache,f->lasturi,uri);
-			if(node != NULL){ 
+			if(node != NULL){
+				user->request_hits++;
 				_dos.total_exist_links++;
 				// Check if the time is on the cost range
 				// TODO
@@ -226,9 +232,11 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
                         	f->path = PACH_GetPath(_dos.pathcache,&pathhash);
 				f->lasturi = node->uri->str;
 				f->lasturi_id = node->id_uri;
+				user->path_hits++;
 			}else{
 				_dos.total_nonexist_links++;
-				user->incorrect_paths++;
+				user->path_fails++;
+				user->request_fails++;
 			}
 		}
 
@@ -307,8 +315,8 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
 			UT_TimevalSub(&t_cost,&(f->current_time),&(f->last_uri_seen));
 			costvalue = t_cost.tv_sec/1000 + (t_cost.tv_usec);
 			link = GACH_GetBaseLink(_dos.graphcache,f->lasturi);
-			GACH_AddGraphNodeFromLink(_dos.graphcache,link,uri,costvalue);
-			node = GACH_GetGraphNodeFromLink(_dos.graphcache,link,uri);
+			node = GACH_AddGraphNodeFromLink(_dos.graphcache,link,uri,costvalue);
+			//node = GACH_GetGraphNodeFromLink(_dos.graphcache,link,uri);
 			f->lasturi = node->uri->str;
 			uri_id = node->id_uri;	
 
@@ -320,8 +328,7 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
 			}else{
 				snprintf(pathhash,1024,"%d %d",link->id_uri,node->id_uri);
 			}
-			PACH_AddPath(_dos.pathcache,&pathhash);
-			f->path = PACH_GetPath(_dos.pathcache,&pathhash);
+			f->path = PACH_AddPath(_dos.pathcache,&pathhash);
 		}
 
 

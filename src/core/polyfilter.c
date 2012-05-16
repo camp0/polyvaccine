@@ -52,6 +52,7 @@ void POFR_Init() {
 	POLG_Init();
 	PODS_Init();
 	_polyFilter->polyfilter_status = POLYFILTER_STATE_STOP;
+	_polyFilter->mode = POLYFILTER_MODE_NONCACHE;
 	_polyFilter->is_pcap_file = FALSE;
 	_polyFilter->when_pcap_done_exit = FALSE;
 	_polyFilter->pcapfd = 0;
@@ -144,15 +145,10 @@ void POFR_Init() {
 	return;
 }
 
-void POFR_ShowGraphCacheLinks(int value){
+void POFR_ShowGraphCacheLinksLevel(int value){
 
 	// TODO
 	//GACH_ShowGraphCacheLinks(_polyFilter->graphcache,value);
-	return;
-}
-
-void POFR_ShowUserStatistics(int value){
-	USTA_ShowUserStatistics(_polyFilter->users,value);
 	return;
 }
 
@@ -164,7 +160,10 @@ void POFR_EnableAnalyzers(char *analyzers){
 	return;
 }
 
-
+void POFR_SetStatisticsLevel(int level){
+	USTA_SetStatisticsLevel(_polyFilter->users,level);
+	return;
+}
 
 /**
  * POFR_ShowUnknownHTTP - Shows the unknown http traffic. 
@@ -192,8 +191,8 @@ void POFR_SetSource(char *source){
  * @param port the new port to analyze 
  */
 void POFR_SetHTTPSourcePort(int port){
-	FORD_ChangeAnalyzerToPlugOnPort(_polyFilter->forwarder,IPPROTO_TCP, 80,
-        	IPPROTO_TCP,port);
+
+	FORD_ChangePortToAnalyzer(_polyFilter->forwarder,"http",port);
 	return;
 }
 
@@ -203,8 +202,7 @@ void POFR_SetHTTPSourcePort(int port){
  * @param port the new port to analyze
  */
 void POFR_SetSIPSourcePort(int port){
-        FORD_ChangeAnalyzerToPlugOnPort(_polyFilter->forwarder,IPPROTO_UDP, 5060,
-                IPPROTO_UDP,port);
+	FORD_ChangePortToAnalyzer(_polyFilter->forwarder,"sip",port);
         return;
 }
 
@@ -228,7 +226,8 @@ void POFR_SetForceAnalyzeHTTPPostData(int value){
 void POFR_Start() {
 
 	LOG(POLYLOG_PRIORITY_INFO,
-		"Trying to start the engine, status=%s",polyfilter_states_str[_polyFilter->polyfilter_status]);	
+		"Trying to start the engine, status=%s, mode=%s",polyfilter_states_str[_polyFilter->polyfilter_status],
+		polyfilter_modes_str[_polyFilter->mode]);	
 	if(_polyFilter->polyfilter_status == POLYFILTER_STATE_STOP) {
 		char errbuf[PCAP_ERRBUF_SIZE];
 
@@ -261,7 +260,8 @@ void POFR_Start() {
 void POFR_Stop() {
 	
 	LOG(POLYLOG_PRIORITY_INFO,
-		"Trying to stop the engine, status=%s",polyfilter_states_str[_polyFilter->polyfilter_status]);	
+		"Trying to stop the engine, status=%s, mode=%s",polyfilter_states_str[_polyFilter->polyfilter_status],	
+		polyfilter_modes_str[_polyFilter->mode]);	
 	if(_polyFilter->polyfilter_status == POLYFILTER_STATE_RUNNING) {
 		// printf("pcap = 0x%x\n",_polyFilter->pcap);
 		//if(_polyFilter->pcap != NULL);
@@ -407,6 +407,19 @@ void POFR_SetLearningMode() {
 	return;
 }
 
+void __POFR_UpdateStatus() {
+        if(_polyFilter->hosts->all) {
+                // All the hosts are considered as trusted
+                _polyFilter->mode = POLYFILTER_MODE_FULLCACHE;
+        }else{
+                if(AUHT_GetNumberOfAuthorizedHosts(_polyFilter->hosts)>0)
+                        _polyFilter->mode = POLYFILTER_MODE_SOMECACHE;
+                else
+                        _polyFilter->mode = POLYFILTER_MODE_NONCACHE;
+        }
+        return;
+}
+
 /**
  * POFR_AddTrustedUser - Adds a IP user so the caches will be update on real-time 
  *
@@ -415,6 +428,7 @@ void POFR_SetLearningMode() {
 void POFR_AddTrustedUser(char *ip) {
 
 	AUHT_AddHost(_polyFilter->hosts,ip);
+	__POFR_UpdateStatus();
 	return;
 }
 
@@ -426,6 +440,7 @@ void POFR_AddTrustedUser(char *ip) {
 void POFR_RemoveTrustedUser(char *ip) {
 
         AUHT_RemoveHost(_polyFilter->hosts,ip);
+	__POFR_UpdateStatus();
         return;
 }
 
@@ -478,8 +493,10 @@ void POFR_Run() {
         fprintf(stdout,"%s running on %s machine %s\n",POLYVACCINE_FILTER_ENGINE_NAME,
 		SYIN_GetOSName(),SYIN_GetMachineName());
         fprintf(stdout,"\tversion %s\n",SYIN_GetVersionName());
-	if(_polyFilter->hosts->all)
-		fprintf(stdout,"\tLearning mode active\n");
+
+	__POFR_UpdateStatus();
+	
+	fprintf(stdout,"\tActive mode '%s'\n",polyfilter_modes_str[_polyFilter->mode]);
 	FORD_ShowAnalyzers(_polyFilter->forwarder);
 
         gettimeofday(&lasttimeouttime,NULL);

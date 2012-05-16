@@ -333,3 +333,13 @@ void FORD_AddPortToAnalyzer(ST_Forwarder *fw,char *name,int16_t protocol,int16_t
         }
         return;
 }
+
+
+void FORD_ChangePortToAnalyzer(ST_Forwarder *fw,char *name,int16_t port){
+	ST_GenericAnalyzer *ga = NULL;
+
+	ga = FORD_GetAnalyzerByName(fw,name);
+	ga->port = port;	 
+
+	return;
+}
