@@ -40,6 +40,7 @@
 void PRCA_Property_GetState(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetSource(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetMode(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Method_SetMode(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Method_StartEngine(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Method_StopEngine(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Method_SetSource(DBusConnection *conn,DBusMessage *msg, void *data);
@@ -65,6 +66,12 @@ static ST_Callback ST_StaticEngineMethods[] = {
 		.out	=	"b",
 		.func	=	PRCA_Method_SetSource
 	},
+        {
+                .name   =       "SetMode",
+                .in     =       "s",
+                .out    =       "b",
+                .func   =       PRCA_Method_SetMode
+        },
 	{
 		.name	=	"AddAuthorizedHost",
 		.in	=	"s",

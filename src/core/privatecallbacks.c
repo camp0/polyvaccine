@@ -145,6 +145,37 @@ void PRCA_Method_SetSource(DBusConnection *conn,DBusMessage *msg, void *data){
         return;
 }
 
+void PRCA_Method_SetMode(DBusConnection *conn,DBusMessage *msg, void *data){
+        DBusMessageIter args;
+        char *param = "";
+        DBusMessage *reply = NULL;
+        int value = 1;
+
+        reply = dbus_message_new_method_return(msg);
+
+        if (!dbus_message_iter_init(msg, &args))
+                fprintf(stderr, "Message has no arguments!\n");
+        else if (DBUS_TYPE_STRING != dbus_message_iter_get_arg_type(&args))
+                fprintf(stderr, "Argument is not string!\n");
+        else
+                dbus_message_iter_get_basic(&args, &param);
+
+        POFR_SetMode(param);
+
+        dbus_message_iter_init(reply, &args);
+        dbus_message_iter_init_append(reply, &args);
+        dbus_message_iter_append_basic(&args,DBUS_TYPE_BOOLEAN,&value);
+
+        if (!dbus_connection_send(conn, reply, NULL)) {
+                fprintf(stderr, "Out Of Memory!\n");
+                return;
+        }
+        dbus_connection_flush(conn);
+        dbus_message_unref(reply);
+
+        return;
+}
+
 
 /* Properties */
 void PRCA_Property_GetState(DBusConnection *conn,DBusMessage *msg, void *data){

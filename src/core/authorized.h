@@ -30,8 +30,6 @@
 
 struct ST_AuthorizedHost {
 	GHashTable *hosts;
-	int all; /* all the request are authorized, this option should be present
-	 on learning mode */
 };
 
 typedef struct ST_AuthorizedHost ST_AuthorizedHost;
@@ -42,6 +40,5 @@ void AUHT_AddHost(ST_AuthorizedHost *a,char *ip);
 void AUHT_RemoveHost(ST_AuthorizedHost *a,char *ip);
 int AUHT_IsAuthorized(ST_AuthorizedHost *a, char *ip);
 int AUHT_GetNumberOfAuthorizedHosts(ST_AuthorizedHost *a);
-void AUTH_SetAuthorizedAll(ST_AuthorizedHost *a);
 
 #endif

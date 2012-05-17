@@ -218,6 +218,23 @@ void POFR_SetForceAnalyzeHTTPPostData(int value){
 	return;	
 }
 
+void POFR_SetMode(char *mode) {
+	register int i = 0;
+	int hosts = AUHT_GetNumberOfAuthorizedHosts(_polyFilter->hosts);
+
+	while(polyfilter_modes_str[i]!= NULL) {
+		if(strncmp(polyfilter_modes_str[i],mode,strlen(polyfilter_modes_str[i])) == 0) {
+			if((hosts == 0)&&(i != POLYFILTER_MODE_SOMECACHE)){ //We can only switch if there is no hosts
+				_polyFilter->mode = i;
+        			LOG(POLYLOG_PRIORITY_INFO,
+                			"Changing mode=%s",polyfilter_modes_str[_polyFilter->mode]);
+				return;
+			}
+		}
+		i++;
+	}
+	return;
+}
 
 /**
  * POFR_Start - Starts the polyfilter 
@@ -403,20 +420,16 @@ void POFR_SetExitOnPcap(int value){
  *
  */
 void POFR_SetLearningMode() {
-	AUTH_SetAuthorizedAll(_polyFilter->hosts);
+	_polyFilter->mode = POLYFILTER_MODE_FULLCACHE;
 	return;
 }
 
 void __POFR_UpdateStatus() {
-        if(_polyFilter->hosts->all) {
-                // All the hosts are considered as trusted
-                _polyFilter->mode = POLYFILTER_MODE_FULLCACHE;
-        }else{
-                if(AUHT_GetNumberOfAuthorizedHosts(_polyFilter->hosts)>0)
-                        _polyFilter->mode = POLYFILTER_MODE_SOMECACHE;
-                else
-                        _polyFilter->mode = POLYFILTER_MODE_NONCACHE;
-        }
+	printf("-----------------\n");
+        if(AUHT_GetNumberOfAuthorizedHosts(_polyFilter->hosts)>0)
+        	_polyFilter->mode = POLYFILTER_MODE_SOMECACHE;
+        else
+        	_polyFilter->mode = POLYFILTER_MODE_NONCACHE;
         return;
 }
 
@@ -494,8 +507,6 @@ void POFR_Run() {
 		SYIN_GetOSName(),SYIN_GetMachineName());
         fprintf(stdout,"\tversion %s\n",SYIN_GetVersionName());
 
-	__POFR_UpdateStatus();
-	
 	fprintf(stdout,"\tActive mode '%s'\n",polyfilter_modes_str[_polyFilter->mode]);
 	FORD_ShowAnalyzers(_polyFilter->forwarder);
 
@@ -645,7 +656,9 @@ void POFR_Run() {
 							//  TODO check the upstream datagrams, we dont need to analyze donwstream
 							// try to find something efficient
 							if((protocol == IPPROTO_UDP)||((protocol == IPPROTO_TCP)&&(PKCX_IsTCPPush() == 1))) {
-								if(AUHT_IsAuthorized(_polyFilter->hosts,PKCX_GetSrcAddrDotNotation())) {
+									
+								if(AUHT_IsAuthorized(_polyFilter->hosts,PKCX_GetSrcAddrDotNotation())||
+									(_polyFilter->mode == POLYFILTER_MODE_FULLCACHE)) {
 									ga->learn(user,flow);	
 								}else{
 									ga->analyze(user,flow,&ret);

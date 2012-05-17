@@ -10,3 +10,4 @@
 - Add command option for limit the flows on the pool(usefull for generate small http graphs)(Done).
 - The analyzers should destroy their own memory(httpcache,sipcache, graphcache and pathcache) should be on their corresponding analyzers(Done)
 - Manage the time of the packets as well as the time process.
+- use sched_afinity .

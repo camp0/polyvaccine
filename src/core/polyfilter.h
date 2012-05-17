@@ -122,5 +122,6 @@ void POFR_SetSIPSourcePort(int port);
 void POFR_AddTrustedUser(char *ip);
 void POFR_DestroyTrustedUser(char *ip);
 void POFR_ShowGraphCacheLinksLevel(int value);
+void POFR_SetMode(char *mode);
 
 #endif
