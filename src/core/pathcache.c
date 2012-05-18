@@ -118,7 +118,6 @@ void PACH_Stats(ST_PathCache *pc) {
 	GHashTableIter iter,initer;
 	gpointer k,v,kk,vv;
 	int effectiveness;
-	int p_effectiveness;
 	int32_t value = pc->size_memory;
         char *unit = "Bytes";
 

@@ -33,6 +33,7 @@ ST_GraphLink *GACH_NewGraphLink(char *uri){
         link->uris = g_hash_table_new(g_str_hash,g_str_equal);
         link->uri = g_string_new("");
 	link->type = NODE_TYPE_REGULAR;
+	link->hited = 0;
         g_string_printf(link->uri,"%s",uri);
 
         return link;
@@ -64,6 +65,10 @@ int GACH_GetLinkCost(ST_GraphCache *gc, char *urisrc, char *uridst){
 
         link = (ST_GraphLink*)g_hash_table_lookup(gc->uris,(gchar*)urisrc);
         if (link != NULL) {
+		if(link->hited == 0){
+			link->hited = 1;
+			gc->total_node_hits++;
+		}
                 node = (ST_GraphNode*)g_hash_table_lookup(link->uris,(gchar*)uridst);
                 if(node != NULL) {
 			gc->total_hits++;
@@ -210,6 +215,12 @@ ST_GraphLink *GACH_GetBaseLink(ST_GraphCache *gc,char *uri){
 	ST_GraphLink *link = NULL;
 
 	link = (ST_GraphLink*)g_hash_table_lookup(gc->uris,(gchar*)uri);
+	if(link!= NULL) {
+                if(link->hited == 0){
+                        link->hited = 1;
+                        gc->total_node_hits++;
+                }
+	}
        	return link; 
 }
 
@@ -231,6 +242,10 @@ ST_GraphNode *GACH_GetGraphNode(ST_GraphCache *gc,char *urisrc,char *uridst){
 	ST_GraphNode *node = NULL;
 
 	if(link != NULL) {
+                if(link->hited == 0){
+                        link->hited = 1;
+                        gc->total_node_hits++;
+                }
 		node = GACH_GetGraphNodeFromLink(gc,link,uridst);
 		if(node == NULL)
 			gc->total_fails++;
@@ -322,7 +337,7 @@ void GACH_Stats(ST_GraphCache *gc) {
 	GHashTableIter iter,initer;
 	gpointer k,v,kk,vv;
 	int effectiveness;
-	int p_effectiveness;
+	int n_effectiveness;
 	int32_t value = gc->size_memory;
         char *unit = "Bytes";
 
@@ -339,11 +354,18 @@ void GACH_Stats(ST_GraphCache *gc) {
 	if((gc->total_hits+gc->total_fails)>0){
 		effectiveness = (gc->total_hits*100)/(gc->total_hits+gc->total_fails);
 	}	
+	n_effectiveness = 0;
+	if((gc->total_nodes)>0){
+		n_effectiveness = (gc->total_node_hits*100)/(gc->total_nodes);
+	}	
 	fprintf(stdout,"GraphCache(0x%x) statistics\n",gc);
 	fprintf(stdout,"\tallocated memory:%d %s\n",value,unit);
 	fprintf(stdout,"\tLinks = %d \n",gc->total_links);
 	fprintf(stdout,"\tLink hits = %d\n\tLink fails = %d\n",gc->total_hits,gc->total_fails);
 	fprintf(stdout,"\tLink effectiveness = %d\%\n",effectiveness);
+	fprintf(stdout,"\tNodes = %d\n",gc->total_nodes);
+	fprintf(stdout,"\tNode hits  = %d\n",gc->total_node_hits);
+	fprintf(stdout,"\tNode effectiveness = %d\%\n",n_effectiveness);
 
 	if(gc->statistics_level > 0) {
 		fprintf(stdout,"\tLink nodes\n");

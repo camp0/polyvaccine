@@ -35,7 +35,8 @@
 #include "user.h"
 #include "interfaces.h"
 
-#define MAX_USERS_PER_POOL 1024 * 8
+#define MAX_USERS_PER_POOL 1024 * 16 
+//#define MAX_USERS_PER_POOL 1024 * 8
 
 struct ST_UserPool {
 	ST_Pool *pool;

@@ -52,7 +52,7 @@ typedef struct ST_GraphNode ST_GraphNode;
 struct ST_GraphLink {
 	GHashTable *uris;
 	GString *uri;
-	int id_uri;
+	int id_uri,hited;
 	enum node_types type;
 };
 
@@ -64,6 +64,7 @@ struct ST_GraphCache {
 	int32_t total_hits;
 	int32_t total_fails;
 	int32_t total_nodes;
+	int32_t total_node_hits;
 	int32_t total_ids;
 	int statistics_level;
 	int32_t size_memory; // total bytes allocated
