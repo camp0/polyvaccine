@@ -7,7 +7,7 @@ INCLUDES =      -I../opcodes/ \
                 -I../utils/ \
 		-I../bus/ 
 
-BUILT_SOURCES = $(srcdir)/polyvaccine_wrap.c
+BUILT_SOURCES = $(srcdir)/polyfilter_wrap.c
 
 libpolyvaccine_la_SOURCES =	system.c memory.c pool.c memorypool.c privatecallbacks.c flowpool.c \
 				connection.c packetdecoder.c authorized.c trustoffset.c tcpanalyzer.c \
@@ -31,17 +31,17 @@ pvfe_SOURCES = main.c
 pvfe_LDFLAGS = $(DEPS_LIBS) -lpolyvaccine -lpcap 
 pvfe_LDADD = -lpolyvaccine $(DEPS_LIBS)
 
-EXTRA_DIST = polyvaccine.i setup.py log4crc
+EXTRA_DIST = polyfilter.i setup.py log4crc
 
-CLEANFILES = $(srcdir)/polyvaccine_wrap.c $(srcdir)/_polyvaccine.so *.pyc polyvaccine.py 
+CLEANFILES = $(srcdir)/polyfilter_wrap.c $(srcdir)/_polyfilter.so *.pyc polyfilter.py 
 
 MAINTAINERCLEANFILES = \
-	$(srcdir)/polyvaccine_wrap.c \
+	$(srcdir)/polyfilter_wrap.c \
 	$(srcdir)/Makefile.in \
 	`rm -rf $(srcdir)/build `
 
-$(srcdir)/polyvaccine_wrap.c: polyvaccine.i
-	$(SWIG) -python polyvaccine.i
+$(srcdir)/polyfilter_wrap.c: polyfilter.i
+	$(SWIG) -python polyfilter.i
 #	$(PYTHON) setup.py build_ext --inplace 
 	$(PYTHON) setup.py build_ext --inplace -DHAVE_CONFIG_H
 

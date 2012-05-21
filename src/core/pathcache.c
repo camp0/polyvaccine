@@ -75,7 +75,7 @@ ST_PathNode *PACH_AddPath(ST_PathCache *pc, gchar *path){
 }
 
 
-void PACH_ShowPathCache(ST_PathCache *pc);
+void PACH_ShowPathCache(ST_PathCache *pc){};
 
 
 /**
@@ -99,13 +99,22 @@ ST_PathCache *PACH_Init(){
 /**
  * PACH_Destroy - Destroy all the fields of the graphcache
  */
-void PACH_Destroy(ST_PathCache *c) {
-/*        g_hash_table_foreach_remove(c->header_cache,CACH_DestroyCallback,NULL);
-        g_hash_table_foreach_remove(c->parameter_cache,CACH_DestroyCallback,NULL);
-        g_hash_table_destroy(c->header_cache);
-        g_hash_table_destroy(c->parameter_cache);
-	g_free(c);
-*/	
+void PACH_Destroy(ST_PathCache *pc) {
+	GHashTableIter iter;
+	gpointer k,v;
+	ST_PathNode *node;
+
+	g_hash_table_iter_init (&iter, pc->paths);
+	while (g_hash_table_iter_next (&iter, &k, &v)) {
+		node = (ST_PathNode*)v;
+		g_string_free(node->path,TRUE);
+		node->path = NULL;
+		g_free(node);
+	}
+	g_hash_table_destroy(pc->paths);
+	g_free(pc);
+	pc = NULL;
+	return;
 }
 
 /**

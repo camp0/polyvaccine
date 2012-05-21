@@ -147,15 +147,13 @@ void POFR_Init() {
 
 void POFR_ShowGraphCacheLinksLevel(int value){
 
-	// TODO
-	//GACH_ShowGraphCacheLinks(_polyFilter->graphcache,value);
+	DSAZ_SetGraphStatisticsLevel(value);
 	return;
 }
 
 void POFR_EnableAnalyzers(char *analyzers){
 
 	// Tells the forwarder to enable the analyzers
-	// TODO
 	FORD_EnableAnalyzerByName(_polyFilter->forwarder,analyzers);
 	return;
 }
@@ -425,7 +423,6 @@ void POFR_SetLearningMode() {
 }
 
 void __POFR_UpdateStatus() {
-	printf("-----------------\n");
         if(AUHT_GetNumberOfAuthorizedHosts(_polyFilter->hosts)>0)
         	_polyFilter->mode = POLYFILTER_MODE_SOMECACHE;
         else
@@ -607,7 +604,7 @@ void POFR_Run() {
 						}
 						// Update the direction of the flow
 						flow->direction = ga->direction;
-				
+					
 						if(protocol == IPPROTO_TCP){
 							// Update the tcp flow
 							TCAZ_Analyze(flow);

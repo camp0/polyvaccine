@@ -7,13 +7,13 @@ temp_includes.append("../opcodes")
 temp_includes.append("../bus")
 temp_includes.append("../../.")
 
-source_files = ['polyvaccine_wrap.c', 'cache.c','polyfilter.c','flowpool.c','connection.c','forwarder.c']
+source_files = ['polyfilter_wrap.c', 'cache.c','polyfilter.c','flowpool.c','connection.c','forwarder.c']
 source_files = source_files + ['privatecallbacks.c','packetdecoder.c','memory.c','memorypool.c','httpanalyzer.c','system.c']
 source_files = source_files + ['../bus/polydbus.c','../opcodes/counter.c','authorized.c','trustoffset.c','tcpanalyzer.c']
 source_files = source_files + ['userpool.c','user.c','dosanalyzer.c','pool.c','usertable.c']
-source_files = source_files + ['sipanalyzer.c','graphcache.c']
+source_files = source_files + ['sipanalyzer.c','graphcache.c','pathcache.c']
 
-polyvaccine_module = Extension('_polyvaccine',
+polyfilter_module = Extension('_polyfilter',
 	sources = source_files,
 	include_dirs = temp_includes,
 #	library_dirs = [ '../opcodes/.libs'],
@@ -25,11 +25,11 @@ polyvaccine_module = Extension('_polyvaccine',
 #        define_macros=[('DEBUG', '1')],
 	)
 
-setup (name = 'polyvaccine',
+setup (name = 'polyfilter',
        version = '0.1',
        author      = "Luis Campo Giralte",
        description = """Simple wrapper for the filter engine""",
-       ext_modules = [polyvaccine_module],
-       py_modules = ["polyvaccine"],
+       ext_modules = [polyfilter_module],
+       py_modules = ["polyfilter"],
        )
 

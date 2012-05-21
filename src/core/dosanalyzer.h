@@ -78,4 +78,5 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f, int *ret);
 void *DSAZ_Stats(void);
 void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user, ST_GenericFlow *f);
 
+void DSAZ_SetGraphStatisticsLevel(int level);
 #endif

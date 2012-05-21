@@ -106,6 +106,12 @@ void *DSAZ_Stats(void) {
 }
 
 
+void DSAZ_SetGraphStatisticsLevel(int level){
+	
+	GACH_SetStatisticsLevel(_dos.graphcache,level);
+	return;
+}
+
 /**
  * UT_TimevalSub - make the diferente between a and b ( r = a - b)
  *

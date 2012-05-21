@@ -8,7 +8,7 @@ import time
 import ctypes
 import sys
 sys.path.append("../src/core/")
-import polyvaccine as pv
+import polyfilter as pv
 import unittest
 import testrunner
 

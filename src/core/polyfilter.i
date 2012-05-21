@@ -1,9 +1,10 @@
-%module polyvaccine 
+%module polyfilter
 
 %{
 #include "pool.h"
 #include "cache.h"
 #include "graphcache.h"
+#include "pathcache.h"
 #include "flowpool.h"
 #include "packetcontext.h"
 #include "memorypool.h"
@@ -23,6 +24,7 @@
 %include "pool.h"
 %include "cache.h"
 %include "graphcache.h"
+%include "pathcache.h"
 %include "flowpool.h"
 %include "memorypool.h"
 %include "memory.h"

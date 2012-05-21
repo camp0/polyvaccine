@@ -7,7 +7,7 @@ import random
 import ctypes
 import sys
 sys.path.append("../src/core/")
-import polyvaccine as p
+import polyfilter as p
 import unittest
 import testrunner
 

@@ -273,6 +273,7 @@ ST_GraphCache *GACH_Init(){
 	gc->total_links = 0;
 	gc->total_fails = 0;
 	gc->total_hits = 0;
+	gc->total_node_hits = 0;
 	gc->statistics_level = 0;
 	gc->size_memory = 0;
 	return gc;
@@ -284,24 +285,28 @@ ST_GraphCache *GACH_Init(){
 void GACH_Destroy(ST_GraphCache *gc) {
         GHashTableIter iter,initer;
         gpointer k,v,kk,vv;
+	ST_GraphLink *link;
+	ST_GraphNode *node;
 
-	// TODO
         g_hash_table_iter_init (&iter, gc->uris);
         while (g_hash_table_iter_next (&iter, &k, &v)) {
-        	ST_GraphLink *link = (ST_GraphLink*)v;
+        	link = (ST_GraphLink*)v;
                 g_hash_table_iter_init(&initer,link->uris);
                 while (g_hash_table_iter_next (&initer, &kk, &vv)) {
-                	ST_GraphNode *node = (ST_GraphNode*)vv;
-			//g_free(node->uri);
+                	node = (ST_GraphNode*)vv;
+			g_string_free(node->uri,TRUE);
+			node->uri = NULL;
 			g_free(node);
+			node = NULL;
 		}
 		g_hash_table_destroy(link->uris);
-		//g_free(link->uri);
-		//g_free(link);
+		g_string_free(link->uri,TRUE);
+		g_free(link);
+		link = NULL;
         }
-	//g_hash_table_destroy(gc->uris);
-	//g_free(gc);
-	//gc = NULL;
+	g_hash_table_destroy(gc->uris);
+	g_free(gc);
+	gc = NULL;
 }
 
 void __GACH_DumpGraphOnGraphviz(ST_GraphCache *gc) {
@@ -364,7 +369,7 @@ void GACH_Stats(ST_GraphCache *gc) {
 	fprintf(stdout,"\tLink hits = %d\n\tLink fails = %d\n",gc->total_hits,gc->total_fails);
 	fprintf(stdout,"\tLink effectiveness = %d\%\n",effectiveness);
 	fprintf(stdout,"\tNodes = %d\n",gc->total_nodes);
-	fprintf(stdout,"\tNode hits  = %d\n",gc->total_node_hits);
+	fprintf(stdout,"\tNode hits  = %ld\n",gc->total_node_hits);
 	fprintf(stdout,"\tNode effectiveness = %d\%\n",n_effectiveness);
 
 	if(gc->statistics_level > 0) {

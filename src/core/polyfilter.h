@@ -105,7 +105,9 @@ void POFR_SetStatisticsLevel(int level);
 void POFR_SetLearningMode(void);
 void POFR_AddToHTTPCache(int type,char *value);
 
-void POFR_SetSourcePortToAnalyzer(char *name,int port);
+void POFR_SetHTTPSourcePort(int port);
+
+//void POFR_SetSourcePortToAnalyzer(char *name,int port);
 void POFR_SetForceAnalyzeHTTPPostData(int value);
 void POFR_ShowUnknownHTTP(int value);
 void POFR_SetInitialFlowsOnPool(int value);
@@ -120,7 +122,7 @@ int32_t POFR_GetHTTPParameterCacheFails(void);
 void POFR_SetSIPSourcePort(int port);
 
 void POFR_AddTrustedUser(char *ip);
-void POFR_DestroyTrustedUser(char *ip);
+void POFR_RemoveTrustedUser(char *ip);
 void POFR_ShowGraphCacheLinksLevel(int value);
 void POFR_SetMode(char *mode);
 

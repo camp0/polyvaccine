@@ -6,7 +6,7 @@ __version__ = "0.1"
 import ctypes,os,signal
 import sys
 sys.path.append("../src/core/")
-import polyvaccine as p
+import polyfilter as p
 import unittest
 import testrunner
 import dbus
@@ -24,9 +24,13 @@ class Test_01(unittest.TestCase):
 	def test_01_1(self):
 		"Test the httpcache fails header"
 		p.POFR_SetSource("./pcapfiles/http_one_get_and_response.pcap")
-		p.POFR_SetExitOnPcap(1)
-		p.POFR_Start()
-		p.POFR_Run()
+                p.POFR_SetMode("normal")
+                p.POFR_SetHTTPSourcePort(80)
+                
+		p.POFR_EnableAnalyzers("http")
+                p.POFR_SetExitOnPcap(1)
+                p.POFR_Start()
+                p.POFR_Run()
 		p.POFR_Stop()	
 		self.assertEqual(0,p.POFR_GetHTTPHeaderCacheHits())		
 		self.assertEqual(1,p.POFR_GetHTTPHeaderCacheFails())
@@ -34,6 +38,10 @@ class Test_01(unittest.TestCase):
         def test_01_2(self):
                 "Test the httpcache hits header"
                 p.POFR_SetSource("./pcapfiles/http_one_get_and_response.pcap")
+                p.POFR_SetMode("normal")
+                p.POFR_SetHTTPSourcePort(80)
+                
+		p.POFR_EnableAnalyzers("http")
                 p.POFR_AddToHTTPCache(0,"GET /dashboard HTTP/1.1")
 		p.POFR_SetExitOnPcap(1)
                 p.POFR_Start()
@@ -45,6 +53,10 @@ class Test_01(unittest.TestCase):
         def test_01_3(self):
                 "Test the httpcache hits header and parameter I"
                 p.POFR_SetSource("./pcapfiles/http_one_get_and_response.pcap")
+                p.POFR_SetMode("normal")
+                p.POFR_SetHTTPSourcePort(80)
+
+                p.POFR_EnableAnalyzers("http")
                 p.POFR_AddToHTTPCache(0,"GET /dashboard HTTP/1.1")
                 p.POFR_AddToHTTPCache(1,"Connection: keep-alive")
 		p.POFR_SetExitOnPcap(1)
@@ -59,6 +71,10 @@ class Test_01(unittest.TestCase):
         def test_01_4(self):
                 "Test the httpcache hits header and parameter II"
                 p.POFR_SetSource("./pcapfiles/http_one_get_and_response.pcap")
+                p.POFR_SetMode("normal")
+                p.POFR_SetHTTPSourcePort(80)
+
+                p.POFR_EnableAnalyzers("http")
                 p.POFR_AddToHTTPCache(0,"GET /dashboard HTTP/1.1")
                 p.POFR_AddToHTTPCache(1,"Connection: keep-alive")
                 p.POFR_AddToHTTPCache(1,"Accept-Encoding: gzip,deflate,sdch")
@@ -83,70 +99,74 @@ class Test_02(unittest.TestCase):
 
         def test_02_1(self):
 		"Test the pvfe with the dbus service State property"
-                pp = subprocess.Popen(["../src/core/pvfe","-i","lo","-p 80"])
+                pp = subprocess.Popen(["../src/core/pvfe","-I","lo","-E","http"])
 		time.sleep(1)
 		bus = dbus.SessionBus()
 		s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
-		d = dbus.Interface(s,dbus_interface='polyvaccine.filter')
-		state = d.State()
+		iface = dbus.Interface(s,dbus_interface='polyvaccine.filter')
+		state = iface.GetProperty("State")
 		pp.kill()	
 		self.assertTrue(state == "stop")
 		pp.wait()
 
 	def test_02_2(self):
                 "Test the pvfe with the dbus service methods"
-                pp = subprocess.Popen(["../src/core/pvfe","-i","lo","-p 80"])
-		
-		time.sleep(1)
-		bus = dbus.SessionBus()
-                s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
-                d = dbus.Interface(s,dbus_interface='polyvaccine.filter.httpcache')
+                pp = subprocess.Popen(["../src/core/pvfe","-I","lo","-E","http","-p","80"])
 
-		header = ['GET / HTTP/1.1'] 
-		param = ['Host: slashdot.org','Accept-Encoding: gzip, deflate','Connection: keep-alive']
-		for h in header:
-              		d.AddCacheHeader(h)
-		for v in param:
-			d.AddCacheParameter(v)
-		d.Stop()
-		d.SetSource("./pcapfiles/http_slashdot.pcap")
-		d.Start()
-		time.sleep(0.5)
-		a = d.HeaderHits() 
-		b = d.ParameterHits()
-		#print "Header hits",a
-		#print "Parameter hits",b	
-		d.Stop()
-		pp.kill()
-		pp.wait()
-		self.assertEqual(a,1)
-		self.assertEqual(b,68)
+                time.sleep(1)
+                bus = dbus.SessionBus()
+                s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
+
+                icache = dbus.Interface(s,dbus_interface='polyvaccine.filter.httpcache')
+                iface = dbus.Interface(s,dbus_interface='polyvaccine.filter')
+
+                header = ['GET / HTTP/1.1']
+                param = ['Host: slashdot.org','Accept-Encoding: gzip, deflate','Connection: keep-alive']
+                for h in header:
+                        icache.AddCacheHeader(h)
+                for v in param:
+                        icache.AddCacheParameter(v)
+
+                iface.Stop()
+                iface.SetSource("./pcapfiles/http_slashdot.pcap")
+                iface.Start()
+                time.sleep(0.5)
+                a = icache.GetProperty("HeaderHits")
+                b = icache.GetProperty("ParameterHits")
+       #         print "Header hits",a
+       #         print "Parameter hits",b
+                iface.Stop()
+                pp.kill()
+                pp.wait()
+                self.assertEqual(a,1)
+                self.assertEqual(b,68)
 	
 
 	def test_02_3(self):
 		"Test the pvfe connection manager, one flow on pool"
-                pp = subprocess.Popen(["../src/core/pvfe","-i","lo","-p 80"])
+                pp = subprocess.Popen(["../src/core/pvfe","-I","lo","-E","http","-p","80"])
                 time.sleep(0.5)
                 bus = dbus.SessionBus()
                 s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
-                d = dbus.Interface(s,dbus_interface='polyvaccine.filter.connection')
+                iface = dbus.Interface(s,dbus_interface='polyvaccine.filter')
+                icon = dbus.Interface(s,dbus_interface='polyvaccine.filter.connection')
 
 		# decrease the flow/memory pool to one.
-		value = d.FlowsOnPool() - 1
-		r = d.DecreaseFlowPool(value)
+		value = icon.GetProperty("FlowsOnPool") - 1
+		r = icon.DecreaseFlowPool(value)
 		self.assertEqual(r,1)
-		r = d.DecreaseMemoryPool(value) 
+		r = icon.DecreaseMemoryPool(value) 
 		self.assertEqual(r,1)
 
 		time.sleep(0.5)
-                d.Stop()
-                d.SetSource("./pcapfiles/http_slashdot.pcap")
-		d.Start()
+                iface.Stop()
+                iface.SetSource("./pcapfiles/http_slashdot.pcap")
+		iface.Start()
 		time.sleep(0.5)
-		fa = d.FlowAcquires()
-		fr = d.FlowReleases()
-		fp = d.FlowsOnPool()
-		fe = d.FlowErrors()
+		fa = icon.GetProperty("FlowAcquires")
+		fr = icon.GetProperty("FlowReleases")
+		fp = icon.GetProperty("FlowsOnPool")
+		fe = icon.GetProperty("FlowErrors")
 		#print "Flow acquires",fa
 		#print "Flow releases",fr
 		#print "Flows on pool",fp
@@ -160,28 +180,29 @@ class Test_02(unittest.TestCase):
 
         def test_02_4(self):
                 "Test the pvfe connection manager, five flowis on pool"
-                pp = subprocess.Popen(["../src/core/pvfe","-i","lo","-p 80"])
+                pp = subprocess.Popen(["../src/core/pvfe","-I","lo","-E http","-p 80"])
                 time.sleep(0.5)
                 bus = dbus.SessionBus()
                 s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
-                d = dbus.Interface(s,dbus_interface='polyvaccine.filter.connection')
+                iface = dbus.Interface(s,dbus_interface='polyvaccine.filter')
+                icon = dbus.Interface(s,dbus_interface='polyvaccine.filter.connection')
 
                 # decrease the flow/memory pool to one.
-                value = d.FlowsOnPool() - 5 
-                r = d.DecreaseFlowPool(value)
+                value = icon.GetProperty("FlowsOnPool") - 5 
+                r = icon.DecreaseFlowPool(value)
                 self.assertEqual(r,1)
-                r = d.DecreaseMemoryPool(value)
+                r = icon.DecreaseMemoryPool(value)
                 self.assertEqual(r,1)
 
                 time.sleep(0.5)
-                d.Stop()
-                d.SetSource("./pcapfiles/http_slashdot.pcap")
-                d.Start()
+                iface.Stop()
+                iface.SetSource("./pcapfiles/http_slashdot.pcap")
+                iface.Start()
                 time.sleep(0.5)
-                fa = d.FlowAcquires()
-                fr = d.FlowReleases()
-                fp = d.FlowsOnPool()
-                fe = d.FlowErrors()
+                fa = icon.GetProperty("FlowAcquires")
+                fr = icon.GetProperty("FlowReleases")
+                fp = icon.GetProperty("FlowsOnPool")
+                fe = icon.GetProperty("FlowErrors")
                 #print "Flow acquires",fa
                 #print "Flow releases",fr
                 #print "Flows on pool",fp
@@ -197,7 +218,7 @@ if __name__ == '__main__':
 	print "Testing polyvaccine interfaces"
 	suite=unittest.TestSuite()
     	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_02))
-#    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
+    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
 #	unittest.main()
 	result=testrunner.BasicTestRunner().run(suite)
 	

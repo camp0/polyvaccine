@@ -339,6 +339,7 @@ void FORD_ChangePortToAnalyzer(ST_Forwarder *fw,char *name,int16_t port){
 	ST_GenericAnalyzer *ga = NULL;
 
 	ga = FORD_GetAnalyzerByName(fw,name);
+	LOG(POLYLOG_PRIORITY_INFO,"Changing port %d to analyzer '%s'",port,name);
 	ga->port = port;	 
 
 	return;

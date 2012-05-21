@@ -125,6 +125,7 @@ void *HTAZ_Stats(void) {
 	fprintf(stdout,"\ttotal valid segments %ld\n",_http.total_valid_segments);
 	fprintf(stdout,"\ttotal invalid decodes %ld\n",_http.total_http_invalid_decode);
 
+	_http.statistics_level = 1;
 	if(_http.statistics_level > 0) 	
 		CACH_Stats(_http.httpcache);
 	if(_http.statistics_level > 1 ) {
@@ -209,6 +210,8 @@ void *HTAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 		if (methodlen>15){
 			exit(-1);
 		} 
+		user->total_request++;
+
 		memcpy(method,&(seg->mem[0]), methodlen);
 		method[methodlen] = '\0';
 		if(g_hash_table_lookup_extended(_http.methods,(gchar*)method,NULL,&pointer) == TRUE){
