@@ -19,7 +19,7 @@ class Test_01(unittest.TestCase):
 
 	def test_01_1(self):
 		uri = "GET /dashboard HTTP/1.1"
-		value = c.COSU_CountSuspiciousOpcodesNew(uri,len(uri))
+		value = c.COSU_CheckSuspiciousOpcodes(uri,len(uri))
 		self.assertEqual(value,0)
 
 	def test_01_2(self):
@@ -36,27 +36,27 @@ class Test_01(unittest.TestCase):
     			"\x6c\xf7\xcb\x37\x95\xb1\xff\x07\xd7\x9a\x6e\x98\xf3\xbb\x6e\xdf" \
     			"\xf3\xaa\x6f\xd9\x55\x2b\x54\xe4\x55\x29\xcb\x37" \
     			"\r\nPASS:\r\n";
-		value = c.CO_CountSuspiciousOpcodes(ex,len(ex))
-		self.assertEqual(value,2)	
+		value = c.COSU_CheckSuspiciousOpcodes(ex,len(ex))
+		self.assertEqual(value,1)	
 
 	def test_01_3(self):
 		"Testing generic x86 syscall for 32 bits opcodes "
 		ex = "\x90\x90\x90\x90\x90\xcd\x80\x90\x90"
 		
-		value = c.COSU_CountSuspiciousOpcodesNew(ex,len(ex))
+		value = c.COSU_CheckSuspiciousOpcodes(ex,len(ex))
 		self.assertEqual(value,1)	
 		ex = "\x90\x90\x90\x90\x90\xcd\x90\x90\x90\x00\x00\x00\x00\xcd\x80"
-		value = c.COSU_CountSuspiciousOpcodesNew(ex,len(ex))
+		value = c.COSU_CheckSuspiciousOpcodes(ex,len(ex))
 		self.assertEqual(value,1)	
 	
 	def test_01_4(self):
 		"Testing generic x86 syscall for 64 bits opcodes "
 		ex = "\x90\x90\x90\x90\x90\x0f\x55\x90\x90"
 		
-		value = c.COSU_CountSuspiciousOpcodesNew(ex,len(ex))
+		value = c.COSU_CheckSuspiciousOpcodes(ex,len(ex))
 		self.assertEqual(value,1)	
 		ex = "\x90\x90\x90\x90\x90\xcd\x90\x90\x90\x00\x00\x00\xaa\xff\xff\x00\xcd\x81\x0f\x55"
-		value = c.COSU_CountSuspiciousOpcodesNew(ex,len(ex))
+		value = c.COSU_CheckSuspiciousOpcodes(ex,len(ex))
 		self.assertEqual(value,1)	
 	
 	

@@ -582,8 +582,10 @@ void PODS_SendSuspiciousSegment(DBusConnection *conn,char *objectname,char *inte
 	dbus_message_iter_append_fixed_array(&e_iter,DBUS_TYPE_INT32,&e_off,8);
 	dbus_message_iter_close_container(&iter,&e_iter);
 
-	DEBUG0("sending %d bytes to execute\n",len);
-
+#ifdef DEBUG
+        LOG(POLYLOG_PRIORITY_DEBUG,
+                "Sending %d bytes to execute",len);
+#endif
    	if (!dbus_connection_send(conn, msg, NULL)) {
       		fprintf(stderr, "Out Of Memory!\n");
       		exit(1);

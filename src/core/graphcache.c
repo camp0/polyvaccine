@@ -26,6 +26,15 @@
 #include "debug.h"
 #include<fcntl.h>
 
+
+/**
+ * GACH_NewGraphLink - Creates a new grap link with a given URI 
+ *
+ * @param uri 
+ *
+ * @return ST_GraphLink
+ */
+
 ST_GraphLink *GACH_NewGraphLink(char *uri){
         ST_GraphLink *link = NULL;
 
@@ -38,6 +47,15 @@ ST_GraphLink *GACH_NewGraphLink(char *uri){
 
         return link;
 }
+
+/**
+ * GACH_NewGraphNode - Creates a new grap node with a given URI and the cost 
+ *
+ * @param uri 
+ * @param cost 
+ *
+ * @return ST_GraphNode
+ */
 
 ST_GraphNode *GACH_NewGraphNode(char *uri,int cost){
 	ST_GraphNode *node = NULL;
@@ -52,11 +70,14 @@ ST_GraphNode *GACH_NewGraphNode(char *uri,int cost){
 }
 
 /**
- * GACH_GetLinkCost - Adds a new header cacheable field to the cache
+ * GACH_GetLinkCost - Return the cost between two uris if exists a link between them 
+ *		This is the function called by the detection/normal mode of the polyfilter
  *
- * @param c The cache
- * @param value The header field
- * @param type
+ * @param gc The cache
+ * @param urisrc
+ * @param uridst
+ *
+ * @return int
  */
 
 int GACH_GetLinkCost(ST_GraphCache *gc, char *urisrc, char *uridst){
@@ -119,70 +140,32 @@ ST_GraphNode *GACH_AddGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, ch
 }
 
 /**
- * GACH_AddLink - Adds a new header cacheable field to the cache
+ * GACH_AddLink - Adds a link between to URIs given to the grapcache
  *
- * @param c The cache
- * @param value The header field
- * @param type
+ * @param gc The Graph cache
+ * @param urisrc the previous uri of the http path
+ * @param uridst the current uri of the flow on the http path
+ * @param cost the cost between the two uris 
  */
 
 void GACH_AddLink(ST_GraphCache *gc,char *urisrc, char *uridst, int cost){
-	ST_GraphLink *linksrc = NULL;
-	ST_GraphLink *linkdst = NULL;
+	ST_GraphLink *link = NULL;
 	ST_GraphNode *node;
 
-	// TODO: may be this function should be clear :D
-	linksrc = (ST_GraphLink*)g_hash_table_lookup(gc->uris,(gchar*)urisrc);
-        if (linksrc == NULL) {
-		// There is no source uri
-		linksrc = GACH_NewGraphLink(urisrc);
-		
-		gc->size_memory += sizeof(ST_GraphLink)+strlen(urisrc);
-		gc->total_nodes++;
-		gc->total_ids ++;
-		
-		linksrc->id_uri = gc->total_ids;
-		g_hash_table_insert(gc->uris,g_strdup(urisrc),linksrc);
+        link = (ST_GraphLink*)g_hash_table_lookup(gc->uris,(gchar*)urisrc);
+        if (link == NULL) {
+                // There is no source uri
+                link = GACH_NewGraphLink(urisrc);
 
-		node = GACH_NewGraphNode(uridst,cost);
+                // increase counters    
+                gc->size_memory += sizeof(ST_GraphLink)+strlen(urisrc);
+                gc->total_nodes++;
+                gc->total_ids ++;
+                link->id_uri = gc->total_ids; // Set the id value of the uri
 
-		gc->size_memory += sizeof(node)+strlen(uridst);
-		g_hash_table_insert(linksrc->uris,g_strdup(uridst),node);
-		gc->total_nodes++;
-		gc->total_ids ++;
-		linksrc->id_uri= gc->total_ids;
-
-		linkdst = (ST_GraphLink *)g_hash_table_lookup(gc->uris,(gchar*)uridst);
-		if(linkdst == NULL) {
-			linkdst = GACH_NewGraphLink(uridst);
-			gc->size_memory += sizeof(ST_GraphLink)+strlen(uridst);
-			gc->total_nodes++;
-
-			linkdst->id_uri = gc->total_ids;
-			g_hash_table_insert(gc->uris,g_strdup(urisrc),linkdst);
-		}
-	}else{
-		node = (ST_GraphNode*)g_hash_table_lookup(linksrc->uris,(gchar*)uridst);
-		if(node == NULL) {
-			node = GACH_NewGraphNode(uridst,cost);
-			gc->size_memory += sizeof(ST_GraphNode)+strlen(uridst);
-			g_hash_table_insert(linksrc->uris,g_strdup(uridst),node);
-			gc->total_links ++;
-			gc->total_ids++;
-			node->id_uri=gc->total_ids;
-			linkdst = (ST_GraphLink *)g_hash_table_lookup(gc->uris,(gchar*)uridst);
-			if(linkdst == NULL) {
-				linkdst = GACH_NewGraphLink(uridst);
-				gc->size_memory += sizeof(ST_GraphLink)+strlen(uridst);
-				gc->total_nodes++;
-				linkdst->id_uri = gc->total_ids;
-				g_hash_table_insert(gc->uris,g_strdup(uridst),linkdst);
-			}
-		}else{
-			// Update the cost of the link
-			node->cost = cost;
-		}
-	}	
+                g_hash_table_insert(gc->uris,g_strdup(urisrc),link);
+	}
+	node = GACH_AddGraphNodeFromLink(gc,link,uridst,cost);
 	return;
 }
 

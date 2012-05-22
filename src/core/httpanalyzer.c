@@ -164,6 +164,7 @@ void *HTAZ_Destroy() {
 	pcre_free(_http.pe_header);
 #endif
 	CACH_Destroy(_http.httpcache);
+	COSU_Destroy();
 }
 
 /**

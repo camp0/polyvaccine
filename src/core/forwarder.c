@@ -187,6 +187,7 @@ void FORD_Destroy(ST_Forwarder *fw){
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
 		ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
 		ga->destroy();
+		g_string_free(v,TRUE);
 		g_free(ga);
 	} 
 	g_hash_table_destroy(fw->tcp_analyzers);

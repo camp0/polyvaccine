@@ -203,7 +203,12 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 			}else{
 				_dos.total_nonexist_uri++;
 				user->request_fails++;
-			}	
+			}
+#ifdef DEBUG
+        		LOG(POLYLOG_PRIORITY_DEBUG,
+                		"User(0x%x)flow(0x%x)first uri cached %s\n",
+                		user,f,link==NULL?"no":"yes");
+#endif
 		}else{
 			node = GACH_GetGraphNode(_dos.graphcache,f->lasturi,uri);
 			if(node != NULL){
@@ -244,6 +249,11 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 				user->path_fails++;
 				user->request_fails++;
 			}
+#ifdef DEBUG
+                        LOG(POLYLOG_PRIORITY_DEBUG,
+                                "User(0x%x)flow(0x%x)link cached %s\n",
+                                user,f,node==NULL?"no":"yes");
+#endif
 		}
 
 		user->total_request++;
