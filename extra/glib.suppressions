@@ -807,3 +807,18 @@
    fun:nss_parse_service_list
    fun:__nss_database_lookup
 }
+
+# Suppressions from the application
+{
+   incrementing_flow_pools
+   Memcheck:Leak
+   fun:memalign
+   fun:posix_memalign
+   fun:slab_allocator_alloc_chunk
+   fun:g_slice_alloc
+   fun:g_slist_prepend
+   fun:POOL_AddItem
+   fun:FLPO_IncrementFlowPool
+   fun:FLPO_Init
+}
+

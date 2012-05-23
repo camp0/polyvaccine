@@ -125,7 +125,6 @@ void *HTAZ_Stats(void) {
 	fprintf(stdout,"\ttotal valid segments %ld\n",_http.total_valid_segments);
 	fprintf(stdout,"\ttotal invalid decodes %ld\n",_http.total_http_invalid_decode);
 
-	_http.statistics_level = 1;
 	if(_http.statistics_level > 0) 	
 		CACH_Stats(_http.httpcache);
 	if(_http.statistics_level > 1 ) {
@@ -483,6 +482,13 @@ void *HTAZ_AnalyzeDummyHTTPRequest(ST_User *user, ST_GenericFlow *f){
 }
 
 /* Service functions */
+void HTAZ_SetStatisticsLevel(int level){
+
+	_http.statistics_level = level;
+	return;
+}
+
+
 int32_t HTAZ_GetNumberValidHTTPHeaders(){
 	register int i;
 	int32_t value = 0;

@@ -49,8 +49,6 @@ ST_MemorySegment *MESG_Init(void);
 ST_MemorySegment *MESG_InitWithSize(int size);
 void MESG_Destroy(ST_MemorySegment *m);
 void MESG_Reset(ST_MemorySegment *m);
-void MESG_UpdateSize(ST_MemorySegment *m,int size);
 void MESG_AppendPayload(ST_MemorySegment *m,unsigned char *payload,int size);
-void MESG_AppendPayloadNew(ST_MemorySegment *m,unsigned char *payload,int size);
 
 #endif

@@ -145,12 +145,6 @@ void POFR_Init() {
 	return;
 }
 
-void POFR_ShowGraphCacheLinksLevel(int value){
-
-	DSAZ_SetGraphStatisticsLevel(value);
-	return;
-}
-
 void POFR_EnableAnalyzers(char *analyzers){
 
 	// Tells the forwarder to enable the analyzers
@@ -160,6 +154,18 @@ void POFR_EnableAnalyzers(char *analyzers){
 
 void POFR_SetStatisticsLevel(int level){
 	USTA_SetStatisticsLevel(_polyFilter->users,level);
+	return;
+}
+
+void POFR_SetHTTPStatisticsLevel(int level){
+
+	HTAZ_SetStatisticsLevel(level);
+	return;
+}
+
+void POFR_SetDDoSStatisticsLevel(int level){
+
+	DSAZ_SetGraphStatisticsLevel(level);
 	return;
 }
 
@@ -302,14 +308,8 @@ void POFR_StopAndExit() {
  */
 void POFR_Destroy() {
 	PODS_Destroy();
-	// TODO: the flows stored on the connection manager
-	// should be returned to the pools.
-	// COMN_ReleaseFlows(_polyFilter->conn);
 	COMN_ReleaseFlows(_polyFilter->conn);
-
-	// TODO 
 	USTA_ReleaseUsers(_polyFilter->users);
-
 	g_string_free(_polyFilter->source,TRUE);
 	FLPO_Destroy(_polyFilter->flowpool);
 	MEPO_Destroy(_polyFilter->memorypool);
@@ -317,8 +317,6 @@ void POFR_Destroy() {
 	COMN_Destroy(_polyFilter->conn);
 	USTA_Destroy(_polyFilter->users);
 	AUHT_Destroy(_polyFilter->hosts);
-
-	// TODO: verify if the forwarder destroy the analyzers
 	FORD_Destroy(_polyFilter->forwarder);
 	PKCX_Destroy();
 	POLG_Destroy();
@@ -503,7 +501,6 @@ void POFR_Run() {
         fprintf(stdout,"%s running on %s machine %s\n",POLYVACCINE_FILTER_ENGINE_NAME,
 		SYIN_GetOSName(),SYIN_GetMachineName());
         fprintf(stdout,"\tversion %s\n",SYIN_GetVersionName());
-
 	fprintf(stdout,"\tActive mode '%s'\n",polyfilter_modes_str[_polyFilter->mode]);
 	FORD_ShowAnalyzers(_polyFilter->forwarder);
 
@@ -649,7 +646,7 @@ void POFR_Run() {
 							user->current_time.tv_sec = currenttime.tv_sec;
 							user->current_time.tv_usec = currenttime.tv_usec;
 
-							MESG_AppendPayloadNew(flow->memory,PKCX_GetPayload(),segment_size);
+							MESG_AppendPayload(flow->memory,PKCX_GetPayload(),segment_size);
 							//  TODO check the upstream datagrams, we dont need to analyze donwstream
 							// try to find something efficient
 							if((protocol == IPPROTO_UDP)||((protocol == IPPROTO_TCP)&&(PKCX_IsTCPPush() == 1))) {

@@ -100,14 +100,17 @@ void *DSAZ_Stats(void) {
 	fprintf(stdout,"\ttotal exist URIs %ld\n",_dos.total_exist_uri);
 	fprintf(stdout,"\ttotal nonexist URIs %ld\n",_dos.total_nonexist_uri);
 	fprintf(stdout,"\trequest per minute %ld\n",_dos.request_per_minute);
-	PACH_Stats(_dos.pathcache);
-	GACH_Stats(_dos.graphcache);
+	if(_dos.statistics_level>0){
+		PACH_Stats(_dos.pathcache);
+		GACH_Stats(_dos.graphcache);
+	}
 	return;
 }
 
 
 void DSAZ_SetGraphStatisticsLevel(int level){
-	
+
+	_dos.statistics_level = level;	
 	GACH_SetStatisticsLevel(_dos.graphcache,level);
 	return;
 }

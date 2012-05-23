@@ -102,16 +102,17 @@ void POFR_Run(void);
 
 /* Service functions */
 void POFR_SetStatisticsLevel(int level);
+void POFR_SetMode(char *mode);
 void POFR_SetLearningMode(void);
+
+/* HTTP functions */
 void POFR_AddToHTTPCache(int type,char *value);
-
 void POFR_SetHTTPSourcePort(int port);
-
-//void POFR_SetSourcePortToAnalyzer(char *name,int port);
 void POFR_SetForceAnalyzeHTTPPostData(int value);
 void POFR_ShowUnknownHTTP(int value);
 void POFR_SetInitialFlowsOnPool(int value);
 void POFR_EnableAnalyzers(char *analyzers);
+void POFR_SetHTTPStatisticsLevel(int level);
 
 int32_t POFR_GetHTTPHeaderCacheHits(void);
 int32_t POFR_GetHTTPHeaderCacheFails(void);
@@ -123,7 +124,8 @@ void POFR_SetSIPSourcePort(int port);
 
 void POFR_AddTrustedUser(char *ip);
 void POFR_RemoveTrustedUser(char *ip);
-void POFR_ShowGraphCacheLinksLevel(int value);
-void POFR_SetMode(char *mode);
+
+/* DDoS functions */
+void POFR_SetDDoSStatisticsLevel(int level);
 
 #endif

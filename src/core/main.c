@@ -39,7 +39,8 @@ static struct option long_options[] = {
         {"force-post", 	no_argument, 		0, 'f'},
         {"unknown", 	no_argument, 		0, 'u'},
         {"cache", 	no_argument, 		0, 'c'},
-        {"graph", 	no_argument, 		0, 'g'},
+        {"gstats", 	no_argument, 		0, 'g'},
+        {"hstats", 	no_argument, 		0, 'a'},
         {"stats", 	no_argument, 		0, 'S'},
         {"exit", 	no_argument, 		0, 'X'},
         {"dummy", 	required_argument, 	0, 'D'},
@@ -48,7 +49,7 @@ static struct option long_options[] = {
         {0, 0, 0, 0}
 };
 
-static char *short_options = "LI:p:hVF:fucE:Xs:Sd:D:g";
+static char *short_options = "LI:p:hVF:fucE:Xs:Sd:D:ga";
 
 static char *common_http_headers [] = {
 	"GET /index.phtml HTTP/1.1",
@@ -100,13 +101,14 @@ static char *show_options = {
 	"\t-f, --force-post                     Force the HTTP analyzer to analyze the post data content.\n"
 	"\t-u, --unknown                        Shows the unknown HTTP supported.\n"
 	"\t-c, --cache                          Use common HTTP values on the cache to test cache effectivity(Testing).\n"
+	"\t-a, --hstats                         Shows statistics in detail.\n"
 	"\n"
 	"\tSIP options\n"
 	"\t-s, --sport=<port number>            Sip-server port number (5060 default).\n"
 	"\n"
 	"\tDDoS options\n"
 	"\t-d, --dport=<port number>            Web-server port number (80 default).\n"
-	"\t-g, --graph                          Shows the graph cache links.\n"
+	"\t-g, --gstats                         Shows statistics in detail.\n"
 	"\n"
 	"\t-h, --help                           Display this information.\n"
 	"\t-V, --version                        Display this program's version number.\n"
@@ -117,7 +119,9 @@ static char *show_options = {
 char *enable_analyzers = NULL; // String with the name of the analyzers to enable
 int flows_on_pool = 0; // non set
 char *dummy_ip = NULL;
-int show_graphcache_level = 0;
+int show_sip_statistics_level = 0;
+int show_ddos_statistics_level = 0;
+int show_http_statistics_level = 0;
 int show_statistics_level = 0;
 int force_post = FALSE;
 int show_unknown = FALSE;
@@ -183,7 +187,10 @@ void main(int argc, char **argv) {
              			show_statistics_level ++;
              			break;
            		case 'g':
-             			show_graphcache_level ++;
+             			show_ddos_statistics_level ++;
+             			break;
+           		case 'a':
+             			show_http_statistics_level ++;
              			break;
            		case 'D':
              			dummy_ip = optarg;	
@@ -228,6 +235,7 @@ void main(int argc, char **argv) {
 	POFR_SetForceAnalyzeHTTPPostData(force_post);
 	POFR_SetSource(source);
 	POFR_SetHTTPSourcePort(hport);
+	POFR_SetHTTPStatisticsLevel(show_http_statistics_level);
 	POFR_ShowUnknownHTTP(show_unknown);
 
 	if(use_cache == TRUE) {
@@ -254,7 +262,7 @@ void main(int argc, char **argv) {
 		POFR_EnableAnalyzers(enable_analyzers);
 
 	/* Configuring the DDoS options */
-	POFR_ShowGraphCacheLinksLevel(show_graphcache_level);
+	POFR_SetDDoSStatisticsLevel(show_ddos_statistics_level);
 
 	/* Configuring the SIP options */
 	POFR_SetSIPSourcePort(sport);
