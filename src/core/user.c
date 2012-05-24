@@ -28,6 +28,7 @@ void USER_Reset(ST_User *user){
         user->ip = 0;
         user->total_request = 0;
         user->total_flows = 0;
+        user->current_flows = 0;
         user->total_gets = 0;
         user->total_posts = 0;
 	user->arrive_time.tv_sec = 0;

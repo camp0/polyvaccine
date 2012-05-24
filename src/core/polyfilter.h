@@ -127,5 +127,6 @@ void POFR_RemoveTrustedUser(char *ip);
 
 /* DDoS functions */
 void POFR_SetDDoSStatisticsLevel(int level);
+void POFR_SetDDoSSourcePort(int port);
 
 #endif

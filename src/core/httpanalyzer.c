@@ -186,7 +186,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 
 #ifdef DEBUG
         LOG(POLYLOG_PRIORITY_DEBUG,
-		"User(0x%x)flow(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]",
+		"User(0x%x)flow(0x%x)[bytes(%d)packets(%d)]seg(0x0%x)[rsize(%d)vsize(%d)]",
 		user,f,f->total_bytes,f->total_packets,seg,seg->real_size,seg->virtual_size);
 #endif
 	lret = pcre_exec(_http.expr_header,_http.pe_header,(char*)seg->mem,seg->virtual_size,
@@ -398,7 +398,7 @@ void *HTAZ_AnalyzeDummyHTTPRequest(ST_User *user, ST_GenericFlow *f){
 
 #ifdef DEBUG
   	LOG(POLYLOG_PRIORITY_DEBUG,
-        	"UserAuthorized(0x%x)flow(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]",
+        	"UserAuthorized(0x%x)flow(0x%x)[bytes(%d)packets(%d)]seg(0x0%x)[rsize(%d)vsize(%d)]",
                 user,f,f->total_bytes,f->total_packets,seg,seg->real_size,seg->virtual_size);
 #endif
         lret = pcre_exec(_http.expr_header,_http.pe_header,(char*)seg->mem,seg->virtual_size,

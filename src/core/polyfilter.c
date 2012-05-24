@@ -201,6 +201,17 @@ void POFR_SetHTTPSourcePort(int port){
 }
 
 /**
+ * POFR_SetDDoSSourcePort - Sets the source port of the webserver 
+ *
+ * @param port the new port to analyze 
+ */
+void POFR_SetDDoSSourcePort(int port){
+
+        FORD_ChangePortToAnalyzer(_polyFilter->forwarder,"ddos",port);
+        return;
+}
+
+/**
  * POFR_SetSIPSourcePort - Sets the source port of the sipserver
  *
  * @param port the new port to analyze
@@ -554,11 +565,14 @@ void POFR_Run() {
 						PKCX_GetIPProtocol(),
 						PKCX_GetSrcPort(),
 						PKCX_GetDstPort());
-					if(ga != NULL) { 
+					if(ga != NULL) { // There is a generic analyzer for the flow 
 						int segment_size;
+						int newflow = FALSE;
+						uint32_t userip;
 						int protocol = PKCX_GetIPProtocol();
 						uint32_t seq = PKCX_GetSequenceNumber();
 						unsigned long hash;
+
 						/* Find a ST_GenericFlow object in order to evaluate it */
 						flow = COMN_FindConnection(_polyFilter->conn,
 							PKCX_GetIPSrcAddr(),
@@ -593,15 +607,43 @@ void POFR_Run() {
 								/* Check if the flow allready have a ST_MemorySegment attached */
 								memseg = MEPO_GetMemorySegment(_polyFilter->memorypool);
 								GEFW_SetMemorySegment(flow,memseg);
-								GEFW_SetArriveTime(flow,&currenttime);	
+								GEFW_SetArriveTime(flow,&currenttime);
+								newflow = TRUE;
 							}else{
-								//WARNING("No flow pool allocated\n");
+								WARNING("No flow pool allocated\n");
 								continue;
 							}
 						}
 						// Update the direction of the flow
 						flow->direction = ga->direction;
-					
+						if(flow->direction == FLOW_FORW) 
+							userip = PKCX_GetIPSrcAddr();
+						else
+							userip = PKCX_GetIPDstAddr();	
+                                                // This should be optimized, only syn/ack packets could generate
+                                                // a new user
+                                                user = USTA_FindUser(_polyFilter->users,userip);
+                                                if(user == NULL){
+                                                        user = USPO_GetUser(_polyFilter->userpool);
+                                                        if(user != NULL){
+                                                                user->ip = PKCX_GetIPSrcAddr();
+                                                                user->arrive_time.tv_sec = currenttime.tv_sec;
+                                                                user->arrive_time.tv_usec = currenttime.tv_usec;
+                                                                USTA_InsertUser(_polyFilter->users,user);
+                                                         }else{
+                                                                WARNING("No user pool allocated\n");
+                                                                continue;
+                                                         }
+                                                }
+
+						if(newflow == TRUE) {
+							user->total_flows++;
+							user->current_flows++;
+						}
+
+                                                user->current_time.tv_sec = currenttime.tv_sec;
+                                                user->current_time.tv_usec = currenttime.tv_usec;
+	
 						if(protocol == IPPROTO_TCP){
 							// Update the tcp flow
 							TCAZ_Analyze(flow);
@@ -618,6 +660,7 @@ void POFR_Run() {
                                                                         PKCX_GetDstPort(),
                                                                         flow);
 #endif 
+								user->current_flows--;	
 								COMN_ReleaseConnection(_polyFilter->conn,flow);
 								continue;
 							}
@@ -628,24 +671,6 @@ void POFR_Run() {
 						flow->total_packets++;
 						flow->total_bytes += segment_size;
 						if((segment_size > 0)&&(flow->direction == FLOW_FORW)) {
-							// Retrieve the corresponding user struct
-							user = USTA_FindUser(_polyFilter->users,PKCX_GetIPSrcAddr());
-							if(user == NULL){
-								user = USPO_GetUser(_polyFilter->userpool);
-								if(user != NULL){
-									user->ip = PKCX_GetIPSrcAddr();
-									user->arrive_time.tv_sec = currenttime.tv_sec;
-									user->arrive_time.tv_usec = currenttime.tv_usec;
-									USTA_InsertUser(_polyFilter->users,user);
-								}else{
-									WARNING("No user pool allocated\n");
-									continue;
-								}
-							}
-
-							user->current_time.tv_sec = currenttime.tv_sec;
-							user->current_time.tv_usec = currenttime.tv_usec;
-
 							MESG_AppendPayload(flow->memory,PKCX_GetPayload(),segment_size);
 							//  TODO check the upstream datagrams, we dont need to analyze donwstream
 							// try to find something efficient

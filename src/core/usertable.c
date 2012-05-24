@@ -71,6 +71,7 @@ void USTA_Stats(ST_UserTable *ut) {
 				user->current_time.tv_sec - user->arrive_time.tv_sec,user->acumulated_cost,
 				user->request_hits, user->request_fails,
 				user->path_hits, user->path_fails);
+			fprintf(stdout,"\t\tFlows(%d)\n",user->total_flows);
 		}
 	}
 	return;

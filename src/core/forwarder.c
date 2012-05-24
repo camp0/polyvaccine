@@ -54,7 +54,6 @@ void FORD_InitAnalyzers(ST_Forwarder *fw){
 	g_hash_table_iter_init (&iter, fw->analyzers);
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
 		ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
-		LOG(POLYLOG_PRIORITY_INFO,"Analyzer %s plugged on port %d",ga->name,ga->port);
 		ga->init();
 	}
 	return;
@@ -245,7 +244,6 @@ void FORD_AddAnalyzer(ST_Forwarder *fw, char *name,int16_t protocol,int16_t port
 
 	ST_GenericAnalyzer *ga = NULL;
 	
-	LOG(POLYLOG_PRIORITY_INFO,"Adding analyzer '%s' on port %d",name,port);
 	ga = (ST_GenericAnalyzer*)g_hash_table_lookup(fw->analyzers,(gchar*)name);
 	if (ga == NULL){ // the analyzer dont exist
 		ga = g_new(ST_GenericAnalyzer,1);
@@ -259,7 +257,7 @@ void FORD_AddAnalyzer(ST_Forwarder *fw, char *name,int16_t protocol,int16_t port
 		ga->analyze = analyze;
 		ga->learn = learn;
 		g_hash_table_insert(fw->analyzers,g_strdup(name),ga);
-		LOG(POLYLOG_PRIORITY_INFO,"Analyzer '%s' instanciated 0x%x disabled",name,ga);
+		LOG(POLYLOG_PRIORITY_INFO,"Analyzer(0x%x)'%s' disabled port(%d)",ga,name,port);
 	}	
 	return;
 }

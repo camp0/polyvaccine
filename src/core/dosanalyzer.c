@@ -46,16 +46,21 @@ void *DSAZ_Init() {
 	_dos.statistics_level = 0;
         _dos.total_http_bytes = 0;
         _dos.total_http_request = 0;
+        _dos.http_request_per_minute = 0;
 	_dos.total_exist_links = 0;
 	_dos.total_exist_uri = 0;
 	_dos.total_nonexist_uri = 0;
 	_dos.total_nonexist_links = 0;
 	_dos.total_valid_links = 0;
 	_dos.total_invalid_links = 0;
-	_dos.request_per_minute = 0;
 	_dos.prev_sample.tv_sec = 0;
 	_dos.prev_sample.tv_usec = 0;
 	gettimeofday(&_dos.curr_sample,NULL);
+
+	for(i = 0;i<SAMPLE_TIME;i++) {
+        	_dos.request_per_minute[i] = 0;
+        	_dos.flows_per_minute[i] = 0;
+	}
 
 	_dos.expr_header = pcre_compile((char*)HTTP_HEADER_PARAM, PCRE_FIRSTLINE, &_dos.errstr, &erroffset, 0);
 #ifdef PCRE_HAVE_JIT
@@ -84,6 +89,21 @@ void *DSAZ_Init() {
 }
 
 
+void __DSAZ_DumpTimeStatistics(void){
+        FILE *fd;
+	register int i;
+
+        fd = fopen("request.per.minute","w");
+        if(fd == NULL) return;
+
+	for (i=0;i<SAMPLE_TIME;i++) {
+        	fprintf(fd,"%d %d\n",i,_dos.request_per_minute[i]);
+       	} 
+        fprintf(fd,"\n");
+        fclose(fd);
+        return;
+}
+
 /**
  * DSAZ_Stats - Prints staticstics related to http
  */
@@ -99,11 +119,13 @@ void *DSAZ_Stats(void) {
 	fprintf(stdout,"\ttotal nonexist links %ld\n",_dos.total_nonexist_links);
 	fprintf(stdout,"\ttotal exist URIs %ld\n",_dos.total_exist_uri);
 	fprintf(stdout,"\ttotal nonexist URIs %ld\n",_dos.total_nonexist_uri);
-	fprintf(stdout,"\trequest per minute %ld\n",_dos.request_per_minute);
+	//fprintf(stdout,"\trequest per minute %ld\n",_dos.request_per_minute);
 	if(_dos.statistics_level>0){
 		PACH_Stats(_dos.pathcache);
 		GACH_Stats(_dos.graphcache);
 	}
+	if(_dos.statistics_level>1)
+		__DSAZ_DumpTimeStatistics();
 	return;
 }
 
@@ -170,7 +192,7 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 
 #ifdef DEBUG
         LOG(POLYLOG_PRIORITY_DEBUG,
-		"User(0x%x)flow(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]",
+		"User(0x%x)flow(0x%x)[bytes(%d)packets(%d)]seg(0x0%x)[rsize(%d)vsize(%d)]",
 		user,f,f->total_bytes,f->total_packets,seg,seg->real_size,seg->virtual_size);
 #endif
 	lret = pcre_exec(_dos.expr_header,_dos.pe_header,(char*)seg->mem,seg->virtual_size,
@@ -262,13 +284,12 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 		user->total_request++;
 
 		if(_dos.prev_sample.tv_sec + 60 < f->current_time.tv_sec) {
+
+/*			t = localtime(&(f->current_time.tv_sec));
+			index = ((t->tm_hour+1) * 60)+ t->tm_min;
 			_dos.prev_sample.tv_sec = f->current_time.tv_sec;
 			_dos.prev_sample.tv_usec = f->current_time.tv_usec;
-			_dos.request_per_minute = _dos.total_http_request - _dos.request_per_minute;
-#ifdef DEBUG
-        		LOG(POLYLOG_PRIORITY_DEBUG,
-                		"DDoS request/min(%d)",_dos.request_per_minute);
-#endif
+*/
 		} 
 
 		_dos.total_http_bytes += seg->virtual_size;	
@@ -297,7 +318,7 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
 
 #ifdef DEBUG
         LOG(POLYLOG_PRIORITY_DEBUG,
-                "UserAuthorized(0x%x)flow(0x%x)user(0x%x)[bytes(%d)packets(%d)]segment(0x0%x)[realsize(%d)virtualsize(%d)]",
+                "UserAuthorized(0x%x)flow(0x%x)[bytes(%d)packets(%d)]seg(0x0%x)[rsize(%d)vsize(%d)]",
                 user,f,f->total_bytes,f->total_packets,seg,seg->real_size,seg->virtual_size);
 #endif
         lret = pcre_exec(_dos.expr_header,_dos.pe_header,(char*)seg->mem,seg->virtual_size,
@@ -359,8 +380,33 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
 		f->last_uri_seen.tv_usec = f->current_time.tv_usec;
 		user->total_request++;
 
+		/* Use the current time of the flow for update the
+		 * statistics of the analyzer
+		 */
+                if(_dos.prev_sample.tv_sec + 60 < f->current_time.tv_sec) {
+                        struct tm *t;
+                        int index,prev_index;
+
+                        t = localtime(&(f->current_time.tv_sec));
+                        index = ((t->tm_hour+1) * 60)+ t->tm_min;
+			if(index>0)
+				prev_index = index-1;
+                        _dos.prev_sample.tv_sec = f->current_time.tv_sec;
+                        _dos.prev_sample.tv_usec = f->current_time.tv_usec;
+                        // Update the global statistics;
+                        _dos.request_per_minute[index] = _dos.http_request_per_minute;
+                        //printf("hour(%d)min(%d)index(%d)value(%d)total(%d)prev(%d)\n",t->tm_hour,t->tm_min,index,_dos.request_per_minute[index],
+//                        _dos.total_http_request,_dos.total_prev_http_request;
+			_dos.http_request_per_minute = 0;
+                        LOG(POLYLOG_PRIORITY_INFO,
+                                "DDoS updating request/min(%d)",_dos.request_per_minute[index]);
+
+                }
+
+
                 _dos.total_http_bytes += seg->virtual_size;
                 _dos.total_http_request ++;
+                _dos.http_request_per_minute ++;
         }
 	return;
 }

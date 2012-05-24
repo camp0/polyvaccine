@@ -41,6 +41,7 @@
 #include "debug.h"
 #include "interfaces.h"
 
+#define SAMPLE_TIME 60 * 24 // minutes
 #define OVECCOUNT 30
 
 struct ST_DoSAnalyzer{
@@ -63,11 +64,14 @@ struct ST_DoSAnalyzer{
 	int32_t total_nonexist_links;
 	int64_t total_http_bytes;
 	int64_t total_http_request;
+	int64_t http_request_per_minute;
 
 	/* statistics related to the flows */
 	struct timeval prev_sample;
 	struct timeval curr_sample;
-	int32_t request_per_minute;
+
+	int32_t request_per_minute[SAMPLE_TIME];
+	int32_t flows_per_minute[SAMPLE_TIME];
 };
 
 typedef struct ST_DoSAnalyzer ST_DoSAnalyzer;

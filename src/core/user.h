@@ -39,6 +39,7 @@ struct ST_User{
 
 	int16_t total_request;
 	int16_t total_flows;
+	int16_t current_flows;
 	int16_t total_gets;
 	int16_t total_posts;	
 

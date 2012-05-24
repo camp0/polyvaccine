@@ -129,6 +129,7 @@ int learning = FALSE;
 int use_cache = FALSE;
 int exit_on_pcap = FALSE;
 int hport = 8080;
+int dport = 80;
 int sport = 5060;
 
 void sigquit(int signal) {
@@ -164,6 +165,9 @@ void main(int argc, char **argv) {
              			break;
            		case 'p':
              			hport = atoi(optarg);
+             			break;
+           		case 'd':
+             			dport = atoi(optarg);
              			break;
            		case 's':
              			sport = atoi(optarg);
@@ -230,10 +234,10 @@ void main(int argc, char **argv) {
 		POFR_AddTrustedUser(dummy_ip);
 
 	POFR_SetStatisticsLevel(show_statistics_level);
+	POFR_SetSource(source);
 
 	/* Configuring the Http options */
 	POFR_SetForceAnalyzeHTTPPostData(force_post);
-	POFR_SetSource(source);
 	POFR_SetHTTPSourcePort(hport);
 	POFR_SetHTTPStatisticsLevel(show_http_statistics_level);
 	POFR_ShowUnknownHTTP(show_unknown);
@@ -262,6 +266,7 @@ void main(int argc, char **argv) {
 		POFR_EnableAnalyzers(enable_analyzers);
 
 	/* Configuring the DDoS options */
+	POFR_SetDDoSSourcePort(dport);
 	POFR_SetDDoSStatisticsLevel(show_ddos_statistics_level);
 
 	/* Configuring the SIP options */
