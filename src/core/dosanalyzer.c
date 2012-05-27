@@ -57,6 +57,7 @@ void *DSAZ_Init() {
 	_dos.prev_sample.tv_usec = 0;
 	gettimeofday(&_dos.curr_sample,NULL);
 
+	_dos.statistics_index = 0;
 	for(i = 0;i<SAMPLE_TIME;i++) {
         	_dos.request_per_minute[i] = 0;
         	_dos.flows_per_minute[i] = 0;
@@ -281,17 +282,23 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 #endif
 		}
 
-		user->total_request++;
+                f->last_uri_seen.tv_sec = f->current_time.tv_sec;
+                f->last_uri_seen.tv_usec = f->current_time.tv_usec;
+                user->total_request++;
+                user->current_requests ++;
+                user->request_per_minute[_dos.statistics_index]++;
 
 		if(_dos.prev_sample.tv_sec + 60 < f->current_time.tv_sec) {
+                        struct tm *t;
+			int idx;
 
-/*			t = localtime(&(f->current_time.tv_sec));
-			index = ((t->tm_hour+1) * 60)+ t->tm_min;
-			_dos.prev_sample.tv_sec = f->current_time.tv_sec;
-			_dos.prev_sample.tv_usec = f->current_time.tv_usec;
-*/
+			idx = _dos.statistics_index;
+			if(user->request_per_minute[idx] > _dos.request_per_minute[idx]) {
+				user->statistics_reach++;
+			}
+                        t = localtime(&(f->current_time.tv_sec));
+                        _dos.statistics_index = ((t->tm_hour+1) * 60)+ t->tm_min;
 		} 
-
 		_dos.total_http_bytes += seg->virtual_size;	
 		_dos.total_http_request ++;
 	}else{
@@ -379,30 +386,23 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
 		f->last_uri_seen.tv_sec = f->current_time.tv_sec;
 		f->last_uri_seen.tv_usec = f->current_time.tv_usec;
 		user->total_request++;
+		user->current_requests ++;
+		_dos.request_per_minute[_dos.statistics_index] ++;
+		user->request_per_minute[_dos.statistics_index]++;	
 
 		/* Use the current time of the flow for update the
-		 * statistics of the analyzer
+		 * statistics of the analyzer and the user
 		 */
                 if(_dos.prev_sample.tv_sec + 60 < f->current_time.tv_sec) {
                         struct tm *t;
-                        int index,prev_index;
 
+                        LOG(POLYLOG_PRIORITY_INFO,
+                                "DDoS updating request/min(%d)",_dos.request_per_minute[_dos.statistics_index]);
                         t = localtime(&(f->current_time.tv_sec));
-                        index = ((t->tm_hour+1) * 60)+ t->tm_min;
-			if(index>0)
-				prev_index = index-1;
+                        _dos.statistics_index = ((t->tm_hour+1) * 60)+ t->tm_min;
                         _dos.prev_sample.tv_sec = f->current_time.tv_sec;
                         _dos.prev_sample.tv_usec = f->current_time.tv_usec;
-                        // Update the global statistics;
-                        _dos.request_per_minute[index] = _dos.http_request_per_minute;
-                        //printf("hour(%d)min(%d)index(%d)value(%d)total(%d)prev(%d)\n",t->tm_hour,t->tm_min,index,_dos.request_per_minute[index],
-//                        _dos.total_http_request,_dos.total_prev_http_request;
-			_dos.http_request_per_minute = 0;
-                        LOG(POLYLOG_PRIORITY_INFO,
-                                "DDoS updating request/min(%d)",_dos.request_per_minute[index]);
-
                 }
-
 
                 _dos.total_http_bytes += seg->virtual_size;
                 _dos.total_http_request ++;

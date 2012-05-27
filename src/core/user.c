@@ -25,10 +25,16 @@
 #include "user.h"
 
 void USER_Reset(ST_User *user){
+	register int i;
+
+	for(i=0;i<SAMPLE_TIME;i++)
+		user->request_per_minute[i] = 0;
+
         user->ip = 0;
         user->total_request = 0;
         user->total_flows = 0;
         user->current_flows = 0;
+        user->current_requests = 0;
         user->total_gets = 0;
         user->total_posts = 0;
 	user->arrive_time.tv_sec = 0;
@@ -40,6 +46,7 @@ void USER_Reset(ST_User *user){
 	user->path_fails = 0;
 	user->request_hits = 0;
 	user->request_fails = 0;
+	user->statistics_reach = 0;
 }
 
 ST_User *USER_Init(){

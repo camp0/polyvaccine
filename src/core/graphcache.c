@@ -355,7 +355,7 @@ void GACH_Stats(ST_GraphCache *gc) {
 	fprintf(stdout,"\tNode hits  = %ld\n",gc->total_node_hits);
 	fprintf(stdout,"\tNode effectiveness = %d\%\n",n_effectiveness);
 
-	if(gc->statistics_level > 0) {
+	if(gc->statistics_level > 1) {
 		fprintf(stdout,"\tLink nodes\n");
 		g_hash_table_iter_init (&iter, gc->uris);
 		while (g_hash_table_iter_next (&iter, &k, &v)) {
@@ -367,7 +367,7 @@ void GACH_Stats(ST_GraphCache *gc) {
 				fprintf(stdout,"\t\t\tUriDst(%s)id(%d)cost(%d)hits(%d)\n",node->uri->str,node->id_uri,node->cost,node->hits);
 			}
 		}
-		if(gc->statistics_level > 1) {
+		if(gc->statistics_level > 2) {
 			fprintf(stdout,"Dumping graph to grapcache.viz file\n");
 			__GACH_DumpGraphOnGraphviz(gc);
 		}

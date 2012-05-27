@@ -34,20 +34,29 @@
 #include <glib.h>
 #include "debug.h"
 
+#define SAMPLE_TIME 24 * 60
+
 struct ST_User{
 	u_int32_t ip;
 
+	/* Generic information */
 	int16_t total_request;
+	int16_t current_requests;
 	int16_t total_flows;
 	int16_t current_flows;
 	int16_t total_gets;
 	int16_t total_posts;	
 
+	/* Information related to the graph and path cache */
 	int acumulated_cost;
 	int16_t path_hits;
 	int16_t path_fails;
 	int16_t request_hits;
 	int16_t request_fails;
+
+	/* Statistics history */
+	int request_per_minute[SAMPLE_TIME];
+	int statistics_reach;
 	
 	struct timeval arrive_time;
 	struct timeval current_time;

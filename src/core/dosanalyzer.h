@@ -70,6 +70,7 @@ struct ST_DoSAnalyzer{
 	struct timeval prev_sample;
 	struct timeval curr_sample;
 
+	int statistics_index;
 	int32_t request_per_minute[SAMPLE_TIME];
 	int32_t flows_per_minute[SAMPLE_TIME];
 };

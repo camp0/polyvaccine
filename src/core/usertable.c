@@ -42,12 +42,43 @@ void USTA_SetUserPool(ST_UserTable *ut,ST_UserPool *userpool){
 	ut->userpool = userpool;
 }
 
+
+void __USTA_DumpUsersToFile(ST_UserTable *ut) {
+        GHashTableIter iter;
+	gpointer k,v;
+	FILE *fd;
+	ST_User *user = NULL;
+	char ip[INET_ADDRSTRLEN];
+
+	fd = fopen("users.info","w");
+	if(fd == NULL) return;
+
+	/* The output file have the following values:
+ 	 * ip:request:duration:cost:requesthits:requestfail:pathhits:pathfails:flows:sreach
+         */
+
+	fprintf(stdout,"Dumping users information to file user.info\n");
+	fprintf(fd,"#ip,request,duration,cost,requesthits,requestfail,pathhits,pathfails,flows,sreach\n");
+	g_hash_table_iter_init(&iter,ut->table);
+	while( g_hash_table_iter_next(&iter,&k,&v)){
+		user = (ST_User*)v;
+		
+		inet_ntop(AF_INET, &(user->ip), ip, INET_ADDRSTRLEN);
+		fprintf(fd,"%s,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
+			ip,user->total_request,
+			user->current_time.tv_sec - user->arrive_time.tv_sec,user->acumulated_cost,
+			user->request_hits, user->request_fails,
+			user->path_hits, user->path_fails,
+			user->total_flows,user->statistics_reach);
+	}
+	fclose(fd);
+	return;
+}
+
 /**
  * USTA_Stats - Show the statistics
  *
- * @param ut the ST_UserTable 
  */
-
 void USTA_Stats(ST_UserTable *ut) {
         GHashTableIter iter;
 	gpointer k,v;
@@ -71,9 +102,24 @@ void USTA_Stats(ST_UserTable *ut) {
 				user->current_time.tv_sec - user->arrive_time.tv_sec,user->acumulated_cost,
 				user->request_hits, user->request_fails,
 				user->path_hits, user->path_fails);
-			fprintf(stdout,"\t\tFlows(%d)\n",user->total_flows);
+			fprintf(stdout,"\t\tFlows(%d)SReach(%d)\n",user->total_flows,user->statistics_reach);
+			if(ut->statistics_level>2){
+				register int i;
+				int sw = FALSE;
+
+				fprintf(stdout,"\t\t");
+				for (i = 0;i<SAMPLE_TIME;i++){
+					if(user->request_per_minute[i] > 0) {
+						fprintf(stdout,"m(%d)=%d ",i,user->request_per_minute[i]);
+					}
+				}
+				fprintf(stdout,"\n");	
+
+			}
 		}
 	}
+	if(ut->statistics_level>3)
+		__USTA_DumpUsersToFile(ut);
 	return;
 }
 
