@@ -19,7 +19,7 @@ polyfilter_module = Extension('_polyfilter',
 #	library_dirs = [ '../opcodes/.libs'],
 	libraries = ['glib-2.0','pcap','dbus-1','log4c'],
 	define_macros=[('HAVE_LIBDBUS_1','1')],
-	extra_compile_args = ['-Wunused'],
+	extra_compile_args = ["-Wunused-function"],
 	)
 
 setup (name = 'polyfilter',

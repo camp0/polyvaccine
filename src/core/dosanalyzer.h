@@ -41,7 +41,6 @@
 #include "debug.h"
 #include "interfaces.h"
 
-#define SAMPLE_TIME 60 * 24 // minutes
 #define OVECCOUNT 30
 
 struct ST_DoSAnalyzer{
@@ -66,13 +65,18 @@ struct ST_DoSAnalyzer{
 	int64_t total_http_request;
 	int64_t http_request_per_minute;
 
+	/* statistics from the users */
+	int32_t users_statistics_reach;
+
 	/* statistics related to the flows */
 	struct timeval prev_sample;
 	struct timeval curr_sample;
 
 	int statistics_index;
-	int32_t request_per_minute[SAMPLE_TIME];
-	int32_t flows_per_minute[SAMPLE_TIME];
+	int32_t current_requests[SAMPLE_TIME];
+	int32_t current_flows[SAMPLE_TIME];
+	int32_t max_request_per_user[SAMPLE_TIME];
+	int32_t max_flows_per_user[SAMPLE_TIME];
 };
 
 typedef struct ST_DoSAnalyzer ST_DoSAnalyzer;
@@ -86,5 +90,5 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user, ST_GenericFlow *f);
 void DSAZ_SetGraphStatisticsLevel(int level);
 
 /* Service functions */
-
+void DSAZ_AddRequestPerMinuteFull(int request);
 #endif

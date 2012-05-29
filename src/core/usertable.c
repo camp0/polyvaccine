@@ -97,8 +97,9 @@ void USTA_Stats(ST_UserTable *ut) {
 			char ip[INET_ADDRSTRLEN];
 
 			inet_ntop(AF_INET, &(user->ip), ip, INET_ADDRSTRLEN);
-			fprintf(stdout,"\tUserIP(%s)Request(%d)Duration(%d)Cost(%d)RequestHits(%d)RequestFail(%d)PathHits(%d)PathFails(%d)\n",
-				ip,user->total_request,
+			fprintf(stdout,"\tUser(0x%x)IP(%s)\n",user,ip);
+			fprintf(stdout,"\t\tRequest(%d)Duration(%d)Cost(%d)RequestHits(%d)RequestFail(%d)PathHits(%d)PathFails(%d)\n",
+				user->total_request,
 				user->current_time.tv_sec - user->arrive_time.tv_sec,user->acumulated_cost,
 				user->request_hits, user->request_fails,
 				user->path_hits, user->path_fails);
