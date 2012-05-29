@@ -1,1 +1,18 @@
 For see more debug logs just copy the file ../src/core/log4crc on this directory
+
+File: test01.py 
+	Test the flowpool and memorypool structs
+
+File: test02.py
+	Test http analyzer options and the d-bus properties and methods
+
+File: test03.py
+	Test the counter of the detection engine
+
+File: test04.py
+	Test the detection engine with the filter engine
+
+File: test05.py
+	Test the graph cache of the ddos analyzer
+
+

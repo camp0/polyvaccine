@@ -29,11 +29,12 @@
 #include <config.h>
 #endif
 
+#include <stdio.h>
 #include <sys/types.h>
 #include <glib.h>
 #include "memory.h"
 #include "pool.h"
-#include "debug.h"
+//#include "debug.h"
 
 #define MAX_MEMORY_SEGMENTS_PER_POOL 1024 * 256 
 

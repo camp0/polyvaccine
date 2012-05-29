@@ -598,60 +598,48 @@ void PRCA_Method_AddHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, v
 
 /* Properties of the http cache */
 void PRCA_Property_GetNumberHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = HTAZ_GetNumberHeaders(); 
-        //value = CACH_GetNumberHeaders(p->httpcache); 
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
 void PRCA_Property_GetNumberHttpCacheParameters (DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = HTAZ_GetNumberParameters();
-        //value = CACH_GetNumberParameters(p->httpcache);
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
 void PRCA_Property_GetNumberHttpHeaderHits(DBusConnection *conn,DBusMessage *msg, void *data){
-	ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = HTAZ_GetHeaderHits(); 
-        //value = p->httpcache->header_hits;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
 void PRCA_Property_GetNumberHttpHeaderFails(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = HTAZ_GetHeaderFails(); 
-        //value = p->httpcache->header_fails;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 void PRCA_Property_GetNumberHttpParameterHits(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = HTAZ_GetParameterHits(); 
-        //value = p->httpcache->parameter_hits;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
 void PRCA_Property_GetNumberHttpParameterFails(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyFilter *p = (ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
         value = HTAZ_GetParameterFails(); 
-        //value = p->httpcache->parameter_fails;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }

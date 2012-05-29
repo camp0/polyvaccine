@@ -42,6 +42,5 @@ MAINTAINERCLEANFILES = \
 
 $(srcdir)/polyfilter_wrap.c: polyfilter.i
 	$(SWIG) -python polyfilter.i
-#	$(PYTHON) setup.py build_ext --inplace 
-	$(PYTHON) setup.py build_ext --inplace -DHAVE_CONFIG_H
+	$(PYTHON) setup.py build_ext --inplace -DHAVE_CONFIG_H 
 

@@ -31,7 +31,7 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include "debug.h"
+//#include "debug.h"
 #include <sys/types.h>
 #include <glib.h>
 

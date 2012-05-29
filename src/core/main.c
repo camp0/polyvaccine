@@ -276,11 +276,14 @@ void main(int argc, char **argv) {
 
 	POFR_Start();
 
-	//CALLGRIND_START_INSTRUMENTATION;
+#ifdef USE_VALGRIND
+	CALLGRIND_START_INSTRUMENTATION;
 	POFR_Run();
-  	//CALLGRIND_STOP_INSTRUMENTATION;
-  	//CALLGRIND_DUMP_STATS;
-
+  	CALLGRIND_STOP_INSTRUMENTATION;
+  	CALLGRIND_DUMP_STATS;
+#else
+	POFR_Run();
+#endif
 	//POFR_Stop();
         if(show_statistics_level > 0) {
                 POFR_Stats();

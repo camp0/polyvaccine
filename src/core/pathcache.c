@@ -32,7 +32,7 @@
  * @param path The header field
  */
 
-ST_PathNode *PACH_GetPath(ST_PathCache *pc,gchar *path){
+ST_PathNode *PACH_GetPath(ST_PathCache *pc,char *path){
 	ST_PathNode *path_n;
 
 	path_n = (ST_PathNode*)g_hash_table_lookup(pc->paths,(gchar*)path);
@@ -63,7 +63,7 @@ ST_PathNode *PACH_InitPathNode(){
 
 
 
-ST_PathNode *PACH_AddPath(ST_PathCache *pc, gchar *path){
+ST_PathNode *PACH_AddPath(ST_PathCache *pc, char *path){
 	ST_PathNode *path_n = PACH_InitPathNode();
 
         g_string_printf(path_n->path,"%s",path);
@@ -124,8 +124,8 @@ void PACH_Destroy(ST_PathCache *pc) {
  * 
  */
 void PACH_Stats(ST_PathCache *pc) {
-	GHashTableIter iter,initer;
-	gpointer k,v,kk,vv;
+	GHashTableIter iter;
+	gpointer k,v;
 	int effectiveness;
 	int32_t value = pc->size_memory;
         char *unit = "Bytes";

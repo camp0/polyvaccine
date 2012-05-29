@@ -55,14 +55,14 @@ class Test_01(unittest.TestCase):
 		self.assertEqual(s.real_size ,10)		
 		self.assertEqual(s.virtual_size ,0)		
 		url = "GET /somepath/somewhere/on/some/server HTTP 1.1\n"
-		p.MESG_AppendPayloadNew(s,url,len(url))
+		p.MESG_AppendPayload(s,url,len(url))
 		self.assertEqual(s.virtual_size ,len(url))		
 		self.assertEqual(s.real_size ,len(url))		
 
 		# Now add parameters to the segment
 		#print s.mem
 		param = "Host: 2222222222222333333333333333333333333333333333333333333"
-		p.MESG_AppendPayloadNew(s,param,len(param))
+		p.MESG_AppendPayload(s,param,len(param))
 		self.assertEqual(s.virtual_size,len(url)+len(param))	
 		self.assertEqual(s.real_size,len(url)+len(param))	
 		p.MESG_Destroy(s)
@@ -73,13 +73,13 @@ class Test_01(unittest.TestCase):
                 self.assertEqual(s.real_size ,500)
                 self.assertEqual(s.virtual_size ,0)
                 url = "GET /somepath/somewhere/on/some/server HTTP 1.1\n"
-                p.MESG_AppendPayloadNew(s,url,len(url))
+                p.MESG_AppendPayload(s,url,len(url))
                 self.assertEqual(s.virtual_size ,len(url))
                 self.assertEqual(s.real_size ,500)
 
                 # Now add parameters to the segment
                 param = "Host: 2222222222222333333333333333333333333333333333333333333"
-                p.MESG_AppendPayloadNew(s,param,len(param))
+                p.MESG_AppendPayload(s,param,len(param))
                 self.assertEqual(s.virtual_size,len(url)+len(param))
                 self.assertEqual(s.real_size,500)
                 p.MESG_Destroy(s)
@@ -90,13 +90,13 @@ class Test_01(unittest.TestCase):
                 self.assertEqual(s.real_size ,10)
                 self.assertEqual(s.virtual_size ,0)
                 url = "GET /somepath/somewhere/on/some/server HTTP 1.1\n"
-                p.MESG_AppendPayloadNew(s,url,len(url))
+                p.MESG_AppendPayload(s,url,len(url))
                 self.assertEqual(s.virtual_size ,len(url))
                 self.assertEqual(s.real_size ,len(url))
 
                 # Now add parameters to the segment
                 param = "Host: 2222222222222333333333333333333333333333333333333333333"
-                p.MESG_AppendPayloadNew(s,param,len(param))
+                p.MESG_AppendPayload(s,param,len(param))
                 self.assertEqual(s.virtual_size,len(url)+len(param))
                 self.assertEqual(s.real_size,len(url)+len(param))
                 p.MESG_Destroy(s)
@@ -107,7 +107,7 @@ class Test_01(unittest.TestCase):
                 self.assertEqual(s.real_size ,100)
                 self.assertEqual(s.virtual_size ,0)
                 url = "GET /somepath/somewhere/on/some/server HTTP 1.1\n"
-                p.MESG_AppendPayloadNew(s,url,len(url))
+                p.MESG_AppendPayload(s,url,len(url))
                 self.assertEqual(s.virtual_size ,len(url))
                 self.assertEqual(s.real_size ,100)
 		value = s.virtual_size
@@ -115,7 +115,7 @@ class Test_01(unittest.TestCase):
                 	# Now add parameters to the segment
                 	param = "Host: 2222222222222333333333333333333333333333333333333333333"
 			value += len(param)	
-                	p.MESG_AppendPayloadNew(s,param,len(param))
+                	p.MESG_AppendPayload(s,param,len(param))
 
                 self.assertEqual(s.virtual_size ,value)
                 self.assertEqual(s.real_size ,value)
@@ -126,7 +126,7 @@ class Test_01(unittest.TestCase):
                 self.assertEqual(s.real_size ,50)
                 self.assertEqual(s.virtual_size ,0)
                 url = "GET /somepath/somewhere/on/some/server HTTP 1.1\n"
-                p.MESG_AppendPayloadNew(s,url,len(url))
+                p.MESG_AppendPayload(s,url,len(url))
                 self.assertEqual(s.virtual_size ,len(url))
                 self.assertEqual(s.real_size ,50)
 		# Now reusing the memory chunk
@@ -142,7 +142,7 @@ class Test_01(unittest.TestCase):
                 	"GET /somepath/somewhere/on/some/server HTTP 1.1\n" \
                 	"GET /somepath/somewhere/on/some/server HTTP 1.1\n" \
                 	"GET /somepath/somewhere/on/some/server HTTP 1.1\n"
-                p.MESG_AppendPayloadNew(s,url,len(url))
+                p.MESG_AppendPayload(s,url,len(url))
                 self.assertEqual(s.virtual_size ,len(url))
                 self.assertEqual(s.real_size ,len(url))
 		p.MESG_Reset(s)
@@ -222,13 +222,13 @@ class Test_01(unittest.TestCase):
 
 	        url = "GET /somepath/somewhere/on/some/server HTTP 1.1\n"
 		length = len(url)
-                p.MESG_AppendPayloadNew(s,url,length)
+                p.MESG_AppendPayload(s,url,length)
                 self.assertEqual(s.virtual_size ,length)
                 self.assertEqual(s.real_size ,length)
 		host = "Host: www.somehost.com\n"
 		length = length + len(host)
 
-		p.MESG_AppendPayloadNew(s,host,len(host))	
+		p.MESG_AppendPayload(s,host,len(host))	
 		self.assertEqual(s.virtual_size ,length)		
 		self.assertEqual(s.real_size ,length)		
 	
@@ -236,7 +236,7 @@ class Test_01(unittest.TestCase):
 		l_cookie = len(cookie)
 		length = length + l_cookie
 
-		p.MESG_AppendPayloadNew(s,cookie,l_cookie)
+		p.MESG_AppendPayload(s,cookie,l_cookie)
 		self.assertEqual(s.virtual_size ,length)		
 		self.assertEqual(s.real_size ,length)		
 
@@ -258,7 +258,7 @@ class Test_01(unittest.TestCase):
 
                 url = "GET /somepath/somewhere/on/some/server HTTP 1.1\n"
                 length = len(url)
-                p.MESG_AppendPayloadNew(s,url,length)
+                p.MESG_AppendPayload(s,url,length)
                 self.assertEqual(s.virtual_size ,length)
                 self.assertEqual(s.real_size ,length)
 
@@ -306,8 +306,8 @@ class Test_02(unittest.TestCase):
 
 		buf = "buuuuuuuuuuaaaaaaaaaaaaeeeeeeeeeeeee"
 		size = len(buf)
-		p.MESG_AppendPayloadNew(flow.memory,buf,size);
-		p.MESG_AppendPayloadNew(flow.memory,buf,size);
+		p.MESG_AppendPayload(flow.memory,buf,size);
+		p.MESG_AppendPayload(flow.memory,buf,size);
 	
 		# Now analyze the segment memory
 
@@ -336,7 +336,7 @@ class Test_02(unittest.TestCase):
 			junk_len = 1024 * i
 			junk =  (("%%0%dX" % (junk_len * 2)) % random.getrandbits(junk_len * 8)).decode("hex")	
 
-			p.MESG_AppendPayloadNew(flow.memory,junk,junk_len)
+			p.MESG_AppendPayload(flow.memory,junk,junk_len)
 
 			l.append(flow)
 
@@ -360,7 +360,7 @@ class Test_02(unittest.TestCase):
 
 				
 if __name__ == '__main__':
-	print "Testing polyvaccine interfaces"
+	print "Testing polyfilter flowpools and memorypools"
 	suite=unittest.TestSuite()
     	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_02))
     	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))

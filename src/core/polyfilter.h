@@ -83,6 +83,10 @@ struct ST_PolyFilter {
 	GString *source;
 	pcap_t *pcap;
 	enum polyfilter_mode mode;	
+	/* structs for manage dbus messages and packets */
+        DBusWatch *local_watches[MAX_WATCHES];
+        struct pollfd local_fds[MAX_WATCHES];
+	int usepcap;
 };
 
 typedef struct ST_PolyFilter ST_PolyFilter;

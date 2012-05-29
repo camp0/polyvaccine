@@ -84,4 +84,7 @@ void *DSAZ_Stats(void);
 void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user, ST_GenericFlow *f);
 
 void DSAZ_SetGraphStatisticsLevel(int level);
+
+/* Service functions */
+
 #endif

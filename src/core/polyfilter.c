@@ -490,6 +490,41 @@ void POFR_GetTimeOfDay(struct timeval *t,struct pcap_pkthdr *hdr){
 	}
 } 
 
+
+int __POFR_GetActiveDescriptor(){
+	register int i;
+	int nfds = 0;
+	int ret;
+
+	for (i = 0; i < PODS_GetTotalActiveDescriptors(); i++) {
+        	if (PODS_GetDescriptorByIndex(i) == 0 ||
+                !dbus_watch_get_enabled(PODS_GetWatchByIndex(i))) {
+                	continue;
+                }
+
+		_polyFilter->local_fds[nfds].fd = PODS_GetDescriptorByIndex(i);
+		_polyFilter->local_fds[nfds].events = PODS_GetEventsByIndex(i);
+		_polyFilter->local_fds[nfds].revents = 0;
+		_polyFilter->local_watches[nfds] = PODS_GetWatchByIndex(i);
+		nfds++;
+	}
+
+	if(_polyFilter->polyfilter_status == POLYFILTER_STATE_RUNNING) {
+		_polyFilter->local_fds[nfds].fd = _polyFilter->pcapfd;
+		_polyFilter->local_fds[nfds].events = POLLIN|POLLPRI|POLLHUP;
+		_polyFilter->local_fds[nfds].revents = 0;
+		_polyFilter->usepcap = 1;
+	}
+
+	ret = poll(_polyFilter->local_fds,nfds+_polyFilter->usepcap,-1);
+	if (ret <0){
+		perror("poll");
+		return -1;
+	}
+
+	return nfds;
+}
+
 /**
  * POFR_Run - Main loop, for manage the packets and the dbus-messages. 
  *
@@ -501,13 +536,11 @@ void POFR_Run() {
 	ST_TrustOffsets *trust_offsets = NULL;
 	ST_User *user = NULL;
 	register int i;
-	int nfds,usepcap,ret,update_timers;
-        DBusWatch *local_watches[MAX_WATCHES];
+	int nfds,ret,update_timers;
 	struct timeval currenttime;
 	struct timeval lasttimeouttime;
 	struct pcap_pkthdr *header;
 	unsigned char *pkt_data;
-	struct pollfd local_fds[MAX_WATCHES];
 
         fprintf(stdout,"%s running on %s machine %s\n",POLYVACCINE_FILTER_ENGINE_NAME,
 		SYIN_GetOSName(),SYIN_GetMachineName());
@@ -519,40 +552,19 @@ void POFR_Run() {
 	update_timers = 1;
 	while (TRUE) {
                 nfds = 0;
-                usepcap = 0;
+                _polyFilter->usepcap = 0;
                 gettimeofday(&currenttime,NULL);
 
-                for (i = 0; i < PODS_GetTotalActiveDescriptors(); i++) {
-                        if (PODS_GetDescriptorByIndex(i) == 0 ||
-                            !dbus_watch_get_enabled(PODS_GetWatchByIndex(i))) {
-                                continue;
-                        }
+		nfds = __POFR_GetActiveDescriptor();
+		if(nfds < 0)
+			break;
 
-                        local_fds[nfds].fd = PODS_GetDescriptorByIndex(i); 
-                        local_fds[nfds].events = PODS_GetEventsByIndex(i);
-                        local_fds[nfds].revents = 0;
-                        local_watches[nfds] = PODS_GetWatchByIndex(i);
-                        nfds++;
-                }
-
-                if(_polyFilter->polyfilter_status == POLYFILTER_STATE_RUNNING) {
-                        local_fds[nfds].fd = _polyFilter->pcapfd;
-                        local_fds[nfds].events = POLLIN|POLLPRI|POLLHUP;
-                        local_fds[nfds].revents = 0;
-                        usepcap = 1;
-                }
-
-                ret = poll(local_fds,nfds+usepcap,-1);
-                if (ret <0){
-                        perror("poll");
-                        break;
-                }
-
-                if((local_fds[nfds].revents & POLLIN)&&(_polyFilter->polyfilter_status == POLYFILTER_STATE_RUNNING)){
+                if((_polyFilter->local_fds[nfds].revents & POLLIN)&&
+		(_polyFilter->polyfilter_status == POLYFILTER_STATE_RUNNING)){
                         ret = pcap_next_ex(_polyFilter->pcap,(struct pcap_pkthdr*)&header,(unsigned char*)&pkt_data);
 			if(ret < 0) {
                                 POFR_Stop();
-                                usepcap = 0;
+                                _polyFilter->usepcap = 0;
                                 if(_polyFilter->is_pcap_file == TRUE){
 					fprintf(stdout,"Source analyze done.\n");
 					if(_polyFilter->when_pcap_done_exit == TRUE)
@@ -610,7 +622,7 @@ void POFR_Run() {
 								GEFW_SetArriveTime(flow,&currenttime);
 								newflow = TRUE;
 							}else{
-								WARNING("No flow pool allocated\n");
+								//WARNING("No flow pool allocated\n");
 								continue;
 							}
 						}
@@ -631,7 +643,7 @@ void POFR_Run() {
                                                                 user->arrive_time.tv_usec = currenttime.tv_usec;
                                                                 USTA_InsertUser(_polyFilter->users,user);
                                                          }else{
-                                                                WARNING("No user pool allocated\n");
+                                                                //WARNING("No user pool allocated\n");
                                                                 continue;
                                                          }
                                                 }
@@ -692,7 +704,6 @@ void POFR_Run() {
 									}
 								}
 								/* Reset the virtual memory of the segment */
-								//MESG_Reset(flow->memory);
 								flow->memory->virtual_size = 0;
 							}	
 						}
@@ -716,8 +727,8 @@ void POFR_Run() {
 		}else 
 			update_timers = 1;
                	for (i = 0; i < nfds; i++) {
-                        if (local_fds[i].revents) {
-                                PODS_Handler(_polyFilter->bus,local_fds[i].revents, local_watches[i]);
+                        if (_polyFilter->local_fds[i].revents) {
+                                PODS_Handler(_polyFilter->bus,_polyFilter->local_fds[i].revents, _polyFilter->local_watches[i]);
                         }
                 }
         }

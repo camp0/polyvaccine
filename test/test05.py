@@ -107,7 +107,7 @@ class Test_01(unittest.TestCase):
 
                 self.assertEqual(self.c.total_links,5)
                 self.assertEqual(self.c.total_nodes,6)
-		debug(self.c,2)
+		#debug(self.c,2)
 	
 	
 if __name__ == '__main__':

@@ -219,7 +219,6 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 		uri[urilen] = '\0';
 
 		if(f->lasturi == NULL) { // Is the first request of the flow
-			user->total_flows++;
 			link = GACH_GetBaseLink(_dos.graphcache,uri);
 			if(link != NULL) { // The uri is on the graphcache
 				f->lasturi = link->uri->str;
@@ -266,7 +265,7 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 				}else{
 					snprintf(pathhash,1024,"%d %d",f->lasturi_id,node->id_uri);
                         	}
-                        	f->path = PACH_GetPath(_dos.pathcache,&pathhash);
+                        	f->path =(ST_PathNode*)PACH_GetPath(_dos.pathcache,&pathhash);
 				f->lasturi = node->uri->str;
 				f->lasturi_id = node->id_uri;
 				user->path_hits++;

@@ -11,11 +11,12 @@
 
         <!-- root category ========================================= -->
         <category name="root" priority="notice"/>
-        <category name="polyvaccine.filter.ddos" priority="debug" appender="none"/> 
+        <!-- <category name="polyvaccine.filter.ddos" priority="debug" appender="none"/> --> 
          <!-- <category name="polyvaccine.filter.http" priority="debug" appender="none"/> --> 
         <!--<category name="polyvaccine.filter.tcp" priority="debug" appender="none"/>--> 
-        <!-- <category name="polyvaccine.filter.connection" priority="debug" appender="none"/>--> 
-        <!-- <category name="polyvaccine.filter" priority="debug" appender="none"/> -->
+        <!-- <category name="polyvaccine.filter.connection" priority="debug" appender="none"/> -->
+        <!-- <category name="polyvaccine.filter" priority="debug" appender="file"/> --> 
+        <!-- <category name="polyvaccine.filter.tcp" priority="debug" appender="none"/> --> 
         <category name="polyvaccine.filter" priority="info" appender="stdout"/>
         <category name="polyvaccine.bus" priority="info" appender="stdout"/>
 
@@ -24,6 +25,7 @@
         <appender name="stderr" type="stream" layout="dated"/>
         <appender name="syslog" type="syslog" layout="basic"/>
         <appender name="none"   type="stream" layout="none"/>
+        <appender name="file"   type="stream" layout="none"/>
 
         <!-- default layouts ======================================= -->
         <layout name="basic" type="basic"/>

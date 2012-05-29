@@ -30,6 +30,7 @@
 #endif
 
 #include <sys/types.h>
+#include <string.h>
 #include <glib.h>
 #include "debug.h"
 
@@ -55,8 +56,8 @@ ST_PathCache *PACH_Init(void);
 ST_PathNode *PACH_InitPathNode(void);
 void PACH_Destroy(ST_PathCache *pc);
 void PACH_Stats(ST_PathCache *pc);
-ST_PathNode *PACH_GetPath(ST_PathCache *pc,gchar *path);
-ST_PathNode *PACH_AddPath(ST_PathCache *pc, gchar *path);
+ST_PathNode *PACH_GetPath(ST_PathCache *pc,char *path);
+ST_PathNode *PACH_AddPath(ST_PathCache *pc,char *path);
 void PACH_ShowPathCache(ST_PathCache *pc);
 void PACH_SetStatisticsLevel(ST_PathCache *pc, int level);
 

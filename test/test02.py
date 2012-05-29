@@ -92,6 +92,7 @@ class Test_01(unittest.TestCase):
 class Test_02(unittest.TestCase):
 
         def setUp(self):
+		self.__default_flows = 262144
 		pass
 
         def tearDown(self):
@@ -153,10 +154,13 @@ class Test_02(unittest.TestCase):
 
 		# decrease the flow/memory pool to one.
 		value = icon.GetProperty("FlowsOnPool") - 1
+		#print "Flows on pool",value
 		r = icon.DecreaseFlowPool(value)
 		self.assertEqual(r,1)
 		r = icon.DecreaseMemoryPool(value) 
 		self.assertEqual(r,1)
+		value = icon.GetProperty("FlowsOnPool") 
+		#print "Flows on pool",value
 
 		time.sleep(0.5)
                 iface.Stop()
@@ -173,14 +177,14 @@ class Test_02(unittest.TestCase):
 		#print "Flow errors",fe
                 pp.kill()
                 pp.wait()
-		self.assertEqual(fa,1)
-		self.assertEqual(fr,0)
+		self.assertEqual(fa,self.__default_flows)
+		self.assertEqual(fr,self.__default_flows)
 		self.assertEqual(fp,0)
 		self.assertEqual(fe,498)
 
         def test_02_4(self):
-                "Test the pvfe connection manager, five flowis on pool"
-                pp = subprocess.Popen(["../src/core/pvfe","-I","lo","-E http","-p 80"])
+                "Test the pvfe connection manager, five flows on pool"
+                pp = subprocess.Popen(["../src/core/pvfe","-I","lo","-E","http","-p","80"])
                 time.sleep(0.5)
                 bus = dbus.SessionBus()
                 s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
@@ -209,13 +213,13 @@ class Test_02(unittest.TestCase):
                 #print "Flow errors",fe
                 pp.kill()
                 pp.wait()
-                self.assertEqual(fa,5)
-                self.assertEqual(fr,0)
+                self.assertEqual(fa,self.__default_flows)
+                self.assertEqual(fr,self.__default_flows)
                 self.assertEqual(fp,0)
                 self.assertEqual(fe,318)
 	
 if __name__ == '__main__':
-	print "Testing polyvaccine interfaces"
+	print "Testing polyfilter http analyzer"
 	suite=unittest.TestSuite()
     	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_02))
     	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))

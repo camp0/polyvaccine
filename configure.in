@@ -190,6 +190,12 @@ case $host in
 ;;
 esac
 
+AC_ARG_ENABLE([valgrind],
+              [AS_HELP_STRING([--enable-valgrind],
+                              [compile with valgrind macros to assist with debugging])])
+AS_IF([test "x$enable_valgrind" = "xyes"],
+      [AC_CHECK_HEADERS(valgrind/memcheck.h,
+                        [AC_DEFINE([USE_VALGRIND],[1], [Use Valgrind Macros])])])
 #libnetfilter_queue
     AC_ARG_WITH(libnetfilter_queue_includes,
             [  --with-libnetfilter_queue-includes=DIR  libnetfilter_queue include directory],
@@ -321,5 +327,6 @@ echo "
   Protection Engine.......: $NFQ_ENABLE
   IPv6 support............: $enable_ipv6
   Pcre JIT support........: $pcre_jit_available
+  Valgrind support........: $enable_valgrind
 "
 
