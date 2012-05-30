@@ -66,7 +66,8 @@ void *DSAZ_Init() {
 		_dos.current_flows[i] = 0;
 	}
 
-	DSAZ_AddRequestPerMinuteFull(35);
+	DSAZ_AddMaxRequestPerMinuteFull(35);
+	DSAZ_AddMaxFlowsPerMinuteFull(35);
 
 	_dos.expr_header = pcre_compile((char*)HTTP_HEADER_PARAM, PCRE_FIRSTLINE, &_dos.errstr, &erroffset, 0);
 #ifdef PCRE_HAVE_JIT
@@ -235,8 +236,6 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 				_dos.total_nonexist_uri++;
 				user->request_fails++;
 			}
-			// TODO: The lasturi its not properly compute, so the current_flows are wrong.
-			_dos.current_flows[idx]++;
 #ifdef DEBUG
         		LOG(POLYLOG_PRIORITY_DEBUG,
                 		"User(0x%x)flow(0x%x)first uri cached %s\n",
@@ -288,18 +287,23 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
                                 user,f,node==NULL?"no":"yes");
 #endif
 		}
+		if(f->is_analyzed == FALSE) {
+			_dos.current_flows[idx]++;
+			user->flows_per_minute[idx]++;
+		}
 
                 f->last_uri_seen.tv_sec = f->current_time.tv_sec;
                 f->last_uri_seen.tv_usec = f->current_time.tv_usec;
                 user->total_request++;
                 user->current_requests ++;
-                user->request_per_minute[idx]++;
+                user->requests_per_minute[idx]++;
 		_dos.current_requests[idx]++;
 
 		if(_dos.prev_sample.tv_sec + 60 < f->current_time.tv_sec) {
                         struct tm *t;
 	
-			if(user->request_per_minute[idx] > _dos.max_request_per_user[idx]) {
+			if((user->requests_per_minute[idx] > _dos.max_request_per_user[idx])&& 
+			(user->flows_per_minute[idx] > _dos.max_flows_per_user[idx])){
 				/* is the first time */
 				if(user->statistics_reach == 0){
 					_dos.users_statistics_reach++;
@@ -311,9 +315,12 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 			}
                         t = localtime(&(f->current_time.tv_sec));
                         _dos.statistics_index = ((t->tm_hour+1) * 60)+ t->tm_min;
+                        _dos.prev_sample.tv_sec = f->current_time.tv_sec;
+                        _dos.prev_sample.tv_usec = f->current_time.tv_usec;
 		} 
 		_dos.total_http_bytes += seg->virtual_size;	
 		_dos.total_http_request ++;
+		f->is_analyzed = TRUE;
 	}else{
 		(*ret) = 0;
 		return ;
@@ -369,7 +376,6 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
 			link = GACH_GetBaseLink(_dos.graphcache,uri);
 			f->lasturi = link->uri->str;
 			uri_id = link->id_uri;
-			_dos.current_flows[idx]++;
 		}else{
 			// At least is the second or more uri on the flow
 			struct timeval t_cost;
@@ -398,12 +404,17 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
                 LOG(POLYLOG_PRIORITY_DEBUG,
                         "User(0x%x)Flow(0x%x) Updating the graph cost(%d)",user,f,costvalue);
 #endif
+		if(f->is_analyzed == FALSE){
+			_dos.current_flows[idx]++;
+			user->flows_per_minute[idx]++;
+		}
+
 		f->last_uri_seen.tv_sec = f->current_time.tv_sec;
 		f->last_uri_seen.tv_usec = f->current_time.tv_usec;
 		user->total_request++;
 		user->current_requests ++;
 		_dos.current_requests[idx]++;
-		user->request_per_minute[idx]++;	
+		user->requests_per_minute[idx]++;	
 
 		/* Use the current time of the flow for update the
 		 * statistics of the analyzer and the user
@@ -420,6 +431,7 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
                         _dos.prev_sample.tv_usec = f->current_time.tv_usec;
                 }
 
+		f->is_analyzed = TRUE;
                 _dos.total_http_bytes += seg->virtual_size;
                 _dos.total_http_request ++;
                 _dos.http_request_per_minute ++;
@@ -427,12 +439,36 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
 	return;
 }
 
+/* Service functions for receive the statistics value from and outside process */
 
-void DSAZ_AddRequestPerMinuteFull(int request){
+void DSAZ_AddMaxRequestPerMinuteDelta(int delta,int requests){
+
+	if((delta>=0)&&(delta<SAMPLE_TIME))
+		_dos.max_request_per_user[delta] = requests;
+	return;
+}
+
+void DSAZ_AddMaxFlowsPerMinuteDelta(int delta,int flows){
+
+        if((delta>=0)&&(delta<SAMPLE_TIME))
+                _dos.max_flows_per_user[delta] = flows;
+        return;
+}
+
+void DSAZ_AddMaxRequestPerMinuteFull(int requests){
 	register int i;
 
 	for (i=0;i<SAMPLE_TIME;i++)
-		_dos.max_request_per_user[i] = request;
+		_dos.max_request_per_user[i] = requests;
+
+	return;
+}
+
+void DSAZ_AddMaxFlowsPerMinuteFull(int flows){
+	register int i;
+
+	for (i=0;i<SAMPLE_TIME;i++)
+		_dos.max_flows_per_user[i] = flows;
 
 	return;
 }

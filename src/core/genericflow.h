@@ -39,6 +39,7 @@ struct ST_GenericFlow {
 	int32_t total_bytes;
         int32_t total_packets;
 
+	short is_analyzed;
 	short direction;
 	short aborted;
 	short tcp_state_prev;
@@ -68,7 +69,8 @@ static void GEFW_SetFlowId(ST_GenericFlow *f,u_int32_t saddr,u_int16_t sport,u_i
 	f->protocol = protocol;
 	return;
 }
-static void GEFW_Reset(ST_GenericFlow *f) { 
+static void GEFW_Reset(ST_GenericFlow *f) {
+	f->is_analyzed = 0; 
 	f->total_bytes = 0;f->total_packets= 0;
 	f->arrive_time.tv_sec = 0;f->arrive_time.tv_usec = 0;
 	f->current_time.tv_sec = 0;f->current_time.tv_usec = 0;

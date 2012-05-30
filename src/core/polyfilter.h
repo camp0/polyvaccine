@@ -72,6 +72,7 @@ struct ST_PolyFilter {
 	int pcapfd;
 	int is_pcap_file;
 	int when_pcap_done_exit;
+	sigset_t sigmask;
 	DBusConnection *bus;
 	ST_Connection *conn;
 	ST_UserTable *users;

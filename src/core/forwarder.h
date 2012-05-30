@@ -45,7 +45,7 @@ struct ST_GenericAnalyzer{
 	char name[32];
 	void (*init)(void);
 	void (*destroy)(void);
-	void (*stats)(void);
+	void (*stats)(FILE *out);
 	void (*analyze)(ST_User *user,ST_GenericFlow *f,int *ret);
 	void (*learn)(ST_User *user,ST_GenericFlow *f);
 };
@@ -62,14 +62,14 @@ ST_Forwarder *FORD_Init(void);
 void FORD_Destroy(ST_Forwarder *fw);
 void FORD_InitAnalyzers(ST_Forwarder *fw);
 void FORD_ShowAnalyzers(ST_Forwarder *fw);
-void FORD_Stats(ST_Forwarder *fw);
+void FORD_Stats(ST_Forwarder *fw,FILE *out);
 ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw,int16_t protocol,int16_t sport,int16_t dport);
 ST_GenericAnalyzer *FORD_GetAnalyzerByName(ST_Forwarder *fw,char *name);
 
 void FORD_AddAnalyzer(ST_Forwarder *fw,char *name,int16_t protocol, int16_t port,
 	void (*init)(void), 
 	void (*destroy)(void),
-	void (*stats)(void),
+	void (*stats)(FILE *out),
 	void (*analyze)(ST_User *user,ST_GenericFlow *f,int *ret),
 	void (*learn)(ST_User *user,ST_GenericFlow *f));
 

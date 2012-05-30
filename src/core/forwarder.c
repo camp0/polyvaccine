@@ -87,19 +87,19 @@ void FORD_ShowAnalyzers(ST_Forwarder *fw){
  *
  * @param ST_Forwarder
  */
-void FORD_Stats(ST_Forwarder *fw){
+void FORD_Stats(ST_Forwarder *fw,FILE *out){
         GHashTableIter iter;
         gpointer k,v;
 
         g_hash_table_iter_init (&iter, fw->tcp_analyzers);
         while (g_hash_table_iter_next (&iter, &k, &v)) {
                 ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
-                ga->stats();
+                ga->stats(out);
         }
         g_hash_table_iter_init (&iter, fw->udp_analyzers);
         while (g_hash_table_iter_next (&iter, &k, &v)) {
                 ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
-                ga->stats();
+                ga->stats(out);
         }
         return;
 }
@@ -238,7 +238,7 @@ ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw, int16_t protocol,int16_t 
  * 
  */
 void FORD_AddAnalyzer(ST_Forwarder *fw, char *name,int16_t protocol,int16_t port,
-	void (*init)(void), void (*destroy)(void),void (*stats)(void),
+	void (*init)(void), void (*destroy)(void),void (*stats)(FILE *out),
 	void (*analyze)(ST_User *user,ST_GenericFlow *f,int *ret),
 	void (*learn)(ST_User *user,ST_GenericFlow *f)){
 

@@ -53,16 +53,17 @@ void COMN_SetMemoryPool(ST_Connection *conn,ST_MemoryPool *mempool){
 /**
  * COMN_Stats - Show the statistics
  *
- * @param conn the ST_Connection 
+ * @param conn the ST_Connection
+ * @param out 
  */
 
-void COMN_Stats(ST_Connection *conn) {
+void COMN_Stats(ST_Connection *conn,FILE *out) {
  
-        fprintf(stdout,"Connection statistics\n");
-        fprintf(stdout,"\ttimeout:%d seconds\n",conn->inactivitytime);
-        fprintf(stdout,"\treleases:%d\n",conn->releases);
-        fprintf(stdout,"\tinserts:%d\n",conn->inserts);
-        fprintf(stdout,"\texpires:%d\n",conn->expiretimers);
+        fprintf(out,"Connection statistics\n");
+        fprintf(out,"\ttimeout:%d seconds\n",conn->inactivitytime);
+        fprintf(out,"\treleases:%d\n",conn->releases);
+        fprintf(out,"\tinserts:%d\n",conn->inserts);
+        fprintf(out,"\texpires:%d\n",conn->expiretimers);
 	return;
 }
 

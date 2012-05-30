@@ -202,15 +202,15 @@ void TCAZ_Init() {
 /**
  * TCAZ_Stats - Prints staticstics related to tcp
  */
-void TCAZ_Stats(void) {
+void TCAZ_Stats(FILE *out) {
 
-	fprintf(stdout,"TCP analyzer statistics\n");
-	fprintf(stdout,"\ttotal syn %ld\n",_tcp.total_syn);
-	fprintf(stdout,"\ttotal syn/ack %ld\n",_tcp.total_synack);
-	fprintf(stdout,"\ttotal ack %ld\n",_tcp.total_ack);
-	fprintf(stdout,"\ttotal rst %ld\n",_tcp.total_rst);
-	fprintf(stdout,"\ttotal fin %ld\n",_tcp.total_fin);
-	fprintf(stdout,"\ttotal bad flags %ld\n",_tcp.total_bad_flags);
+	fprintf(out,"TCP analyzer statistics\n");
+	fprintf(out,"\ttotal syn %ld\n",_tcp.total_syn);
+	fprintf(out,"\ttotal syn/ack %ld\n",_tcp.total_synack);
+	fprintf(out,"\ttotal ack %ld\n",_tcp.total_ack);
+	fprintf(out,"\ttotal rst %ld\n",_tcp.total_rst);
+	fprintf(out,"\ttotal fin %ld\n",_tcp.total_fin);
+	fprintf(out,"\ttotal bad flags %ld\n",_tcp.total_bad_flags);
 	return;
 }
 

@@ -46,9 +46,11 @@ ST_UserPool *USPO_Init() {
 /**
  * USPO_Stats - Shows statistics of a ST_UserPool
  *
+ * @param p
+ * @param out
  */
 
-void USPO_Stats(ST_UserPool *p){
+void USPO_Stats(ST_UserPool *p,FILE *out){
 	int32_t value = MAX_USERS_PER_POOL * sizeof(ST_User);
         char *unit = "Bytes";
 
@@ -61,11 +63,11 @@ void USPO_Stats(ST_UserPool *p){
                 value = value / 1024;
         }
 
-	fprintf(stdout,"UserPool statistics\n");
-	fprintf(stdout,"\tuser size:%d bytes\n",sizeof(ST_User));
-	fprintf(stdout,"\tallocated memory:%d %s\n",value,unit);
-	fprintf(stdout,"\tusers:%d\n\treleases:%d\n",POOL_GetNumberItems(p->pool),p->pool->total_releases);
-	fprintf(stdout,"\tacquires:%d\n\terrors:%d\n",p->pool->total_acquires,p->pool->total_errors);
+	fprintf(out,"UserPool statistics\n");
+	fprintf(out,"\tuser size:%d bytes\n",sizeof(ST_User));
+	fprintf(out,"\tallocated memory:%d %s\n",value,unit);
+	fprintf(out,"\tusers:%d\n\treleases:%d\n",POOL_GetNumberItems(p->pool),p->pool->total_releases);
+	fprintf(out,"\tacquires:%d\n\terrors:%d\n",p->pool->total_acquires,p->pool->total_errors);
 	return;
 }
 

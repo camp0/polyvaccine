@@ -120,7 +120,7 @@ ST_MemorySegment *MEPO_GetMemorySegment(ST_MemoryPool *mp){
         return m;
 }
 
-void MEPO_Stats(ST_MemoryPool *mp){
+void MEPO_Stats(ST_MemoryPool *mp,FILE *out){
 	int32_t value = MAX_MEMORY_SEGMENTS_PER_POOL * (sizeof(ST_MemorySegment)+MAX_SEGMENT_SIZE);
 	char *unit = "Bytes";
 
@@ -133,11 +133,11 @@ void MEPO_Stats(ST_MemoryPool *mp){
 		value = value / 1024;
 	}
 	
-	fprintf(stdout,"Memory pool statistics\n");
-	fprintf(stdout,"\tmemory size:%d bytes\n",sizeof(ST_MemorySegment));
-	fprintf(stdout,"\tallocate memory:%d %s\n",value,unit);
-	fprintf(stdout,"\tacquire bytes:%d\n\treleases bytes:%d\n",mp->total_release_bytes,mp->total_acquire_bytes);
-        fprintf(stdout,"\tblocks:%d\n\treleases:%d\n",POOL_GetNumberItems(mp->pool),mp->pool->total_releases);
-        fprintf(stdout,"\tacquires:%d\n\terrors:%d\n",mp->pool->total_acquires,mp->pool->total_errors);
+	fprintf(out,"Memory pool statistics\n");
+	fprintf(out,"\tmemory size:%d bytes\n",sizeof(ST_MemorySegment));
+	fprintf(out,"\tallocate memory:%d %s\n",value,unit);
+	fprintf(out,"\tacquire bytes:%d\n\treleases bytes:%d\n",mp->total_release_bytes,mp->total_acquire_bytes);
+        fprintf(out,"\tblocks:%d\n\treleases:%d\n",POOL_GetNumberItems(mp->pool),mp->pool->total_releases);
+        fprintf(out,"\tacquires:%d\n\terrors:%d\n",mp->pool->total_acquires,mp->pool->total_errors);
 	return;
 }

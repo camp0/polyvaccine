@@ -27,10 +27,18 @@
 #define POLYLOG_CATEGORY_NAME POLYVACCINE_FILTER_CONNECTION_INTERFACE
 #include "log.h"
 
+/**
+ * USTA_SetStatisticsLevel - Sets the level of statistics on the ST_UserTable.
+ *
+ * @param ut the ST_UserTable 
+ * @param level
+ */
+
 void USTA_SetStatisticsLevel(ST_UserTable *ut,int level){
 	ut->statistics_level = level;
 	return;
 }
+
 /**
  * USTA_SetUserPool - Sets the reference of the userpool on the ST_UserTable.
  *
@@ -42,6 +50,14 @@ void USTA_SetUserPool(ST_UserTable *ut,ST_UserPool *userpool){
 	ut->userpool = userpool;
 }
 
+
+/**
+ * __USTA_DumpUsersToFile - Dumps the information of the ST_UserTable on a file users.info.
+ *
+ * @param ut the ST_UserTable
+ *
+ * @see USTA_Stats() 
+ */
 
 void __USTA_DumpUsersToFile(ST_UserTable *ut) {
         GHashTableIter iter;
@@ -78,43 +94,47 @@ void __USTA_DumpUsersToFile(ST_UserTable *ut) {
 /**
  * USTA_Stats - Show the statistics
  *
+ * @param ut
+ * @param out
+ *
  */
-void USTA_Stats(ST_UserTable *ut) {
+void USTA_Stats(ST_UserTable *ut,FILE *out) {
         GHashTableIter iter;
 	gpointer k,v;
  
-        fprintf(stdout,"User table statistics\n");
-        fprintf(stdout,"\ttimeout:%d seconds\n",ut->inactivitytime);
-        fprintf(stdout,"\treleases:%d\n",ut->releases);
-        fprintf(stdout,"\tinserts:%d\n",ut->inserts);
-        fprintf(stdout,"\texpires:%d\n",ut->expiretimers);
+        fprintf(out,"User table statistics\n");
+        fprintf(out,"\ttimeout:%d seconds\n",ut->inactivitytime);
+        fprintf(out,"\treleases:%d\n",ut->releases);
+        fprintf(out,"\tinserts:%d\n",ut->inserts);
+        fprintf(out,"\texpires:%d\n",ut->expiretimers);
 
 	if(ut->statistics_level > 1) {
-		fprintf(stdout,"Users information\n");
+		fprintf(out,"Users information\n");
 		g_hash_table_iter_init(&iter,ut->table);
 		while( g_hash_table_iter_next(&iter,&k,&v)){
 			ST_User *user = (ST_User*)v;
 			char ip[INET_ADDRSTRLEN];
 
 			inet_ntop(AF_INET, &(user->ip), ip, INET_ADDRSTRLEN);
-			fprintf(stdout,"\tUser(0x%x)IP(%s)\n",user,ip);
-			fprintf(stdout,"\t\tRequest(%d)Duration(%d)Cost(%d)RequestHits(%d)RequestFail(%d)PathHits(%d)PathFails(%d)\n",
+			fprintf(out,"\tUser(0x%x)IP(%s)\n",user,ip);
+			fprintf(out,"\t\tRequest(%d)Duration(%d)Cost(%d)RequestHits(%d)RequestFail(%d)PathHits(%d)PathFails(%d)\n",
 				user->total_request,
 				user->current_time.tv_sec - user->arrive_time.tv_sec,user->acumulated_cost,
 				user->request_hits, user->request_fails,
 				user->path_hits, user->path_fails);
-			fprintf(stdout,"\t\tFlows(%d)SReach(%d)\n",user->total_flows,user->statistics_reach);
+			fprintf(out,"\t\tFlows(%d)SReach(%d)\n",user->total_flows,user->statistics_reach);
 			if(ut->statistics_level>2){
 				register int i;
 				int sw = FALSE;
 
-				fprintf(stdout,"\t\t");
+				fprintf(out,"\t\t");
 				for (i = 0;i<SAMPLE_TIME;i++){
-					if(user->request_per_minute[i] > 0) {
-						fprintf(stdout,"m(%d)=%d ",i,user->request_per_minute[i]);
+					if((user->requests_per_minute[i] > 0)||(user->flows_per_minute[i]>0)) {
+						fprintf(out,"m(%d)=r[%d]f[%d] ",i,user->requests_per_minute[i],
+							user->flows_per_minute[i]);
 					}
 				}
-				fprintf(stdout,"\n");	
+				fprintf(out,"\n");	
 
 			}
 		}
@@ -136,7 +156,7 @@ gint user_cmp(ST_User *user1, ST_User *user2) {
  * USTA_ReleaseUser - Release a ST_User to the ST_UserTable.
  *
  * @param ut the ST_UserTable 
- * @param userf
+ * @param user
  */
 void USTA_ReleaseUser(ST_UserTable *ut,ST_User *user) {
 

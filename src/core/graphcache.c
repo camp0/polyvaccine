@@ -264,6 +264,8 @@ ST_GraphCache *GACH_Init(){
 
 /**
  * GACH_Destroy - Destroy all the fields of the graphcache
+ *
+ * @param gc
  */
 void GACH_Destroy(ST_GraphCache *gc) {
         GHashTableIter iter,initer;

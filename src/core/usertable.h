@@ -57,7 +57,7 @@ void USTA_InsertUser(ST_UserTable *ut,ST_User *user);
 void USTA_UpdateTimers(ST_UserTable *ut,struct timeval *currenttime);
 void USTA_SetUserPool(ST_UserTable *ut,ST_UserPool *userpool);
 void USTA_ReleaseUsers(ST_UserTable *ut);
-void USTA_Stats(ST_UserTable *ut);
+void USTA_Stats(ST_UserTable *ut,FILE *out);
 void USTA_SetStatisticsLevel(ST_UserTable *ut,int level);
 
 #endif

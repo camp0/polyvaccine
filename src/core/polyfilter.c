@@ -21,7 +21,7 @@
  * Written by Luis Campo Giralte <luis.camp0.2009@gmail.com> 2009 
  *
  */
-
+#include <signal.h>
 #include "polyfilter.h"
 #include "polydbus.h"
 #include "callbacks.h"
@@ -38,6 +38,43 @@
 static ST_PolyFilter *_polyFilter = NULL;
 
 static int timeout_checker = 180;
+
+/**
+ * __POFR_StatsFromDescriptor - Show statistics on the recieved descriptor.
+ *
+ * @param out 
+ * 
+ */
+void __POFR_StatsFromDescriptor(FILE *out) {
+        PKDE_Stats(out);
+        TCAZ_Stats(out);
+        USPO_Stats(_polyFilter->userpool,out);
+        MEPO_Stats(_polyFilter->memorypool,out);
+        FLPO_Stats(_polyFilter->flowpool,out);
+        COMN_Stats(_polyFilter->conn,out);
+        USTA_Stats(_polyFilter->users,out);
+        FORD_Stats(_polyFilter->forwarder,out);
+        return;
+}
+
+/**
+ * __POFR_StatisticsSignalHandler - Signal handler for the SIGUSR1 signal.
+ *      
+ * @param signal 
+ * 
+ */
+void __POFR_StatisticsSignalHandler(int signal) {
+	FILE *out;
+
+        out = fopen("polyfilter.stats","w");
+        if(out == NULL) 
+		return;
+	fprintf(stdout,"Dump statistics\n");
+	__POFR_StatsFromDescriptor(out);
+	fsync(out);
+	fclose(out);
+	return;
+}
 
 /**
  * POFR_Init - Initialize the main structures of the polyfilter
@@ -142,6 +179,12 @@ void POFR_Init() {
 		(void*)SPAZ_AnalyzeDummySIPRequest);
 
 	FORD_InitAnalyzers(_polyFilter->forwarder);
+
+	// Set the signal handler for print out the statistics by using SIGUSR1
+        signal(SIGUSR1,__POFR_StatisticsSignalHandler);
+        sigemptyset(&(_polyFilter->sigmask));
+        sigaddset(&(_polyFilter->sigmask), SIGUSR1);
+
 	return;
 }
 
@@ -341,14 +384,8 @@ void POFR_Destroy() {
  */
 
 void POFR_Stats() {
-        PKDE_PrintfStats();
-        TCAZ_Stats();
-        USPO_Stats(_polyFilter->userpool);
-        MEPO_Stats(_polyFilter->memorypool);
-        FLPO_Stats(_polyFilter->flowpool);
-        COMN_Stats(_polyFilter->conn);
-        USTA_Stats(_polyFilter->users);
-        FORD_Stats(_polyFilter->forwarder);
+
+	__POFR_StatsFromDescriptor(stdout);
 	return;
 }
 
@@ -516,7 +553,9 @@ int __POFR_GetActiveDescriptor(){
 		_polyFilter->usepcap = 1;
 	}
 
-	ret = poll(_polyFilter->local_fds,nfds+_polyFilter->usepcap,-1);
+	ret = ppoll(_polyFilter->local_fds,nfds+_polyFilter->usepcap,NULL,&(_polyFilter->sigmask));
+	// TODO: detct if the syscall ppoll is available, checkout man poll
+	//ret = poll(_polyFilter->local_fds,nfds+_polyFilter->usepcap,-1);
 	if (ret <0){
 		perror("poll");
 		return -1;
@@ -541,6 +580,11 @@ void POFR_Run() {
 	struct timeval lasttimeouttime;
 	struct pcap_pkthdr *header;
 	unsigned char *pkt_data;
+        struct sigaction sa;
+
+        sigemptyset (&sa.sa_mask);
+        sa.sa_sigaction = (void *)__POFR_StatisticsSignalHandler;
+        sa.sa_flags = SA_RESTART;
 
         fprintf(stdout,"%s running on %s machine %s\n",POLYVACCINE_FILTER_ENGINE_NAME,
 		SYIN_GetOSName(),SYIN_GetMachineName());

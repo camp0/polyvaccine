@@ -27,9 +27,10 @@
 void USER_Reset(ST_User *user){
 	register int i;
 
-	for(i=0;i<SAMPLE_TIME;i++)
-		user->request_per_minute[i] = 0;
-
+	for(i=0;i<SAMPLE_TIME;i++){
+		user->requests_per_minute[i] = 0;
+		user->flows_per_minute[i] = 0;
+	}
         user->ip = 0;
         user->total_request = 0;
         user->total_flows = 0;

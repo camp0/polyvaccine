@@ -21,12 +21,18 @@
  * Written by Luis Campo Giralte <luis.camp0.2009@gmail.com> 2009
  *
  */
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdio.h>
 #include <signal.h>
 #include "polyfilter.h"
 #include <getopt.h>
-//#include "callgrind.h"
+
+#ifdef USE_VALGRIND
+#include <valgrind/callgrind.h>
+#endif
 
 static struct option long_options[] = {
         {"learning",	no_argument,       	0, 'L'},

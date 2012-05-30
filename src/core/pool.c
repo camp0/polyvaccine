@@ -49,19 +49,23 @@ ST_Pool *POOL_Init() {
  */
 void POOL_Destroy(ST_Pool *p){
 	register int i;
-
+	GSList *item = NULL;
 
         for (i = 0;i<POOL_GetNumberItems(p);i++){
-                GSList *item = g_slist_nth(p->items,0);
+                item = g_slist_nth(p->items,0);
                 if (item != NULL) {
+                        //p->items = g_slist_delete_link(p->items,item);
                         p->items = g_slist_remove_link(p->items,item);
                         g_free(item->data);
+			g_slist_free_1(item);
+			item = NULL;
                 }
         }
 
 	g_slist_free(p->items);
 	g_free(p);
 	p = NULL;
+	return;
 }
 
 int POOL_GetNumberItems(ST_Pool *p){
@@ -93,12 +97,15 @@ void POOL_AddItem(ST_Pool *p,void *item){
 
 void *POOL_GetItem(ST_Pool *p){
         GSList *item = NULL;
+	void *value;
 
         item = g_slist_nth(p->items,0);
         if (item!= NULL) {
-                p->items = g_slist_remove_link(p->items,item);
+               	p->items = g_slist_remove_link(p->items,item);
                 p->total_acquires++;
-                return item->data;
+		value = item->data;
+		g_slist_free_1(item);
+                return value;
         }
         p->total_errors++;
         return NULL;

@@ -29,9 +29,6 @@
 #include <config.h>
 #endif
 
-//#define __USE_BSD
-//#define __FAVOR_BSD
-
 #include <pcap.h>
 #include <sys/time.h>
 #include <stdio.h>
@@ -65,7 +62,7 @@ typedef struct ST_PacketDecoder ST_PacketDecoder;
 
 void PKDE_Init(void);
 void PKDE_Destroy(void);
-void PKDE_PrintfStats(void);
+void PKDE_Stats(FILE *output);
 int PKDE_Decode(struct pcap_pkthdr *hdr, unsigned char *packet);
 
 #endif

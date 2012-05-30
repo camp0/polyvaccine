@@ -54,8 +54,9 @@ struct ST_User{
 	int16_t request_hits;
 	int16_t request_fails;
 
-	/* Statistics history */
-	int request_per_minute[SAMPLE_TIME];
+	/* Statistics history, could be removed but its usefull for the research */
+	int requests_per_minute[SAMPLE_TIME];
+	int flows_per_minute[SAMPLE_TIME];
 	int statistics_reach;
 	
 	struct timeval arrive_time;

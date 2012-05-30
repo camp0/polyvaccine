@@ -90,5 +90,8 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user, ST_GenericFlow *f);
 void DSAZ_SetGraphStatisticsLevel(int level);
 
 /* Service functions */
-void DSAZ_AddRequestPerMinuteFull(int request);
+void DSAZ_AddMaxRequestPerMinuteDelta(int delta,int requests);
+void DSAZ_AddMaxFlowsPerMinuteDelta(int delta,int flows);
+void DSAZ_AddMaxRequestPerMinuteFull(int requests);
+void DSAZ_AddMaxFlowsPerMinuteFull(int flows);
 #endif

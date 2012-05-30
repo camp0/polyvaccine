@@ -13,3 +13,4 @@
 - use sched_afinity.
 - Reallocate segments bigger than a value, in order to avoid leaks on the memorypool, for example multiple POSTS operations.
 - Add functions to pass the statistics model to the ddos analyzer.
+- The methods and properties from the analizers should only be visible when the analyzer is enabled.

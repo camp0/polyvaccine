@@ -36,7 +36,6 @@
 #include "interfaces.h"
 
 #define MAX_USERS_PER_POOL 1024 * 16 
-//#define MAX_USERS_PER_POOL 1024 * 8
 
 struct ST_UserPool {
 	ST_Pool *pool;
@@ -51,6 +50,6 @@ ST_User *USPO_GetUser(ST_UserPool *p);
 int USPO_GetNumberUsers(ST_UserPool *p);
 int USPO_IncrementUserPool(ST_UserPool *p,int value);
 int USPO_DecrementUserPool(ST_UserPool *p,int value);
-void USPO_Stats(ST_UserPool *p);
+void USPO_Stats(ST_UserPool *p,FILE *out);
 
 #endif

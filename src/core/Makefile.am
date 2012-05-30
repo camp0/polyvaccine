@@ -25,11 +25,15 @@ libpolyvaccine_la_CPPFLAGS = -I$(PYTHON_CPPFLAGS) $(DEPS_CFLAGS)
 
 PYTHON_INCLUDES = -I/usr/include -I. -I.. -I../.. "`pkg-config --cflags glib-2.0 dbus-1 libpcre`" 
 
-bin_PROGRAMS = pvfe 
+bin_PROGRAMS = pvfe testpools 
 
 pvfe_SOURCES = main.c 
 pvfe_LDFLAGS = $(DEPS_LIBS) -lpolyvaccine -lpcap 
 pvfe_LDADD = -lpolyvaccine $(DEPS_LIBS)
+
+testpools_SOURCES = testpools.c
+testpools_LDFLAGS = $(DEPS_LIBS) -lpolyvaccine -lpcap 
+testpools_LDADD = -lpolyvaccine $(DEPS_LIBS)
 
 EXTRA_DIST = polyfilter.i setup.py log4crc
 

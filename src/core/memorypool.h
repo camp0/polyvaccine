@@ -34,16 +34,11 @@
 #include <glib.h>
 #include "memory.h"
 #include "pool.h"
-//#include "debug.h"
 
 #define MAX_MEMORY_SEGMENTS_PER_POOL 1024 * 256 
 
 struct ST_MemoryPool {
 	ST_Pool *pool;
-//	GSList *mem;
-//	int32_t total_releases;
-//	int32_t total_acquires;
-//	int32_t total_errors;
 	int64_t total_release_bytes;
 	int64_t total_acquire_bytes;
 };
@@ -57,7 +52,7 @@ ST_MemorySegment *MEPO_GetMemorySegment(ST_MemoryPool *mp);
 int MEPO_GetNumberMemorySegments(ST_MemoryPool *mp);
 int MEPO_IncrementMemoryPool(ST_MemoryPool *mp,int value);
 int MEPO_DecrementMemoryPool(ST_MemoryPool *mp,int value);
-void MEPO_Stats(ST_MemoryPool *mp);
+void MEPO_Stats(ST_MemoryPool *mp,FILE *out);
 
 /// TODO
 /// Need a function which reallocates the memory segments on the memorypool

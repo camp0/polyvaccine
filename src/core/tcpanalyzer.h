@@ -69,6 +69,6 @@ typedef struct ST_TCPAnalyzer ST_TCPAnalyzer;
 void TCAZ_Init(void);
 void TCAZ_Destroy(void);
 void TCAZ_Analyze(ST_GenericFlow *f);
-void TCAZ_Stats(void);
+void TCAZ_Stats(FILE *out);
 
 #endif

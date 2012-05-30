@@ -53,16 +53,16 @@ void PKDE_Destroy(){
 	return;
 }
 
-void PKDE_PrintfStats() {
-        fprintf(stdout,"Packet decoder statistics\n");
-        fprintf(stdout,"\ttotal Ethernet packets %ld\n",_pktdec._totalEthernetPackets);
-        fprintf(stdout,"\ttotal Vlan packets %ld\n",_pktdec._totalEthernetVlanPackets);
-        fprintf(stdout,"\ttotal IP packets %ld\n",_pktdec._totalIpPackets);
-        fprintf(stdout,"\ttotal IPv6 packets %ld\n",_pktdec._totalIpv6Packets);
-        fprintf(stdout,"\ttotal TCP packets %ld\n",_pktdec._totalTcpPackets);
-        fprintf(stdout,"\ttotal UDP packets %ld\n",_pktdec._totalUdpPackets);
-        fprintf(stdout,"\ttotal L7 packets %ld\n",_pktdec._totalL7Packets);
-        fprintf(stdout,"\ttotal Unknown packets %ld\n",_pktdec._totalUnknownPackets);
+void PKDE_Stats(FILE *output) {
+        fprintf(output,"Packet decoder statistics\n");
+        fprintf(output,"\ttotal Ethernet packets %ld\n",_pktdec._totalEthernetPackets);
+        fprintf(output,"\ttotal Vlan packets %ld\n",_pktdec._totalEthernetVlanPackets);
+        fprintf(output,"\ttotal IP packets %ld\n",_pktdec._totalIpPackets);
+        fprintf(output,"\ttotal IPv6 packets %ld\n",_pktdec._totalIpv6Packets);
+        fprintf(output,"\ttotal TCP packets %ld\n",_pktdec._totalTcpPackets);
+        fprintf(output,"\ttotal UDP packets %ld\n",_pktdec._totalUdpPackets);
+        fprintf(output,"\ttotal L7 packets %ld\n",_pktdec._totalL7Packets);
+        fprintf(output,"\ttotal Unknown packets %ld\n",_pktdec._totalUnknownPackets);
         return;
 }
 

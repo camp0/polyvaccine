@@ -47,7 +47,7 @@ ST_FlowPool *FLPO_Init() {
  *
  */
 
-void FLPO_Stats(ST_FlowPool *p){
+void FLPO_Stats(ST_FlowPool *p,FILE *out){
 	int32_t value = MAX_FLOWS_PER_POOL * sizeof(ST_GenericFlow);
         char *unit = "Bytes";
 
@@ -60,11 +60,11 @@ void FLPO_Stats(ST_FlowPool *p){
                 value = value / 1024;
         }
 
-	fprintf(stdout,"FlowPool statistics\n");
-	fprintf(stdout,"\tflow size:%d bytes\n",sizeof(ST_GenericFlow));
-	fprintf(stdout,"\tallocated memory:%d %s\n",value,unit);
-	fprintf(stdout,"\tflows:%d\n\treleases:%d\n",g_slist_length(p->pool->items),p->pool->total_releases);
-	fprintf(stdout,"\tacquires:%d\n\terrors:%d\n",p->pool->total_acquires,p->pool->total_errors);
+	fprintf(out,"FlowPool statistics\n");
+	fprintf(out,"\tflow size:%d bytes\n",sizeof(ST_GenericFlow));
+	fprintf(out,"\tallocated memory:%d %s\n",value,unit);
+	fprintf(out,"\tflows:%d\n\treleases:%d\n",g_slist_length(p->pool->items),p->pool->total_releases);
+	fprintf(out,"\tacquires:%d\n\terrors:%d\n",p->pool->total_acquires,p->pool->total_errors);
 	return;
 }
 
