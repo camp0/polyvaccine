@@ -66,6 +66,7 @@ struct ST_GraphCache {
 	int32_t total_fails;
 	int32_t total_nodes;
 	int32_t total_node_hits;
+	int32_t total_node_fails;
 	int32_t total_ids;
 	int statistics_level;
 	int32_t size_memory; // total bytes allocated
@@ -77,10 +78,14 @@ ST_GraphCache *GACH_Init(void);
 void GACH_Destroy(ST_GraphCache *gc);
 void GACH_Stats(ST_GraphCache *gc);
 void GACH_SetStatisticsLevel(ST_GraphCache *gc, int level);
-void GACH_AddLink(ST_GraphCache *gc,char *urisrc, char *uridst, int cost);
-ST_GraphNode *GACH_AddGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, char *uridst, int cost);
-void GACH_AddBaseLink(ST_GraphCache *gc,char *uri);
+//void GACH_AddLink(ST_GraphCache *gc,char *urisrc, char *uridst, int cost);
+
+/* For update mode */
+ST_GraphLink *GACH_AddBaseLink(ST_GraphCache *gc,char *uri);
 ST_GraphLink *GACH_GetBaseLink(ST_GraphCache *gc,char *uri);
+ST_GraphNode *GACH_AddGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, char *uridst, int cost);
+
+/* For detect mode */
 ST_GraphNode *GACH_GetGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, char *uri); 
 ST_GraphNode *GACH_GetGraphNode(ST_GraphCache *gc,char *urisrc, char *uridst); 
 int GACH_GetLinkCost(ST_GraphCache *gc, char *urisrc, char *uridst); 

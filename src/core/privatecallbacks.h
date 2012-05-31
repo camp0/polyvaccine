@@ -453,10 +453,13 @@ static ST_Callback ST_StaticUserPropertiesCallbacks [] = {
 	{}
 };
 
-/* Functions related to the graph cache */
+/* Functions related to the graph cache of the dosanalyzer */
 void PRCA_Property_GetNumberGraphCacheLinks(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetNumberGraphCacheHits(DBusConnection *conn,DBusMessage *msg, void *data);
 void PRCA_Property_GetNumberGraphCacheFails(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetNumberPathCachePaths(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetNumberPathCacheHits(DBusConnection *conn,DBusMessage *msg, void *data);
+void PRCA_Property_GetNumberPathCacheFails(DBusConnection *conn,DBusMessage *msg, void *data);
 
 static ST_Callback ST_StaticGraphCachePropertiesCallbacks [] = {
         {
@@ -477,6 +480,24 @@ static ST_Callback ST_StaticGraphCachePropertiesCallbacks [] = {
                 .out    =       "i",
                 .func   =      	PRCA_Property_GetNumberGraphCacheFails 
         },
+        {
+                .name   =       "Paths",
+                .in     =       NULL,
+                .out    =       "i",
+                .func   =       PRCA_Property_GetNumberPathCachePaths
+        },
+        {
+                .name   =       "PathHits",
+                .in     =       NULL,
+                .out    =       "i",
+                .func   =       PRCA_Property_GetNumberPathCacheHits
+        },
+        {
+                .name   =       "PathFails",
+                .in     =       NULL,
+                .out    =       "i",
+                .func   =       PRCA_Property_GetNumberPathCacheFails
+        },
         {}
 };
 
@@ -491,6 +512,8 @@ static ST_Callback ST_StaticGraphCacheMethodCallbacks [] = {
         },
         {}
 };
+
+
 
 static ST_Interface ST_PublicInterfaces [] = {
         { 

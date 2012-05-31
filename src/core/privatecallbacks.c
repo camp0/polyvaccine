@@ -765,34 +765,53 @@ void PRCA_Property_GetUserPoolTotalErrors(DBusConnection *conn,DBusMessage *msg,
 
 /* Functions related to the graph cache */
 void PRCA_Property_GetNumberGraphCacheLinks(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-	// TODO
-        //value = p->graphcache->total_links;
+	value = DSAZ_GetGraphCacheLinks();
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
 	return;
 }
 
 void PRCA_Property_GetNumberGraphCacheHits(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-	// TODO
-        //value = p->graphcache->total_hits;
+	value = DSAZ_GetGraphCacheLinkHits();
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
 
 void PRCA_Property_GetNumberGraphCacheFails(DBusConnection *conn,DBusMessage *msg, void *data){
-        ST_PolyFilter *p =(ST_PolyFilter*)data;
         dbus_int32_t value = 0;
 
-	// TODO
-        //value = p->graphcache->total_fails;
+	value = DSAZ_GetGraphCacheLinkFails();
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
+
+void PRCA_Property_GetNumberPathCachePaths(DBusConnection *conn,DBusMessage *msg, void *data){
+        dbus_int32_t value = 0;
+
+        value = DSAZ_GetPathCachePaths();
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+        return;
+}
+
+void PRCA_Property_GetNumberPathCacheHits(DBusConnection *conn,DBusMessage *msg, void *data){
+        dbus_int32_t value = 0;
+
+        value = DSAZ_GetPathCachePathHits();
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+        return;
+}
+
+void PRCA_Property_GetNumberPathCacheFails(DBusConnection *conn,DBusMessage *msg, void *data){
+        dbus_int32_t value = 0;
+
+        value = DSAZ_GetPathCachePathFails();
+        __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
+        return;
+}
+
 
 void PRCA_Method_AddLinkToGraphCache(DBusConnection *conn,DBusMessage *msg, void *data){
         DBusMessageIter args;

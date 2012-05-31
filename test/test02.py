@@ -118,9 +118,8 @@ class Test_02(unittest.TestCase):
                 bus = dbus.SessionBus()
                 s = bus.get_object('polyvaccine.filter', '/polyvaccine/filter')
 
-                icache = dbus.Interface(s,dbus_interface='polyvaccine.filter.httpcache')
+                icache = dbus.Interface(s,dbus_interface='polyvaccine.filter.http.cache')
                 iface = dbus.Interface(s,dbus_interface='polyvaccine.filter')
-
                 header = ['GET / HTTP/1.1']
                 param = ['Host: slashdot.org','Accept-Encoding: gzip, deflate','Connection: keep-alive']
                 for h in header:
@@ -134,8 +133,6 @@ class Test_02(unittest.TestCase):
                 time.sleep(0.5)
                 a = icache.GetProperty("HeaderHits")
                 b = icache.GetProperty("ParameterHits")
-       #         print "Header hits",a
-       #         print "Parameter hits",b
                 iface.Stop()
                 pp.kill()
                 pp.wait()

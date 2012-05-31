@@ -96,7 +96,9 @@ int GACH_GetLinkCost(ST_GraphCache *gc, char *urisrc, char *uridst){
 			node->hits++;
 			return node->cost; 
                 }
-        }
+        }else{
+		gc->total_node_fails++;
+	}
 	gc->total_fails++;
         return -1;
 }
@@ -174,9 +176,11 @@ void GACH_AddLink(ST_GraphCache *gc,char *urisrc, char *uridst, int cost){
  *
  * @param c The graphcache
  * @param uri 
+ *
+ * @return ST_GraphLink
  */
 
-void GACH_AddBaseLink(ST_GraphCache *gc,char *uri){
+ST_GraphLink *GACH_AddBaseLink(ST_GraphCache *gc,char *uri){
         ST_GraphLink *link;
 
         link = (ST_GraphLink*)g_hash_table_lookup(gc->uris,(gchar*)uri);
@@ -190,7 +194,7 @@ void GACH_AddBaseLink(ST_GraphCache *gc,char *uri){
 		gc->size_memory += sizeof(link)+strlen(uri);
                 g_hash_table_insert(gc->uris,g_strdup(uri),link);
 	}
-	return;
+	return link;
 } 
 
 
@@ -203,6 +207,8 @@ ST_GraphLink *GACH_GetBaseLink(ST_GraphCache *gc,char *uri){
                         link->hited = 1;
                         gc->total_node_hits++;
                 }
+	}else{
+		gc->total_node_fails++;
 	}
        	return link; 
 }
@@ -237,6 +243,8 @@ ST_GraphNode *GACH_GetGraphNode(ST_GraphCache *gc,char *urisrc,char *uridst){
 			node->hits++;
 		}
 		return node;	
+	}else{
+		gc->total_node_fails++;
 	}
 	return NULL;
 }
@@ -257,6 +265,7 @@ ST_GraphCache *GACH_Init(){
 	gc->total_fails = 0;
 	gc->total_hits = 0;
 	gc->total_node_hits = 0;
+	gc->total_node_fails = 0;
 	gc->statistics_level = 0;
 	gc->size_memory = 0;
 	return gc;
@@ -355,6 +364,7 @@ void GACH_Stats(ST_GraphCache *gc) {
 	fprintf(stdout,"\tLink effectiveness = %d\%\n",effectiveness);
 	fprintf(stdout,"\tNodes = %d\n",gc->total_nodes);
 	fprintf(stdout,"\tNode hits  = %ld\n",gc->total_node_hits);
+	fprintf(stdout,"\tNode fails  = %ld\n",gc->total_node_fails);
 	fprintf(stdout,"\tNode effectiveness = %d\%\n",n_effectiveness);
 
 	if(gc->statistics_level > 1) {

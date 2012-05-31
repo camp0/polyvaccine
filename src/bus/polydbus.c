@@ -79,13 +79,17 @@ void PODS_AddPrivateCallback(ST_Callback *call){
 }
 
 void PODS_Destroy() {
+        ST_PolyDbusInterface *iface = NULL;
         GHashTableIter iter;
         gpointer k,v;
 
         g_hash_table_iter_init (&iter, polybus.interfaces);
         while (g_hash_table_iter_next (&iter, &k, &v)) {
-                ST_PolyDbusInterface *iface = (ST_PolyDbusInterface*)v;
+                iface = (ST_PolyDbusInterface*)v;
                 g_hash_table_destroy(iface->methods);
+                g_hash_table_destroy(iface->properties);
+		g_free(iface);
+		iface = NULL;
         }
 	
 	g_hash_table_destroy(polybus.properties);

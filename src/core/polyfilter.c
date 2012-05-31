@@ -40,6 +40,53 @@ static ST_PolyFilter *_polyFilter = NULL;
 static int timeout_checker = 180;
 
 /**
+ * __POFR_ShowStartBanner - Shows the initial banner of the application.
+ *
+ */
+
+void __POFR_ShowStartBanner(){
+        fprintf(stdout,"%s running on %s machine %s\n",POLYVACCINE_FILTER_ENGINE_NAME,
+                SYIN_GetOSName(),SYIN_GetMachineName());
+        fprintf(stdout,"\tversion %s\n",SYIN_GetVersionName());
+        fprintf(stdout,"\tActive mode '%s'\n",polyfilter_modes_str[_polyFilter->mode]);
+        FORD_ShowAnalyzers(_polyFilter->forwarder);
+        return;
+}
+
+/**
+ * __POFR_ShowEndBanner - Shows the finnal banner of the application.
+ *      
+ */ 
+
+void __POFR_ShowEndBanner() {
+        int32_t fullmemory;
+        char *unit = "Bytes";
+
+        fullmemory = MAX_FLOWS_PER_POOL * sizeof(ST_GenericFlow);
+        fullmemory += MAX_MEMORY_SEGMENTS_PER_POOL * (sizeof(ST_MemorySegment)+MAX_SEGMENT_SIZE);
+        fullmemory += MAX_USERS_PER_POOL * sizeof(ST_User);
+
+        if((fullmemory / 1024)>0){
+                unit = "KBytes";
+                fullmemory = fullmemory / 1024;
+        }
+        if((fullmemory / 1024)>0){
+                unit = "MBytes";
+                fullmemory = fullmemory / 1024;
+        }
+        if((fullmemory / 1024)>0){
+                unit = "GBytes";
+                fullmemory = fullmemory / 1024;
+        }
+
+        fprintf(stdout,"%s exiting\n",POLYVACCINE_FILTER_ENGINE_NAME);
+        fprintf(stdout,"\tProcess flows %ld\n",_polyFilter->flowpool->pool->total_acquires);
+        fprintf(stdout,"\tProcess users %ld\n",_polyFilter->userpool->pool->total_acquires);
+        fprintf(stdout,"\tMemory used %ld %s\n",fullmemory,unit);
+        return;
+}
+
+/**
  * __POFR_StatsFromDescriptor - Show statistics on the recieved descriptor.
  *
  * @param out 
@@ -276,6 +323,13 @@ void POFR_SetForceAnalyzeHTTPPostData(int value){
 	return;	
 }
 
+/**
+ * POFR_SetMode - Change the mode of operation of all the engine
+ *
+ * @param mode
+ *
+ */
+
 void POFR_SetMode(char *mode) {
 	register int i = 0;
 	int hosts = AUHT_GetNumberOfAuthorizedHosts(_polyFilter->hosts);
@@ -361,6 +415,8 @@ void POFR_StopAndExit() {
  * POFR_Destroy - Destroy the ST_PolyFilter type
  */
 void POFR_Destroy() {
+	gettimeofday(&(_polyFilter->endtime),NULL);
+	__POFR_ShowEndBanner();
 	PODS_Destroy();
 	COMN_ReleaseFlows(_polyFilter->conn);
 	USTA_ReleaseUsers(_polyFilter->users);
@@ -554,7 +610,7 @@ int __POFR_GetActiveDescriptor(){
 	}
 
 	ret = ppoll(_polyFilter->local_fds,nfds+_polyFilter->usepcap,NULL,&(_polyFilter->sigmask));
-	// TODO: detct if the syscall ppoll is available, checkout man poll
+	// TODO: detect if the syscall ppoll is available, checkout man poll
 	//ret = poll(_polyFilter->local_fds,nfds+_polyFilter->usepcap,-1);
 	if (ret <0){
 		perror("poll");
@@ -586,13 +642,11 @@ void POFR_Run() {
         sa.sa_sigaction = (void *)__POFR_StatisticsSignalHandler;
         sa.sa_flags = SA_RESTART;
 
-        fprintf(stdout,"%s running on %s machine %s\n",POLYVACCINE_FILTER_ENGINE_NAME,
-		SYIN_GetOSName(),SYIN_GetMachineName());
-        fprintf(stdout,"\tversion %s\n",SYIN_GetVersionName());
-	fprintf(stdout,"\tActive mode '%s'\n",polyfilter_modes_str[_polyFilter->mode]);
-	FORD_ShowAnalyzers(_polyFilter->forwarder);
+	__POFR_ShowStartBanner();
 
         gettimeofday(&lasttimeouttime,NULL);
+	_polyFilter->starttime.tv_sec = lasttimeouttime.tv_sec;
+	_polyFilter->starttime.tv_usec = lasttimeouttime.tv_usec;
 	update_timers = 1;
 	while (TRUE) {
                 nfds = 0;

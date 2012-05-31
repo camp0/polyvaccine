@@ -94,4 +94,12 @@ void DSAZ_AddMaxRequestPerMinuteDelta(int delta,int requests);
 void DSAZ_AddMaxFlowsPerMinuteDelta(int delta,int flows);
 void DSAZ_AddMaxRequestPerMinuteFull(int requests);
 void DSAZ_AddMaxFlowsPerMinuteFull(int flows);
+
+int32_t DSAZ_GetGraphCacheLinks(void);
+int32_t DSAZ_GetGraphCacheLinkHits(void);
+int32_t DSAZ_GetGraphCacheLinkFails(void);
+int32_t DSAZ_GetPathCachePaths(void);
+int32_t DSAZ_GetPathCachePathHits(void);
+int32_t DSAZ_GetPathCachePathFails(void);
+
 #endif

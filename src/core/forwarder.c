@@ -49,11 +49,12 @@ ST_Forwarder *FORD_Init(){
  */
 void FORD_InitAnalyzers(ST_Forwarder *fw){
 	GHashTableIter iter;
+	ST_GenericAnalyzer *ga;
 	gpointer k,v;
 
 	g_hash_table_iter_init (&iter, fw->analyzers);
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
-		ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
+		ga = (ST_GenericAnalyzer*)v;
 		ga->init();
 	}
 	return;
@@ -65,17 +66,18 @@ void FORD_InitAnalyzers(ST_Forwarder *fw){
  * @param ST_Forwarder
  */
 void FORD_ShowAnalyzers(ST_Forwarder *fw){
+        ST_GenericAnalyzer *ga;
         GHashTableIter iter;
         gpointer k,v;
 
         g_hash_table_iter_init (&iter, fw->tcp_analyzers);
         while (g_hash_table_iter_next (&iter, &k, &v)) {
-                ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
+                ga = (ST_GenericAnalyzer*)v;
                 fprintf(stdout,"\tTCP %s on port %d\n",ga->name,ga->port);
         }
         g_hash_table_iter_init (&iter, fw->udp_analyzers);
         while (g_hash_table_iter_next (&iter, &k, &v)) {
-                ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
+                ga = (ST_GenericAnalyzer*)v;
                 fprintf(stdout,"\tUDP %s on port %d\n",ga->name,ga->port);
         }
         return;
@@ -88,17 +90,18 @@ void FORD_ShowAnalyzers(ST_Forwarder *fw){
  * @param ST_Forwarder
  */
 void FORD_Stats(ST_Forwarder *fw,FILE *out){
+        ST_GenericAnalyzer *ga;
         GHashTableIter iter;
         gpointer k,v;
 
         g_hash_table_iter_init (&iter, fw->tcp_analyzers);
         while (g_hash_table_iter_next (&iter, &k, &v)) {
-                ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
+                ga = (ST_GenericAnalyzer*)v;
                 ga->stats(out);
         }
         g_hash_table_iter_init (&iter, fw->udp_analyzers);
         while (g_hash_table_iter_next (&iter, &k, &v)) {
-                ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
+                ga = (ST_GenericAnalyzer*)v;
                 ga->stats(out);
         }
         return;
@@ -167,31 +170,37 @@ void FORD_EnableAnalyzerByName(ST_Forwarder *fw, char *name){
 
 void FORD_Destroy(ST_Forwarder *fw){
 	GHashTableIter iter;
+	ST_GenericAnalyzer *ga;
 	gpointer k,v;
 
 	g_hash_table_iter_init (&iter, fw->tcp_analyzers);
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
-		ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
+		ga = (ST_GenericAnalyzer*)v;
 		ga->destroy();
 		g_free(ga);
+		ga = NULL;
 	}
 	g_hash_table_iter_init (&iter, fw->udp_analyzers);
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
-		ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
+		ga = (ST_GenericAnalyzer*)v;
 		ga->destroy();
 		g_free(ga);
+		ga = NULL;
 	}
 
 	g_hash_table_iter_init (&iter, fw->analyzers);
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
-		ST_GenericAnalyzer *ga = (ST_GenericAnalyzer*)v;
+		ga = (ST_GenericAnalyzer*)v;
+
 		ga->destroy();
 		g_free(ga);
+		ga = NULL;
 	} 
 	g_hash_table_destroy(fw->tcp_analyzers);
 	g_hash_table_destroy(fw->udp_analyzers);
 	g_hash_table_destroy(fw->analyzers);
-	g_free(fw);	
+	g_free(fw);
+	fw = NULL;	
 	return;
 }
 

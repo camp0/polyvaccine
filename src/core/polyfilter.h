@@ -88,6 +88,9 @@ struct ST_PolyFilter {
         DBusWatch *local_watches[MAX_WATCHES];
         struct pollfd local_fds[MAX_WATCHES];
 	int usepcap;
+	/* time statistics */
+	struct timeval starttime;
+	struct timeval endtime;	
 };
 
 typedef struct ST_PolyFilter ST_PolyFilter;

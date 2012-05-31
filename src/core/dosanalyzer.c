@@ -372,8 +372,7 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
 		// Updates the graphcache
 		costvalue = 0;
 		if(f->lasturi == NULL){
-			GACH_AddBaseLink(_dos.graphcache,uri);
-			link = GACH_GetBaseLink(_dos.graphcache,uri);
+			link = GACH_AddBaseLink(_dos.graphcache,uri);
 			f->lasturi = link->uri->str;
 			uri_id = link->id_uri;
 		}else{
@@ -472,3 +471,11 @@ void DSAZ_AddMaxFlowsPerMinuteFull(int flows){
 
 	return;
 }
+
+int32_t DSAZ_GetGraphCacheLinks(void) { return _dos.graphcache->total_links;}
+int32_t DSAZ_GetGraphCacheLinkHits(void) { return _dos.graphcache->total_hits;}
+int32_t DSAZ_GetGraphCacheLinkFails(void) { return _dos.graphcache->total_fails;}
+int32_t DSAZ_GetPathCachePaths(void) { return _dos.pathcache->total_paths;}
+int32_t DSAZ_GetPathCachePathHits(void){ return _dos.pathcache->total_hits;}
+int32_t DSAZ_GetPathCachePathFails(void){ return _dos.pathcache->total_fails;}
+
