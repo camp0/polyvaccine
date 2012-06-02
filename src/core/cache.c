@@ -39,6 +39,7 @@ ST_Cache *CACH_Init(){
 	c->header_fails = 0;
 	c->parameter_hits = 0;
 	c->parameter_fails = 0;
+	c->memorysize = 0;
         c->header_suspicious_opcodes = 0;
         c->parameter_suspicious_opcodes = 0;
 
@@ -74,6 +75,7 @@ void CACH_AddHeaderToCache(ST_Cache *c,char *value,int type) {
 	nod->type = type;
 	nod->matchs = 0;
 
+	c->memorysize += strlen(value);
 	g_hash_table_insert(c->header_cache,g_strdup(value),nod);
 }
 
@@ -89,6 +91,7 @@ void CACH_AddParameterToCache(ST_Cache *c,char *value,int type) {
         nod->type = type;
         nod->matchs = 0;
 
+	c->memorysize += strlen(value);
         g_hash_table_insert(c->parameter_cache,g_strdup(value),nod);
 }
 
@@ -136,13 +139,25 @@ ST_CacheNode *CACH_GetParameterFromCache(ST_Cache *c,char *value) {
  * CACH_Stats - Shows the statistcis of a ST_Cache 
  * 
  * @param c The cache
+ * @param level of messages
  * 
  */
-void CACH_Stats(ST_Cache *c) {
+void CACH_Stats(ST_Cache *c,int level) {
 	GHashTableIter iter;
 	gpointer k,v;
 	int h_effectiveness;
 	int p_effectiveness;
+	int32_t value = c->memorysize;
+	char *unit = "Bytes";
+
+        if((value / 1024)>0){
+                unit = "KBytes";
+                value = value / 1024;
+        }
+        if((value / 1024)>0){
+                unit = "MBytes";
+                value = value / 1024;
+        }
 
 	h_effectiveness = 0;
 	p_effectiveness = 0;
@@ -153,25 +168,28 @@ void CACH_Stats(ST_Cache *c) {
 		p_effectiveness = (c->parameter_hits*100)/(c->parameter_hits+c->parameter_fails);
 	}	
 	fprintf(stdout,"Cache(0x%x) statistics\n",c);
+	fprintf(stdout,"\tallocated memory:%d %s\n",value,unit);
 	fprintf(stdout,"\tHeader hits = %d\n\tHeader fails = %d\n",c->header_hits,c->header_fails);
 	fprintf(stdout,"\tHeader effectiveness = %d\%\n",h_effectiveness);
 	fprintf(stdout,"\tParameter hits = %d\n\tParameter fails = %d\n",c->parameter_hits,c->parameter_fails);
 	fprintf(stdout,"\tParameter effectiveness = %d\%\n",p_effectiveness);
 	fprintf(stdout,"\tSuspicious Headers = %d\n\tSuspicious parameters = %d\n",
 		c->header_suspicious_opcodes,c->parameter_suspicious_opcodes);
-	fprintf(stdout,"\tCache Headers\n");
-	g_hash_table_iter_init (&iter, c->header_cache);
-	while (g_hash_table_iter_next (&iter, &k, &v)) {
-		ST_CacheNode *nod = (ST_CacheNode*)v;
-		fprintf(stdout,"\t\tHeader(%s)matchs(%d)\n",(gchar*)k,nod->matchs);	
-	}
-	fprintf(stdout,"\tCache Parameters\n");
-	g_hash_table_iter_init (&iter, c->parameter_cache);
-	while (g_hash_table_iter_next (&iter, &k, &v)) {
-		ST_CacheNode *nod = (ST_CacheNode*)v;
-		fprintf(stdout,"\t\tParameter(%s)matchs(%d)\n",(gchar*)k,nod->matchs);	
-	}
 
+	if(level >1){
+		fprintf(stdout,"\tCache Headers\n");
+		g_hash_table_iter_init (&iter, c->header_cache);
+		while (g_hash_table_iter_next (&iter, &k, &v)) {
+			ST_CacheNode *nod = (ST_CacheNode*)v;
+			fprintf(stdout,"\t\tHeader(%s)matchs(%d)\n",(gchar*)k,nod->matchs);	
+		}
+		fprintf(stdout,"\tCache Parameters\n");
+		g_hash_table_iter_init (&iter, c->parameter_cache);
+		while (g_hash_table_iter_next (&iter, &k, &v)) {
+			ST_CacheNode *nod = (ST_CacheNode*)v;
+			fprintf(stdout,"\t\tParameter(%s)matchs(%d)\n",(gchar*)k,nod->matchs);	
+		}
+	}
 	return;
 }
 

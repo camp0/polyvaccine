@@ -102,4 +102,5 @@ int32_t DSAZ_GetPathCachePaths(void);
 int32_t DSAZ_GetPathCachePathHits(void);
 int32_t DSAZ_GetPathCachePathFails(void);
 
+int32_t DSAZ_GetCacheMemorySize(void);
 #endif

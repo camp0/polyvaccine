@@ -60,4 +60,5 @@ ST_User *USER_Init(){
 void USER_Destroy(ST_User *user){
 	g_free(user);
 	user = NULL;
+	return;
 }

@@ -77,7 +77,8 @@ void USPO_Stats(ST_UserPool *p,FILE *out){
  * @param p the ST_UserPool to free
  */
 void USPO_Destroy(ST_UserPool *p){
-	USPO_DecrementFlowPool(p,POOL_GetNumberItems(p->pool));
+
+	USPO_DecrementUserPool(p,POOL_GetNumberItems(p->pool));
 	POOL_Destroy(p->pool);
 	g_free(p);
 	p = NULL;
@@ -116,7 +117,7 @@ int USPO_IncrementUserPool(ST_UserPool *p,int value){
  * @param value the number of new ST_User to free 
  */
 
-int USPO_DecrementFlowPool(ST_UserPool *p,int value) {
+int USPO_DecrementUserPool(ST_UserPool *p,int value) {
 	ST_User *user;
 	int i,r;
 

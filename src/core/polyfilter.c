@@ -61,10 +61,22 @@ void __POFR_ShowStartBanner(){
 void __POFR_ShowEndBanner() {
         int32_t fullmemory;
         char *unit = "Bytes";
+	struct tm tmaux;
+	struct timeval duration;
+	struct timeval *usertime = NULL; 
+	struct timeval *systime = NULL;
+	long ressize = 0;
+	long shmsize = 0;
+	long datsize = 0;
+	long stksize = 0;
+        char asc_duration[90],asc_usertime[90],asc_systime[90];
 
         fullmemory = MAX_FLOWS_PER_POOL * sizeof(ST_GenericFlow);
         fullmemory += MAX_MEMORY_SEGMENTS_PER_POOL * (sizeof(ST_MemorySegment)+MAX_SEGMENT_SIZE);
         fullmemory += MAX_USERS_PER_POOL * sizeof(ST_User);
+	/* the caches comsumption */
+	fullmemory += HTAZ_GetCacheMemorySize();
+	fullmemory += DSAZ_GetCacheMemorySize();
 
         if((fullmemory / 1024)>0){
                 unit = "KBytes";
@@ -79,10 +91,33 @@ void __POFR_ShowEndBanner() {
                 fullmemory = fullmemory / 1024;
         }
 
-        fprintf(stdout,"%s exiting\n",POLYVACCINE_FILTER_ENGINE_NAME);
+	SYIN_TimevalSub(&duration,&(_polyFilter->endtime),&(_polyFilter->starttime));
+   
+	SYIN_Update();
+	usertime = SYIN_GetUserTimeUsed();
+	systime = SYIN_GetSystemTimeUsed();
+	ressize = SYIN_GetMaximumResidentSetSize();
+	shmsize = SYIN_GetIntegralSharedMemorySize();
+	datsize = SYIN_GetIntegralUnsharedDataSize();
+	stksize = SYIN_GetIntegralUnsharedStackSize();
+
+	/* convert it to a struct tm */
+   	localtime_r(&duration.tv_sec,&tmaux);
+	strftime(asc_duration,90,"%H:%M:%S",&tmaux);
+
+   	localtime_r(&(usertime->tv_sec),&tmaux);
+	strftime(asc_usertime,90,"%H:%M:%S",&tmaux);
+
+   	localtime_r(&(systime->tv_sec),&tmaux);
+	strftime(asc_systime,90,"%H:%M:%S",&tmaux);
+
+        fprintf(stdout,"%s exiting, duration %s\n",POLYVACCINE_FILTER_ENGINE_NAME,asc_duration);
         fprintf(stdout,"\tProcess flows %ld\n",_polyFilter->flowpool->pool->total_acquires);
         fprintf(stdout,"\tProcess users %ld\n",_polyFilter->userpool->pool->total_acquires);
-        fprintf(stdout,"\tMemory used %ld %s\n",fullmemory,unit);
+        fprintf(stdout,"\tMemory used %ld %s [",fullmemory,unit);
+	fprintf(stdout,"resident %ld, shared %ld,",ressize,shmsize);
+	fprintf(stdout,"data %ld, stack %ld]\n",datsize,stksize);
+	fprintf(stdout,"\tUser time %s, Sys time %s\n",asc_usertime,asc_systime);
         return;
 }
 

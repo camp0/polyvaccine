@@ -46,4 +46,6 @@ long SYIN_GetIntegralSharedMemorySize(void);
 long SYIN_GetIntegralUnsharedDataSize(void);
 long SYIN_GetIntegralUnsharedStackSize(void);
 
+void SYIN_TimevalSub(struct timeval *r, struct timeval *a, struct timeval *b);
+void SYIN_TimevalAdd(struct timeval *r, struct timeval *a, struct timeval *b);
 #endif

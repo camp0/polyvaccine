@@ -358,10 +358,104 @@ class Test_02(unittest.TestCase):
 			p.MEPO_AddMemorySegment(self.mp,memory)
 			p.FLPO_AddFlow(self.fp,flow)	
 
-				
+class Test_03(unittest.TestCase):
+
+        def setUp(self):
+                self.u = p.USPO_Init()
+
+        def tearDown(self):
+                p.USPO_Destroy(self.u)
+
+        def test_03_1(self):
+                "Testing remove 1000 users from pool"
+		l = list()
+
+		value = p.USPO_GetNumberUsers(self.u)
+		for i in xrange(0,1000):
+               		l.append(p.USPO_GetUser(self.u))
+
+		self.assertEqual(p.USPO_GetNumberUsers(self.u),value-1000)
+
+		for i in xrange(0,1000):
+			u = l.pop(0)
+			p.USER_Destroy(u)
+
+		self.assertEqual(len(l),0)
+	
+	def test_03_2(self):
+                "Testing remove all users from pool"
+		u = p.USPO_Init()
+
+		value = p.USPO_GetNumberUsers(u)
+		p.USPO_DecrementUserPool(u,value+100)
+
+		self.assertEqual(0, p.USPO_GetNumberUsers(u))
+		user = p.USPO_GetUser(u)
+		self.assertEqual(user,None)
+
+		p.USPO_Destroy(u)	
+			
+        def test_03_3(self):
+                "Testing remove all users from pool and add some users"
+                u = p.USPO_Init()
+
+                value = p.USPO_GetNumberUsers(u)
+                p.USPO_DecrementUserPool(u,value+100)
+
+                self.assertEqual(0, p.USPO_GetNumberUsers(u))
+                user = p.USPO_GetUser(u)
+                self.assertEqual(user,None)
+
+		for i in xrange(0,100):
+			user = p.USER_Init()
+			p.USPO_AddUser(u,user)
+
+                self.assertEqual(100, p.USPO_GetNumberUsers(u))
+
+		for i in xrange(0,10):
+			user = p.USPO_GetUser(u)
+			p.USER_Destroy(user)
+
+		self.assertEqual(90,p.USPO_GetNumberUsers(u))
+
+                p.USPO_Destroy(u)
+
+        def test_03_4(self):
+                "Testing remove all users from pool and add 200.000 users" 
+		limit = 20
+                u = p.USPO_Init()
+
+                value = p.USPO_GetNumberUsers(u)
+                p.USPO_DecrementUserPool(u,value+100)
+
+                self.assertEqual(0, p.USPO_GetNumberUsers(u))
+                user = p.USPO_GetUser(u)
+                self.assertEqual(user,None)
+
+                for i in xrange(0,limit):
+                        user = p.USER_Init()
+			user.acumulated_cost = i
+                        p.USPO_AddUser(u,user)
+
+                self.assertEqual(limit, p.USPO_GetNumberUsers(u))
+		l = list()
+		for i in xrange(0,p.USPO_GetNumberUsers(u)):
+			user = p.USPO_GetUser(u)
+			self.assertEqual(user.acumulated_cost, 0)
+			l.append(user)
+
+                self.assertEqual(0,p.USPO_GetNumberUsers(u))
+
+		p.USPO_DecrementUserPool(u,limit)
+                self.assertEqual(0,p.USPO_GetNumberUsers(u))
+
+                p.USPO_Destroy(u)
+
+	
 if __name__ == '__main__':
 	print "Testing polyfilter flowpools and memorypools"
 	suite=unittest.TestSuite()
+    	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_03))
     	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_02))
     	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(Test_01))
 #	unittest.main()

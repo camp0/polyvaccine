@@ -44,3 +44,44 @@ long SYIN_GetIntegralSharedMemorySize() { return usage_info.ru_ixrss;}
 long SYIN_GetIntegralUnsharedDataSize() { return usage_info.ru_idrss; }
 long SYIN_GetIntegralUnsharedStackSize() { return usage_info.ru_isrss; }
 
+/**
+ * SYIN_TimevalSub - make the diferente between a and b ( r = a - b)
+ *
+ * @param a The timeval struct
+ * @param b The timeval struct
+ *
+ * @param r Returns the diference between a and b
+ *
+ */
+void SYIN_TimevalSub(struct timeval *r, struct timeval *a, struct timeval *b)
+{
+        if (a->tv_usec < b->tv_usec) {
+                r->tv_usec = (a->tv_usec + 1000000) - b->tv_usec;
+                r->tv_sec = a->tv_sec - b->tv_sec - 1;
+        } else {
+                r->tv_usec = a->tv_usec - b->tv_usec;
+                r->tv_sec = a->tv_sec - b->tv_sec;
+        }
+}
+
+/**
+ * SYIN_TimevalAdd - make the sum of a and b ( r = a + b)
+ *
+ * @param a The timeval struct
+ * @param b The timeval struct
+ *
+ * @param r Returns the diference between a and b
+ *
+ */
+
+void SYIN_TimevalAdd(struct timeval *r, struct timeval *a, struct timeval *b)
+{
+        r->tv_usec = a->tv_usec + b->tv_usec;
+        if (r->tv_usec > 1000000) {
+                r->tv_sec = a->tv_sec + b->tv_sec + 1;
+                r->tv_usec -= 1000000;
+        } else {
+                r->tv_sec = a->tv_sec + b->tv_sec;
+        }
+}
+

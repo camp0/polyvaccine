@@ -54,14 +54,12 @@ void POOL_Destroy(ST_Pool *p){
         for (i = 0;i<POOL_GetNumberItems(p);i++){
                 item = g_slist_nth(p->items,0);
                 if (item != NULL) {
-                        //p->items = g_slist_delete_link(p->items,item);
                         p->items = g_slist_remove_link(p->items,item);
                         g_free(item->data);
 			g_slist_free_1(item);
 			item = NULL;
                 }
         }
-
 	g_slist_free(p->items);
 	g_free(p);
 	p = NULL;
@@ -81,7 +79,6 @@ int POOL_GetNumberItems(ST_Pool *p){
 
 void POOL_AddItem(ST_Pool *p,void *item){
 	if(item != NULL){ 
-        	//GEFW_Reset(flow);
         	p->total_releases++;
         	p->items = g_slist_prepend(p->items,item);
 	}
@@ -104,7 +101,6 @@ void *POOL_GetItem(ST_Pool *p){
                	p->items = g_slist_remove_link(p->items,item);
                 p->total_acquires++;
 		value = item->data;
-		g_slist_free_1(item);
                 return value;
         }
         p->total_errors++;

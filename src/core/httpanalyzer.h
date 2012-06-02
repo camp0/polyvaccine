@@ -100,6 +100,7 @@ int32_t HTAZ_GetHeaderHits(void);
 int32_t HTAZ_GetHeaderFails(void);
 int32_t HTAZ_GetParameterHits(void);
 int32_t HTAZ_GetParameterFails(void);
+int32_t HTAZ_GetCacheMemorySize(void);
 
 
 #endif

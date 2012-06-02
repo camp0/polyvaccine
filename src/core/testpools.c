@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <assert.h>
 #include "flowpool.h"
+#include "userpool.h"
+#include "user.h"
 #include "pool.h"
 
 struct testmatrix{
@@ -57,10 +59,46 @@ void test01(void){
 	return;
 }
 
+void test04(void){
+	ST_UserPool *upool = NULL;
+	ST_User *user1,*user2;
+
+	upool = USPO_Init();
+
+	user1 = USPO_GetUser(upool);
+	USPO_AddUser(upool,user1);
+	user2 = USPO_GetUser(upool);
+
+	assert ( user1 == user2);
+	
+	USPO_Destroy(upool);
+	return;
+}	
+
+void test05(void){
+        ST_UserPool *upool = NULL;
+        ST_User *user;
+	register int i;
+
+        upool = USPO_Init();
+
+	USPO_DecrementUserPool(upool,10000000);
+        user = USPO_GetUser(upool);
+	assert( user == NULL);
+	
+	USPO_IncrementUserPool(upool,10000000);
+
+        USPO_Destroy(upool);
+        return;
+}
+
+
 static testmatrix tests[] = {
 	{ .desc = "test 01", .function = test01 },
 	{ .desc = "test 02", .function = test02 },
 	{ .desc = "test 03", .function = test03 },
+	{ .desc = "test 04 user pools", .function = test04 },
+	{ .desc = "test 05 user pools", .function = test05 },
 	{}
 };	
 

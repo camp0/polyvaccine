@@ -126,7 +126,7 @@ void *HTAZ_Stats(void) {
 	fprintf(stdout,"\ttotal invalid decodes %ld\n",_http.total_http_invalid_decode);
 
 	if(_http.statistics_level > 0) 	
-		CACH_Stats(_http.httpcache);
+		CACH_Stats(_http.httpcache,_http.statistics_level);
 	if(_http.statistics_level > 1 ) {
 		fprintf(stdout,"\tHeaders:\n");
 
@@ -558,3 +558,4 @@ int32_t HTAZ_GetHeaderFails() { return _http.httpcache->header_fails;}
 int32_t HTAZ_GetParameterHits() { return _http.httpcache->parameter_hits;}
 int32_t HTAZ_GetParameterFails() { return _http.httpcache->parameter_fails;}
 
+int32_t HTAZ_GetCacheMemorySize() { return _http.httpcache->memorysize;}

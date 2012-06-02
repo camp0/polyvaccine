@@ -14,3 +14,5 @@
 - Reallocate segments bigger than a value, in order to avoid leaks on the memorypool, for example multiple POSTS operations.
 - Add functions to pass the statistics model to the ddos analyzer.
 - The methods and properties from the analizers should only be visible when the analyzer is enabled.
+- Send a signal when a user reach the limits.
+- Print out the size of the caches on bytes, megabytes, etc.....

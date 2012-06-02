@@ -138,7 +138,7 @@ void *SPAZ_Stats() {
 		i++;
 		f = &ST_SIPFields[i];
 	}	
-	CACH_Stats(_sip.sipcache);
+	CACH_Stats(_sip.sipcache,1);
 	return;
 }
 

@@ -478,4 +478,4 @@ int32_t DSAZ_GetGraphCacheLinkFails(void) { return _dos.graphcache->total_fails;
 int32_t DSAZ_GetPathCachePaths(void) { return _dos.pathcache->total_paths;}
 int32_t DSAZ_GetPathCachePathHits(void){ return _dos.pathcache->total_hits;}
 int32_t DSAZ_GetPathCachePathFails(void){ return _dos.pathcache->total_fails;}
-
+int32_t DSAZ_GetCacheMemorySize() { return _dos.graphcache->size_memory + _dos.pathcache->size_memory;}

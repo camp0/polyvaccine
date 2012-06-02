@@ -60,6 +60,7 @@ struct ST_Cache {
 	/* Parameters related to opcodes */
 	int32_t header_suspicious_opcodes;
 	int32_t parameter_suspicious_opcodes;
+	int32_t memorysize;
 };
 
 typedef struct ST_Cache ST_Cache;
@@ -70,7 +71,7 @@ void CACH_AddHeaderToCache(ST_Cache *c,char *value,int type);
 void CACH_AddParameterToCache(ST_Cache *c,char *value,int type);
 ST_CacheNode *CACH_GetHeaderFromCache(ST_Cache *c,char *value);
 ST_CacheNode *CACH_GetParameterFromCache(ST_Cache *c,char *value);
-void CACH_Stats(ST_Cache *c);
+void CACH_Stats(ST_Cache *c,int level);
 
 int32_t CACH_GetNumberHeaders(ST_Cache *c);
 int32_t CACH_GetNumberParameters(ST_Cache *c);
