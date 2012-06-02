@@ -298,6 +298,7 @@ class Test_02(unittest.TestCase):
 		p.MEPO_Destroy(self.mp)
 
 	def test_02_1(self):
+		"Testing flow and memory segments I"
 		flow = p.FLPO_GetFlow(self.fp)
 		memory = p.MESG_InitWithSize(5) 
 		#memory = p.MEPO_GetMemorySegment(self.mp)
@@ -325,6 +326,7 @@ class Test_02(unittest.TestCase):
                 self.assertEqual(memory.real_size ,size * 2)
 	
 	def test_02_2(self):
+		"Testing flow and memory segments II"
 		l = list()
 
 		for i in xrange(1,40):
@@ -450,6 +452,63 @@ class Test_03(unittest.TestCase):
                 self.assertEqual(0,p.USPO_GetNumberUsers(u))
 
                 p.USPO_Destroy(u)
+
+        def test_03_4(self):
+                "Testing remove users from pool and add to the usertable"
+                u = p.USPO_Init()
+		t = p.USTA_Init()
+
+		p.USTA_SetUserPool(t,u)
+		value1 = p.USPO_GetNumberUsers(u)
+		for i in xrange(0,250):
+			user = p.USPO_GetUser(u)
+			user.ip = i
+			#user.ip = ctypes.u_int32_t(i)
+			p.USTA_InsertUser(t,user)
+
+		self.assertEqual(t.current_users,250)
+
+		p.USTA_ReleaseUsers(t)
+		value2 = p.USPO_GetNumberUsers(u)
+		self.assertEqual(t.current_users,0)
+		self.assertEqual(value1,value2)	
+		p.USTA_Destroy(t)
+                p.USPO_Destroy(u)
+
+        def test_03_4(self):
+                "Testing move users on one usertable and two userpools"
+                u1 = p.USPO_Init()
+                u2 = p.USPO_Init()
+                t = p.USTA_Init()
+
+                value = p.USPO_GetNumberUsers(u2)
+		p.USPO_DecrementUserPool(u2,value)
+
+		self.assertEqual(p.USPO_GetNumberUsers(u2),0)
+
+                value = p.USPO_GetNumberUsers(u1)
+                for i in xrange(0,value):
+                        user = p.USPO_GetUser(u1)
+                        user.ip = i
+                        p.USTA_InsertUser(t,user)
+
+		self.assertEqual(p.USPO_GetNumberUsers(u1),0)
+		self.assertEqual(p.USPO_GetNumberUsers(u2),0)
+
+                p.USTA_SetUserPool(t,u2)
+                self.assertEqual(t.current_users,value)
+
+                p.USTA_ReleaseUsers(t)
+
+		self.assertEqual(0,p.USPO_GetNumberUsers(u1))
+		self.assertEqual(value,p.USPO_GetNumberUsers(u2))
+
+                self.assertEqual(t.current_users,0)
+                
+                p.USTA_Destroy(t)
+                p.USPO_Destroy(u1)
+                p.USPO_Destroy(u2)
+
 
 	
 if __name__ == '__main__':

@@ -26,7 +26,7 @@ setup (name = 'polyfilter',
        version = '0.1',
        author      = "Luis Campo Giralte",
        author_email = "luis.camp0.2009@gmail.com",
-       description = "Simple wrapper for the filter engine",
+       description = "Simple wrapper for the tests of the filter engine",
        ext_modules = [polyfilter_module],
        py_modules = ["polyfilter"],
        )

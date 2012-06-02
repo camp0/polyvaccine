@@ -15,4 +15,5 @@
 - Add functions to pass the statistics model to the ddos analyzer.
 - The methods and properties from the analizers should only be visible when the analyzer is enabled.
 - Send a signal when a user reach the limits.
-- Print out the size of the caches on bytes, megabytes, etc.....
+- Print out the size of the caches on bytes, megabytes, etc....(Done).
+- Use a parameter for limit the number of users created -U 1000.
