@@ -34,7 +34,8 @@
 #include <glib.h>
 #include "debug.h"
 
-#define SAMPLE_TIME 24 * 60
+#define SAMPLE_TIME (24 * 60)
+//#define SAMPLE_TIME 24
 
 struct ST_User{
 	u_int32_t ip;
@@ -61,7 +62,7 @@ struct ST_User{
 	
 	struct timeval arrive_time;
 	struct timeval current_time;
-};
+} __attribute__((packed));
 
 typedef struct ST_User ST_User;
 

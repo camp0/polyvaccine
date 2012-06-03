@@ -308,13 +308,13 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 				if(user->statistics_reach == 0){
 					_dos.users_statistics_reach++;
                         		LOG(POLYLOG_PRIORITY_INFO,
-                                		"User(0x%x)flow(0x%x) reach request(%d) per minute(%d)",
-                                		user,f,_dos.max_request_per_user[idx],idx);
+                                		"User(0x%x)flow(0x%x)idx(%d) reach request(%d)",
+                                		user,f,idx,_dos.max_request_per_user[idx]);
 				}
 				user->statistics_reach++;
 			}
                         t = localtime(&(f->current_time.tv_sec));
-                        _dos.statistics_index = ((t->tm_hour+1) * 60)+ t->tm_min;
+                        idx = _dos.statistics_index = ((t->tm_hour) * 60)+ t->tm_min;
                         _dos.prev_sample.tv_sec = f->current_time.tv_sec;
                         _dos.prev_sample.tv_usec = f->current_time.tv_usec;
 		} 
@@ -422,10 +422,10 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
                         struct tm *t;
 
                         LOG(POLYLOG_PRIORITY_INFO,
-                                "DDoS updating request/min(%d) flows/min(%d)",_dos.current_requests[idx],
-				_dos.current_flows[idx]);
+                                "DDoS updating request/min(%d) flows/min(%d) idx(%d)",_dos.current_requests[idx],
+				_dos.current_flows[idx],idx);
                         t = localtime(&(f->current_time.tv_sec));
-                        _dos.statistics_index = ((t->tm_hour+1) * 60)+ t->tm_min;
+                        _dos.statistics_index = ((t->tm_hour) * 60)+ t->tm_min;
                         _dos.prev_sample.tv_sec = f->current_time.tv_sec;
                         _dos.prev_sample.tv_usec = f->current_time.tv_usec;
                 }
