@@ -49,6 +49,7 @@ fi
 
 dnl Checks for libraries
 AC_PYTHON_MODULE(unittest)
+AC_PYTHON_MODULE(GeoIP)
 
 AX_PYTHON
 

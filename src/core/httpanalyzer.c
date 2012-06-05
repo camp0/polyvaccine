@@ -481,6 +481,66 @@ void *HTAZ_AnalyzeDummyHTTPRequest(ST_User *user, ST_GenericFlow *f){
 	return;
 }
 
+/**
+ * HTAZ_NotifyCorrect - The segment is correct so notify to the protection engine.
+ *
+ * @param bus
+ * @param user
+ * @param f
+ * @param hash
+ * @param seq
+ * 
+ */
+void *HTAZ_NotifyCorrect(DBusConnection *bus,ST_User *user,ST_GenericFlow *f,unsigned long hash,u_int32_t seq){
+
+	if(bus == NULL) {
+		LOG(POLYLOG_PRIORITY_ALERT,
+			"Cannot send vereridct segment over dbus, no connection available");
+		return;
+	}
+	PODS_SendVerifiedSegment(bus,
+		POLYVACCINE_PROTECTOR_OBJECT,
+		POLYVACCINE_PROTECTOR_INTERFACE,
+		"Veredict",
+		seq,hash,TRUE);
+	return;
+}
+
+/**
+ * HTAZ_NotifyWrong - The segment is wrong so notify to the detection engine to analyze.
+ *
+ * @param bus
+ * @param user
+ * @param f
+ * @param hash
+ * @param seq
+ * 
+ */
+void *HTAZ_NotifyWrong(DBusConnection *bus,ST_User *user,ST_GenericFlow *f,unsigned long hash,u_int32_t seq){
+	ST_MemorySegment *seg = NULL;
+	ST_TrustOffsets *t_off = NULL;
+	
+	if(bus == NULL) {
+		LOG(POLYLOG_PRIORITY_ALERT,
+			"Cannot send suspicious segment over dbus, no connection available");
+		return;
+	}
+	seg = f->memory;
+	t_off = HTAZ_GetTrustOffsets();
+	PODS_SendSuspiciousSegment(bus,
+		POLYVACCINE_DETECTION_OBJECT,
+		POLYVACCINE_DETECTION_INTERFACE,
+		"Analyze",
+		seg->mem,
+		seg->virtual_size,
+		TROF_GetStartOffsets(t_off),
+		TROF_GetEndOffsets(t_off),
+		hash,seq);
+	return;
+}
+
+
+
 /* Service functions */
 void HTAZ_SetStatisticsLevel(int level){
 

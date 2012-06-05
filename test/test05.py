@@ -31,7 +31,7 @@ class Test_01(unittest.TestCase):
 		g = pv.GACH_AddBaseLink(self.c,uri_1)
 		n = pv.GACH_AddGraphNodeFromLink(self.c,g,uri_1,10)
 	
-		#debug(self.c)
+		#debug(self.c,3)
 		self.assertEqual(self.c.total_links,1)
 		self.assertEqual(self.c.total_nodes,1)
 		self.assertEqual(self.c.total_fails,0)
@@ -54,6 +54,7 @@ class Test_01(unittest.TestCase):
 		self.assertEqual(self.c.total_hits,0)
 		self.assertEqual(self.c.total_fails,1)
 		self.assertEqual(cost,-1)	
+		#debug(self.c,3)
 
 	def test_01_3(self):
 		"Test 4 consecutive URIs"
@@ -72,7 +73,7 @@ class Test_01(unittest.TestCase):
                 g = pv.GACH_AddBaseLink(self.c,uri_3)
                 n = pv.GACH_AddGraphNodeFromLink(self.c,g,uri_4,100000)
 
-		#debug(self.c,2)	
+		#debug(self.c,3)	
                 self.assertEqual(self.c.total_links,3)
                 self.assertEqual(self.c.total_nodes,4)
                 self.assertEqual(self.c.total_fails,0)
@@ -133,7 +134,7 @@ class Test_01(unittest.TestCase):
 
                 self.assertEqual(self.c.total_links,5)
                 self.assertEqual(self.c.total_nodes,6)
-		#debug(self.c,2)
+		debug(self.c,3)
 	
 class Test_02(unittest.TestCase):
 
@@ -145,7 +146,7 @@ class Test_02(unittest.TestCase):
                 pv.GACH_Destroy(self.c)
 		pv.FLPO_Destroy(self.f)
 
-        def test_02_5(self):
+        def test_02_1(self):
                 "Test one flow whit several URIs"
                 uri_1= "GET index.php HTTP1"
                 uri_2= "GET /imagenes/elfary.jpg HTTP1"
@@ -166,6 +167,34 @@ class Test_02(unittest.TestCase):
                 self.assertEqual(self.c.total_links,1)
                 self.assertEqual(self.c.total_nodes,2)
                 #debug(self.c,2)
+
+	def test_02_2(self):
+		"Test several URIs on a circle graph"
+		uris = list()
+              	uris.append("GET index1.php HTTP1")
+              	uris.append("GET index2.php HTTP1")
+              	uris.append("GET index3.php HTTP1")
+              	uris.append("GET index4.php HTTP1")
+              	uris.append("GET index5.php HTTP1")
+              	uris.append("GET index6.php HTTP1")
+
+		i = 10
+		flow = pv.FLPO_GetFlow(self.f)
+		self.assertNotEqual(flow,None)
+		for idx in xrange(0,len(uris)-1):
+			flow.lasturi = uris[idx]
+			g = pv.GACH_AddBaseLink(self.c,uris[idx])
+                	n = pv.GACH_AddGraphNodeFromLink(self.c,g,uris[idx+1],i)
+			i = i * 2
+
+		g = pv.GACH_GetBaseLink(self.c,uris[idx+1])
+               	n = pv.GACH_AddGraphNodeFromLink(self.c,g,uris[0],0)
+		pv.FLPO_AddFlow(self.f,flow)
+
+                #debug(self.c,3)
+                self.assertEqual(self.c.total_links,6)
+                self.assertEqual(self.c.total_nodes,6)
+                #debug(self.c,3)
 
 
 	

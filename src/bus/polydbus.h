@@ -84,4 +84,6 @@ void PODS_SendSuspiciousSegment(DBusConnection *conn,char *objectname,char *inte
 void PODS_SendVerifiedSegment(DBusConnection *conn,char *objectname,char *interfacename, char *name,
 	unsigned long hash, u_int32_t seq,int veredict);
 
+void PODS_SendSuspiciousUser(DBusConnection *conn,char *objectname, char *interfacename, char *name,unsigned long ipuser);
+
 #endif

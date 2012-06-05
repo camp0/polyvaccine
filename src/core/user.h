@@ -35,7 +35,6 @@
 #include "debug.h"
 
 #define SAMPLE_TIME (24 * 60)
-//#define SAMPLE_TIME 24
 
 struct ST_User{
 	u_int32_t ip;

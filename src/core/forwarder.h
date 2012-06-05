@@ -37,6 +37,7 @@
 #include "user.h"
 #include "genericflow.h"
 #include "interfaces.h"
+#include "polydbus.h"
 
 struct ST_GenericAnalyzer{
 	int16_t port;
@@ -48,6 +49,8 @@ struct ST_GenericAnalyzer{
 	void (*stats)(FILE *out);
 	void (*analyze)(ST_User *user,ST_GenericFlow *f,int *ret);
 	void (*learn)(ST_User *user,ST_GenericFlow *f);
+	void (*notify_correct)(DBusConnection *bus,ST_User *user,ST_GenericFlow *f,unsigned long hash,u_int32_t seq);
+	void (*notify_wrong)(DBusConnection *bus,ST_User *user,ST_GenericFlow *f,unsigned long hash,u_int32_t seq);
 };
 typedef struct ST_GenericAnalyzer ST_GenericAnalyzer;
 
@@ -71,7 +74,10 @@ void FORD_AddAnalyzer(ST_Forwarder *fw,char *name,int16_t protocol, int16_t port
 	void (*destroy)(void),
 	void (*stats)(FILE *out),
 	void (*analyze)(ST_User *user,ST_GenericFlow *f,int *ret),
-	void (*learn)(ST_User *user,ST_GenericFlow *f));
+	void (*learn)(ST_User *user,ST_GenericFlow *f),
+	void (*notify_correct)(DBusConnection *bus,ST_User *user,ST_GenericFlow *f,unsigned long hash,u_int32_t seq),
+	void (*notify_wrong)(DBusConnection *bus,ST_User *user,ST_GenericFlow *f,unsigned long hash,u_int32_t seq)
+);
 
 void FORD_ChangeAnalyzerToPlugOnPort(ST_Forwarder *fw,int16_t src_protocol, int16_t src_port,
 	int16_t dst_protocol,int16_t dst_port);

@@ -40,7 +40,9 @@
 #include <glib.h>
 #include "debug.h"
 #include "interfaces.h"
+#include "polydbus.h"
 
+#define MAX_GRAPH_CACHE_SENSIBILITY 5
 #define OVECCOUNT 30
 
 struct ST_DoSAnalyzer{
@@ -72,11 +74,15 @@ struct ST_DoSAnalyzer{
 	struct timeval prev_sample;
 	struct timeval curr_sample;
 
+	/* data for the statistics */
 	int statistics_index;
 	int32_t current_requests[SAMPLE_TIME];
 	int32_t current_flows[SAMPLE_TIME];
 	int32_t max_request_per_user[SAMPLE_TIME];
 	int32_t max_flows_per_user[SAMPLE_TIME];
+
+	/* data for the graph cache */
+	int graph_cache_sensibility;
 };
 
 typedef struct ST_DoSAnalyzer ST_DoSAnalyzer;
@@ -86,6 +92,7 @@ void *DSAZ_Destroy(void);
 void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f, int *ret);
 void *DSAZ_Stats(void);
 void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user, ST_GenericFlow *f);
+void *DSAZ_NotifyWrong(DBusConnection *bus,ST_User *user,ST_GenericFlow *f,unsigned long hash,u_int32_t seq);
 
 void DSAZ_SetGraphStatisticsLevel(int level);
 

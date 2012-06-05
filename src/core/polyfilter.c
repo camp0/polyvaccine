@@ -242,7 +242,9 @@ void POFR_Init() {
                 (void*)DSAZ_Destroy,
                 (void*)DSAZ_Stats,
                 (void*)DSAZ_AnalyzeHTTPRequest,
-                (void*)DSAZ_AnalyzeDummyHTTPRequest);
+                (void*)DSAZ_AnalyzeDummyHTTPRequest,
+		(void*)NULL,
+		(void*)DSAZ_NotifyWrong);
 
 	FORD_AddAnalyzer(_polyFilter->forwarder,
 		"http",IPPROTO_TCP,8080,
@@ -250,7 +252,9 @@ void POFR_Init() {
 		(void*)HTAZ_Destroy,
 		(void*)HTAZ_Stats,	
 		(void*)HTAZ_AnalyzeHTTPRequest,
-		(void*)HTAZ_AnalyzeDummyHTTPRequest);
+		(void*)HTAZ_AnalyzeDummyHTTPRequest,
+		(void*)HTAZ_NotifyCorrect,
+		(void*)HTAZ_NotifyWrong);
 
 	FORD_AddAnalyzer(_polyFilter->forwarder,
 		"sip",IPPROTO_UDP,5060,
@@ -258,7 +262,9 @@ void POFR_Init() {
 		(void*)SPAZ_Destroy,
 		(void*)SPAZ_Stats,	
 		(void*)SPAZ_AnalyzeSIPRequest,
-		(void*)SPAZ_AnalyzeDummySIPRequest);
+		(void*)SPAZ_AnalyzeDummySIPRequest,
+		(void*)NULL,
+		(void*)NULL);
 
 	FORD_InitAnalyzers(_polyFilter->forwarder);
 
@@ -493,57 +499,6 @@ void POFR_AddToHTTPCache(int type,char *value){
 		HTAZ_AddHeaderToCache(value,NODE_TYPE_STATIC);
 	else if (type == CACHE_PARAMETER) 
 		HTAZ_AddParameterToCache(value,NODE_TYPE_STATIC);
-}
-
-/**
- * POFR_SendSuspiciousSegmentToExecute - Sends a suspicious segment to the detection engine. 
- *
- * @param seg the ST_MemorySegment.
- * @param off the trusted offset list.
- * @param hash
- * @param seq
- * 
- */
-void POFR_SendSuspiciousSegmentToExecute(ST_MemorySegment *seg,ST_TrustOffsets *t_off,unsigned long hash, uint32_t seq) {
-
-	if(_polyFilter->bus == NULL) {
-		LOG(POLYLOG_PRIORITY_ALERT,
-			"Cannot send suspicious segment over dbus, no connection available");
-		return;
-	}
-	PODS_SendSuspiciousSegment(_polyFilter->bus,
-		POLYVACCINE_DETECTION_OBJECT,
-		POLYVACCINE_DETECTION_INTERFACE,
-		"Analyze",
-		seg->mem,
-		seg->virtual_size,
-		TROF_GetStartOffsets(t_off),
-		TROF_GetEndOffsets(t_off),
-		hash,seq);
-	return;
-}
-
-/**
- * POFR_SendVerifiedSegment - Sends a verified segment to the protection engine. 
- *
- * @param hash
- * @param seq
- * @param veredict 
- * 
- */
-void POFR_SendVerifiedSegment(unsigned long hash, u_int32_t seq,int veredict) {
-	
-	if(_polyFilter->bus == NULL) {
-		LOG(POLYLOG_PRIORITY_ALERT,
-			"Cannot send vereridct segment over dbus, no connection available");
-		return;
-	}
-	PODS_SendVerifiedSegment(_polyFilter->bus,
-		POLYVACCINE_PROTECTOR_OBJECT,
-		POLYVACCINE_PROTECTOR_INTERFACE,
-		"Veredict",
-		seq,hash,veredict);
-	return;
 }
 
 void POFR_SetExitOnPcap(int value){
@@ -826,14 +781,14 @@ void POFR_Run() {
 									ga->learn(user,flow);	
 								}else{
 									ga->analyze(user,flow,&ret);
-									if(ret) { // the segment is suspicious
-										trust_offsets =  HTAZ_GetTrustOffsets();
-										POFR_SendSuspiciousSegmentToExecute(flow->memory,
-											trust_offsets,		
-											hash,seq);
-									}else{ // the segment is correct 
-										POFR_SendVerifiedSegment(hash,
-											seq,1);
+									if((ret)&&(ga->notify_wrong!= NULL)) { 
+										// the segment or the user is suspicious
+										ga->notify_wrong(_polyFilter->bus,
+											user,flow,hash,seq);
+									}else{ // the segment or user is correct
+										if(ga->notify_correct != NULL) 
+											ga->notify_correct(_polyFilter->bus,
+												user,flow,hash,seq); 
 									}
 								}
 								/* Reset the virtual memory of the segment */

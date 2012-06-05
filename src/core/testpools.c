@@ -86,7 +86,7 @@ void test05(void){
         user = USPO_GetUser(upool);
 	assert( user == NULL);
 	
-	USPO_IncrementUserPool(upool,10000000);
+	USPO_IncrementUserPool(upool,200000);
 
         USPO_Destroy(upool);
         return;

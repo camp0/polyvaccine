@@ -40,6 +40,7 @@
 #include "debug.h"
 #include "interfaces.h"
 #include "counter.h"
+#include "polydbus.h"
 
 #define OVECCOUNT 30
 
@@ -76,6 +77,8 @@ void *HTAZ_Destroy(void);
 void *HTAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f, int *ret);
 void *HTAZ_Stats(void);
 void *HTAZ_AnalyzeDummyHTTPRequest(ST_User *user, ST_GenericFlow *f);
+void *HTAZ_NotifyCorrect(DBusConnection *bus,ST_User *user,ST_GenericFlow *f,unsigned long hash,u_int32_t seq);
+void *HTAZ_NotifyWrong(DBusConnection *bus,ST_User *user,ST_GenericFlow *f,unsigned long hash,u_int32_t seq);
 void HTAZ_SetForceAnalyzeHTTPPostData(int value);
 void HTAZ_ShowUnknownHTTP(int value);
 void HTAZ_SetStatisticsLevel(int level);

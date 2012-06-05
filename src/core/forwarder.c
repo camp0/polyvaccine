@@ -249,7 +249,10 @@ ST_GenericAnalyzer *FORD_GetAnalyzer(ST_Forwarder *fw, int16_t protocol,int16_t 
 void FORD_AddAnalyzer(ST_Forwarder *fw, char *name,int16_t protocol,int16_t port,
 	void (*init)(void), void (*destroy)(void),void (*stats)(FILE *out),
 	void (*analyze)(ST_User *user,ST_GenericFlow *f,int *ret),
-	void (*learn)(ST_User *user,ST_GenericFlow *f)){
+	void (*learn)(ST_User *user,ST_GenericFlow *f),
+	void (*notify_correct)(DBusConnection *bus,ST_User *user,ST_GenericFlow *f,unsigned long hash,u_int32_t seq),
+	void (*notify_wrong)(DBusConnection *bus,ST_User *user,ST_GenericFlow *f,unsigned long hash,u_int32_t seq)
+	){
 
 	ST_GenericAnalyzer *ga = NULL;
 	
@@ -265,6 +268,8 @@ void FORD_AddAnalyzer(ST_Forwarder *fw, char *name,int16_t protocol,int16_t port
 		ga->destroy = destroy;
 		ga->analyze = analyze;
 		ga->learn = learn;
+		ga->notify_correct = notify_correct;
+		ga->notify_wrong = notify_wrong;
 		g_hash_table_insert(fw->analyzers,g_strdup(name),ga);
 		LOG(POLYLOG_PRIORITY_INFO,"Analyzer(0x%x)'%s' disabled port(%d)",ga,name,port);
 	}	

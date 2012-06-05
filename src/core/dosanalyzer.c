@@ -56,6 +56,7 @@ void *DSAZ_Init() {
 	_dos.prev_sample.tv_sec = 0;
 	_dos.prev_sample.tv_usec = 0;
 	_dos.users_statistics_reach = 0;
+	_dos.graph_cache_sensibility = MAX_GRAPH_CACHE_SENSIBILITY;
 	gettimeofday(&_dos.curr_sample,NULL);
 
 	_dos.statistics_index = 0;
@@ -66,8 +67,8 @@ void *DSAZ_Init() {
 		_dos.current_flows[i] = 0;
 	}
 
-	DSAZ_AddMaxRequestPerMinuteFull(35);
-	DSAZ_AddMaxFlowsPerMinuteFull(35);
+	DSAZ_AddMaxRequestPerMinuteFull(30);
+	DSAZ_AddMaxFlowsPerMinuteFull(10);
 
 	_dos.expr_header = pcre_compile((char*)HTTP_HEADER_PARAM, PCRE_FIRSTLINE, &_dos.errstr, &erroffset, 0);
 #ifdef PCRE_HAVE_JIT
@@ -145,28 +146,6 @@ void DSAZ_SetGraphStatisticsLevel(int level){
 }
 
 /**
- * UT_TimevalSub - make the diferente between a and b ( r = a - b)
- *
- * @param a The timeval struct
- * @param b The timeval struct
- *
- * @param r Returns the diference between a and b
- *
- */
-void UT_TimevalSub(struct timeval *r, struct timeval *a, struct timeval *b)
-{
-        if (a->tv_usec < b->tv_usec) {
-                r->tv_usec = (a->tv_usec + 1000000) - b->tv_usec;
-                r->tv_sec = a->tv_sec - b->tv_sec - 1;
-        } else {
-                r->tv_usec = a->tv_usec - b->tv_usec;
-                r->tv_sec = a->tv_sec - b->tv_sec;
-        }
-}
-
-
-
-/**
  * DSAZ_Destroy - Destroy the fields created by the init function
  */
 void *DSAZ_Destroy() {
@@ -195,7 +174,7 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
         ST_GraphLink *link = NULL;
         ST_GraphNode *node = NULL;
 	int lret,i,process_bytes;
-	int cost,idx;
+	int cost,idx,veredict;
 
 #ifdef DEBUG
         LOG(POLYLOG_PRIORITY_DEBUG,
@@ -213,6 +192,7 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 		char *token;
 		int methodlen,urilen,offset;
 
+		veredict = FALSE;
 		offset = 0;
 		idx = _dos.statistics_index;
 		methodlen = _dos.ovector[3]-_dos.ovector[2];
@@ -251,7 +231,7 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 	                        int value = 0;
                         	struct timeval t_cost;
 
-                        	UT_TimevalSub(&t_cost,&(f->current_time),&(f->last_uri_seen));
+                        	SYIN_TimevalSub(&t_cost,&(f->current_time),&(f->last_uri_seen));
                         	value = t_cost.tv_sec/1000 + (t_cost.tv_usec);
 	
 				if(value < node->cost){ // The speed is not correct	
@@ -301,17 +281,24 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 
 		if(_dos.prev_sample.tv_sec + 60 < f->current_time.tv_sec) {
                         struct tm *t;
-	
+
+			/* Check if the statistics of the user are correct */	
 			if((user->requests_per_minute[idx] > _dos.max_request_per_user[idx])&& 
 			(user->flows_per_minute[idx] > _dos.max_flows_per_user[idx])){
 				/* is the first time */
 				if(user->statistics_reach == 0){
 					_dos.users_statistics_reach++;
                         		LOG(POLYLOG_PRIORITY_INFO,
-                                		"User(0x%x)flow(0x%x)idx(%d) reach request(%d)",
-                                		user,f,idx,_dos.max_request_per_user[idx]);
+                                		"User(0x%x)flow(0x%x)idx(%d) reach request(%d)flows(%d)",
+                                		user,f,idx,_dos.max_request_per_user[idx],
+						_dos.max_flows_per_user[idx]);
+					veredict = TRUE;
 				}
 				user->statistics_reach++;
+			}else{
+				/* Check the graph cache and the path cache values */
+
+
 			}
                         t = localtime(&(f->current_time.tv_sec));
                         idx = _dos.statistics_index = ((t->tm_hour) * 60)+ t->tm_min;
@@ -325,7 +312,7 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 		(*ret) = 0;
 		return ;
 	}
-	(*ret) = 0;
+	(*ret) = veredict;
 	return ;
 }
 
@@ -379,7 +366,7 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
 			// At least is the second or more uri on the flow
 			struct timeval t_cost;
 
-			UT_TimevalSub(&t_cost,&(f->current_time),&(f->last_uri_seen));
+			SYIN_TimevalSub(&t_cost,&(f->current_time),&(f->last_uri_seen));
 			costvalue = t_cost.tv_sec/1000 + (t_cost.tv_usec);
 			link = GACH_GetBaseLink(_dos.graphcache,f->lasturi);
 			node = GACH_AddGraphNodeFromLink(_dos.graphcache,link,uri,costvalue);
@@ -438,8 +425,33 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
 	return;
 }
 
-/* Service functions for receive the statistics value from and outside process */
+/**
+ * DSAZ_NotifyWrong - The user reach the statistics, graph and path values.
+ *
+ * @param bus
+ * @param user
+ * @param f
+ * @param hash
+ * @param seq
+ * 
+ */
+void *DSAZ_NotifyWrong(DBusConnection *bus,ST_User *user,ST_GenericFlow *f,unsigned long hash,u_int32_t seq){
+	
+	if(bus == NULL) {
+		LOG(POLYLOG_PRIORITY_ALERT,
+			"Cannot send suspicious user over dbus, no connection available");
+		return;
+	}
+	PODS_SendSuspiciousUser(bus,
+		POLYVACCINE_LOGGER_OBJECT,
+		POLYVACCINE_LOGGER_INTERFACE,
+		"SuspiciousUser",
+		user->ip);	
+	return;
+}
 
+
+/* Service functions for receive the statistics value from and outside process */
 void DSAZ_AddMaxRequestPerMinuteDelta(int delta,int requests){
 
 	if((delta>=0)&&(delta<SAMPLE_TIME))

@@ -133,7 +133,10 @@ ST_GraphNode *GACH_AddGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, ch
                         gc->total_nodes++;
                         linkdst->id_uri = gc->total_ids;
                         g_hash_table_insert(gc->uris,g_strdup(uri),linkdst);
-                }
+                }else{
+			linkdst->id_uri = node->id_uri;
+			//printf("yes yes\n");
+		}
 	}else{
 		// Update the cost of the link
                 node->cost = cost;

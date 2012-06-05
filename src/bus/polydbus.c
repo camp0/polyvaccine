@@ -650,8 +650,43 @@ void PODS_SendVerifiedSegment(DBusConnection *conn,char *objectname,char *interf
         dbus_connection_flush(conn);
         dbus_message_unref(msg);
         return;
+}
 
+/**
+ * PODS_SendSuspiciousUser - The filter engine sends the user ip of a suspicious user
+ *  that tresspass the limits of the ddosanalyzer.
+ *
+ * @param conn the DBusConnection
+ * @param objectname 
+ * @param interfacename
+ * @param name
+ * @param ipuser  
+ *
+ */
 
+void PODS_SendSuspiciousUser(DBusConnection *conn,char *objectname, char *interfacename, char *name,unsigned long ipuser){
+        DBusMessage *msg;
+        DBusMessageIter args;
+        dbus_uint32_t dip = ipuser;
 
+        msg = dbus_message_new_signal(objectname,interfacename,name);
+        if (msg == NULL) {
+                fprintf(stderr, "Message Null\n");
+                exit(1);
+        }
 
+        dbus_message_iter_init_append(msg, &args);
+        if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_UINT32, &dip)) {
+                fprintf(stderr, "Out Of Memory!\n");
+                exit(1);
+        }
+
+        if (!dbus_connection_send(conn, msg, NULL)) {
+                fprintf(stderr, "Out Of Memory!\n");
+                exit(1);
+
+        }
+        dbus_connection_flush(conn);
+        dbus_message_unref(msg);
+        return;
 }

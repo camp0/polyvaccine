@@ -56,4 +56,8 @@
 #define POLYVACCINE_PROTECTOR_OBJECT "/" POLYVACCINE "/protector"
 #define POLYVACCINE_PROTECTOR_INTERFACE POLYVACCINE ".protector"
 
+/* Dbus names for simple logger */
+#define POLYVACCINE_LOGGER_OBJECT "/" POLYVACCINE "/logger"
+#define POLYVACCINE_LOGGER_INTERFACE POLYVACCINE ".logger"
+
 #endif
