@@ -29,6 +29,7 @@
 #include <config.h>
 #endif
 
+#include <inttypes.h>
 #include <pcre.h>
 #include "user.h"
 #include "genericflow.h"

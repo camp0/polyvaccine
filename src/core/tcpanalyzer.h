@@ -33,6 +33,7 @@
 #include "packetcontext.h"
 #include "genericflow.h"
 #include <sys/types.h>
+#include <inttypes.h>
 #include <glib.h>
 #include "debug.h"
 #include "interfaces.h"

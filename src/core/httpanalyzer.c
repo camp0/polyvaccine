@@ -119,11 +119,11 @@ void *HTAZ_Stats(void) {
 	ST_HTTPField *f;
 
 	fprintf(stdout,"HTTP analyzer statistics\n");
-	fprintf(stdout,"\ttotal segments %ld\n",_http.total_http_segments);
-	fprintf(stdout,"\ttotal bytes %ld\n",_http.total_http_bytes);
-	fprintf(stdout,"\ttotal suspicious segments %ld\n",_http.total_suspicious_segments);
-	fprintf(stdout,"\ttotal valid segments %ld\n",_http.total_valid_segments);
-	fprintf(stdout,"\ttotal invalid decodes %ld\n",_http.total_http_invalid_decode);
+	fprintf(stdout,"\ttotal segments %"PRId64"\n",_http.total_http_segments);
+	fprintf(stdout,"\ttotal bytes %"PRId64"\n",_http.total_http_bytes);
+	fprintf(stdout,"\ttotal suspicious segments %"PRId32"\n",_http.total_suspicious_segments);
+	fprintf(stdout,"\ttotal valid segments %"PRId32"\n",_http.total_valid_segments);
+	fprintf(stdout,"\ttotal invalid decodes %"PRId32"\n",_http.total_http_invalid_decode);
 
 	if(_http.statistics_level > 0) 	
 		CACH_Stats(_http.httpcache,_http.statistics_level);

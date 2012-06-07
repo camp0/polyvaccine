@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Library General Public License for more details.
  *
- * You should have received a copy of the GNU Library General Public
+ * You shou"PRId64" have received a copy of the GNU Library General Public
  * License along with this library; if not, write to the
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
  * Boston, MA  02110-1301, USA.
@@ -36,7 +36,7 @@
 static ST_DoSAnalyzer _dos;
 
 /**
- * DSAZ_Init - Initialize all the fields of a small http dos analyzer
+ * DSAZ_Init - Initialize all the fie"PRId64"s of a small http dos analyzer
  */
 void *DSAZ_Init() {
 	register int i;
@@ -119,15 +119,15 @@ void *DSAZ_Stats(void) {
 	register int i;
 
 	fprintf(stdout,"DDoS analyzer statistics\n");
-	fprintf(stdout,"\ttotal request %ld\n",_dos.total_http_request);
-	fprintf(stdout,"\ttotal bytes %ld\n",_dos.total_http_bytes);
-	fprintf(stdout,"\ttotal valid links %ld\n",_dos.total_valid_links);
-	fprintf(stdout,"\ttotal invalid links %ld\n",_dos.total_invalid_links);
-	fprintf(stdout,"\ttotal exist links %ld\n",_dos.total_exist_links);
-	fprintf(stdout,"\ttotal nonexist links %ld\n",_dos.total_nonexist_links);
-	fprintf(stdout,"\ttotal exist URIs %ld\n",_dos.total_exist_uri);
-	fprintf(stdout,"\ttotal nonexist URIs %ld\n",_dos.total_nonexist_uri);
-	fprintf(stdout,"\ttotal statistic reach by users %ld\n",_dos.users_statistics_reach);
+	fprintf(stdout,"\ttotal request %"PRId64"\n",_dos.total_http_request);
+	fprintf(stdout,"\ttotal bytes %"PRId64"\n",_dos.total_http_bytes);
+	fprintf(stdout,"\ttotal valid links %"PRId32"\n",_dos.total_valid_links);
+	fprintf(stdout,"\ttotal invalid links %"PRId32"\n",_dos.total_invalid_links);
+	fprintf(stdout,"\ttotal exist links %"PRId32"\n",_dos.total_exist_links);
+	fprintf(stdout,"\ttotal nonexist links %"PRId32"\n",_dos.total_nonexist_links);
+	fprintf(stdout,"\ttotal exist URIs %"PRId32"\n",_dos.total_exist_uri);
+	fprintf(stdout,"\ttotal nonexist URIs %"PRId32"\n",_dos.total_nonexist_uri);
+	fprintf(stdout,"\ttotal statistic reach by users %"PRId32"\n",_dos.users_statistics_reach);
 	if(_dos.statistics_level>0){
 		PACH_Stats(_dos.pathcache);
 		GACH_Stats(_dos.graphcache);
@@ -146,7 +146,7 @@ void DSAZ_SetGraphStatisticsLevel(int level){
 }
 
 /**
- * DSAZ_Destroy - Destroy the fields created by the init function
+ * DSAZ_Destroy - Destroy the fie"PRId64"s created by the init function
  */
 void *DSAZ_Destroy() {
 
@@ -382,7 +382,7 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
 			}else{
 				snprintf(pathhash,1024,"%d %d",link->id_uri,node->id_uri);
 			}
-			f->path = PACH_AddPath(_dos.pathcache,&pathhash);
+			f->path = PACH_AddPath(_dos.pathcache,(char*)&pathhash);
 		}
 
 

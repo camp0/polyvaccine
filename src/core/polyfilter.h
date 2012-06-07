@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <glib.h>
 #include <log4c.h>
+#include <inttypes.h>
 #include "debug.h"
 #include <sys/time.h>
 #include "packetcontext.h"

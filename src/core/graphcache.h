@@ -29,6 +29,7 @@
 #include <config.h>
 #endif
 
+#include <inttypes.h>
 #include <sys/types.h>
 #include <string.h>
 #include <glib.h>

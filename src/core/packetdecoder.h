@@ -29,6 +29,7 @@
 #include <config.h>
 #endif
 
+#include <inttypes.h>
 #include <pcap.h>
 #include <sys/time.h>
 #include <stdio.h>

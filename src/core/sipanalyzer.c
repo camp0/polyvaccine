@@ -117,10 +117,10 @@ void *SPAZ_Stats() {
 	ST_SIPField *f;
 
 	fprintf(stdout,"SIP analyzer statistics\n");
-	fprintf(stdout,"\ttotal segments %ld\n",_sip.total_sip_segments);
-	fprintf(stdout,"\ttotal bytes %ld\n",_sip.total_sip_bytes);
-	fprintf(stdout,"\ttotal suspicious segments %ld\n",_sip.total_suspicious_segments);
-	fprintf(stdout,"\ttotal valid segments %ld\n",_sip.total_valid_segments);
+	fprintf(stdout,"\ttotal segments %"PRId64"\n",_sip.total_sip_segments);
+	fprintf(stdout,"\ttotal bytes %"PRId64"\n",_sip.total_sip_bytes);
+	fprintf(stdout,"\ttotal suspicious segments %"PRId32"\n",_sip.total_suspicious_segments);
+	fprintf(stdout,"\ttotal valid segments %"PRId32"\n",_sip.total_valid_segments);
 	fprintf(stdout,"\tHeaders:\n");
 
         f = &ST_SIPTypeHeaders[0];

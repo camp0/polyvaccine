@@ -103,18 +103,21 @@ void __POFR_ShowEndBanner() {
 
 	/* convert it to a struct tm */
    	localtime_r(&duration.tv_sec,&tmaux);
+	tmaux.tm_hour--;
 	strftime(asc_duration,90,"%H:%M:%S",&tmaux);
 
    	localtime_r(&(usertime->tv_sec),&tmaux);
+	tmaux.tm_hour--;
 	strftime(asc_usertime,90,"%H:%M:%S",&tmaux);
 
    	localtime_r(&(systime->tv_sec),&tmaux);
+	tmaux.tm_hour--;
 	strftime(asc_systime,90,"%H:%M:%S",&tmaux);
 
         fprintf(stdout,"%s exiting, duration %s\n",POLYVACCINE_FILTER_ENGINE_NAME,asc_duration);
-        fprintf(stdout,"\tProcess flows %ld\n",_polyFilter->flowpool->pool->total_acquires);
-        fprintf(stdout,"\tProcess users %ld\n",_polyFilter->userpool->pool->total_acquires);
-        fprintf(stdout,"\tMemory used %ld %s [",fullmemory,unit);
+        fprintf(stdout,"\tProcess flows %"PRId32"\n",_polyFilter->flowpool->pool->total_acquires);
+        fprintf(stdout,"\tProcess users %"PRId32"\n",_polyFilter->userpool->pool->total_acquires);
+        fprintf(stdout,"\tMemory used %"PRId32" %s [",fullmemory,unit);
 	fprintf(stdout,"resident %ld, shared %ld,",ressize,shmsize);
 	fprintf(stdout,"data %ld, stack %ld]\n",datsize,stksize);
 	fprintf(stdout,"\tUser time %s, Sys time %s\n",asc_usertime,asc_systime);

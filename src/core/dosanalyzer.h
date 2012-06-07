@@ -29,6 +29,7 @@
 #include <config.h>
 #endif
 
+#include <inttypes.h>
 #include <pcre.h>
 #include <log4c.h>
 #include "user.h"
