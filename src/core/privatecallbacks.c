@@ -430,7 +430,7 @@ void PRCA_Method_DecreaseMemoryPool(DBusConnection *conn,DBusMessage *msg, void 
 
         value = MEPO_DecrementMemoryPool(p->memorypool,param);
 
-        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,value);
+        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,(void*)value);
         return;
 }
 
@@ -460,7 +460,7 @@ void PRCA_Method_DecreaseFlowPool(DBusConnection *conn,DBusMessage *msg, void *d
         DBusMessageIter args;
         dbus_int32_t param;
         DBusMessage *reply = NULL;
-        int value = 1;
+        int ret = 1;
 
         reply = dbus_message_new_method_return(msg);
 
@@ -471,9 +471,9 @@ void PRCA_Method_DecreaseFlowPool(DBusConnection *conn,DBusMessage *msg, void *d
         else
                 dbus_message_iter_get_basic(&args, &param);
 	
-        value = FLPO_DecrementFlowPool(p->flowpool,param);
+        FLPO_DecrementFlowPool(p->flowpool,param);
 
-        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,value);
+        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,(void*)ret);
         return;
 
 }
@@ -567,9 +567,8 @@ void PRCA_Method_AddHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void
                 dbus_message_iter_get_basic(&args, &value);
 
 	HTAZ_AddHeaderToCache(value,NODE_TYPE_DYNAMIC);
-	//CACH_AddHeaderToCache(p->httpcache,value,NODE_TYPE_DYNAMIC);
 
-        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,ret);
+        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,(void*)ret);
 	return;
 }
 
@@ -590,7 +589,6 @@ void PRCA_Method_AddHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, v
                 dbus_message_iter_get_basic(&args, &value);
 
 	HTAZ_AddParameterToCache(value,NODE_TYPE_DYNAMIC);
-//	CACH_AddParameterToCache(p->httpcache,value,NODE_TYPE_DYNAMIC);
 
         __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,ret);
         return;
@@ -647,9 +645,9 @@ void PRCA_Property_GetNumberHttpParameterFails(DBusConnection *conn,DBusMessage 
 void PRCA_Method_AddAuthorizedHost(DBusConnection *conn,DBusMessage *msg, void *data){
         ST_PolyFilter *p = (ST_PolyFilter*)data;
         DBusMessageIter args;
-        dbus_int32_t param;
+        char *param = "";
         DBusMessage *reply = NULL;
-        char *value;
+       	int ret = 1; 
 
         reply = dbus_message_new_method_return(msg);
 
@@ -663,16 +661,16 @@ void PRCA_Method_AddAuthorizedHost(DBusConnection *conn,DBusMessage *msg, void *
 
 	AUHT_AddHost(p->hosts,param);
 
-        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,value);
+        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,(void*)ret);
         return;
 }
 
 void PRCA_Method_RemoveAuthorizedHost(DBusConnection *conn,DBusMessage *msg, void *data){
         ST_PolyFilter *p = (ST_PolyFilter*)data;
         DBusMessageIter args;
-        dbus_int32_t param;
+        char *param = "";
         DBusMessage *reply = NULL;
-        char *value;
+      	int ret = 1; 
 
         reply = dbus_message_new_method_return(msg);
 
@@ -686,7 +684,7 @@ void PRCA_Method_RemoveAuthorizedHost(DBusConnection *conn,DBusMessage *msg, voi
 
         AUHT_RemoveHost(p->hosts,param);
 
-        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,value);
+        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,(void*)ret);
         return;
 }
 
@@ -821,7 +819,7 @@ void PRCA_Method_AddLinkToGraphCache(DBusConnection *conn,DBusMessage *msg, void
 	char *urisrc = NULL;
 	char *uridst = NULL;
 	dbus_int32_t cost = 0;       
-	dbus_int32_t ret = 0;
+	dbus_int32_t ret = 1;
  
 	dbus_error_init(&error);
         
