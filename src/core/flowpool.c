@@ -26,6 +26,34 @@
 
 #define POLYLOG_CATEGORY_NAME POLYVACCINE_FILTER_FLOWPOOL_INTERFACE
 #include "log.h"
+
+
+/**
+ * FLPO_ResizeFlowPool - Reize the flowpool with a specific value 
+ *
+ * @param p
+ * @param value
+ * 
+ */
+
+void FLPO_ResizeFlowPool(ST_FlowPool *p,int value){
+	ST_GenericFlow *f;
+	int items;
+	register int i;
+
+	items = g_slist_length(p->pool->items);
+
+	if(value > items) { // increment the pool
+		FLPO_IncrementFlowPool(p,(value-items));
+	}else{
+		if(value < items) { // decrement the pool
+        		FLPO_DecrementFlowPool(p,(items-value));	
+		}
+	} 
+	POOL_Reset(p->pool);
+        return ;
+}
+
 /**
  * FLPO_Init - Initialize a flow pool 
  *
@@ -38,6 +66,7 @@ ST_FlowPool *FLPO_Init() {
 	pool = g_new(ST_FlowPool,1);
 	pool->pool = POOL_Init(); 
 
+	pool->total_allocated = 0;
 	FLPO_IncrementFlowPool(pool,MAX_FLOWS_PER_POOL);
 	return pool;
 }
@@ -48,7 +77,8 @@ ST_FlowPool *FLPO_Init() {
  */
 
 void FLPO_Stats(ST_FlowPool *p,FILE *out){
-	int32_t value = MAX_FLOWS_PER_POOL * sizeof(ST_GenericFlow);
+	int items = g_slist_length(p->pool->items);
+	int32_t value = p->total_allocated * sizeof(ST_GenericFlow);
         char *unit = "Bytes";
 
         if((value / 1024)>0){
@@ -63,7 +93,7 @@ void FLPO_Stats(ST_FlowPool *p,FILE *out){
 	fprintf(out,"FlowPool statistics\n");
 	fprintf(out,"\tflow size:%d bytes\n",sizeof(ST_GenericFlow));
 	fprintf(out,"\tallocated memory:%d %s\n",value,unit);
-	fprintf(out,"\tflows:%d\n\treleases:%d\n",g_slist_length(p->pool->items),p->pool->total_releases);
+	fprintf(out,"\tflows:%d\n\treleases:%d\n",items,p->pool->total_releases);
 	fprintf(out,"\tacquires:%d\n\terrors:%d\n",p->pool->total_acquires,p->pool->total_errors);
 	return;
 }
@@ -104,6 +134,7 @@ int FLPO_IncrementFlowPool(ST_FlowPool *p,int value){
 		f->memory = NULL;
 		GEFW_Reset(f);	
 		POOL_AddItem(p->pool,f);
+		p->total_allocated++;
 	}
         return TRUE;
 }
@@ -128,8 +159,10 @@ int FLPO_DecrementFlowPool(ST_FlowPool *p,int value) {
 		"Freeing %d flows on pool",r);
         for (i = 0;i<r;i++){
 		f = (ST_GenericFlow*)POOL_GetItem(p->pool);
-		if(f)
+		if(f){
 			GEFW_Destroy(f);
+			p->total_allocated--;
+		}
         }
 	return TRUE;
 }

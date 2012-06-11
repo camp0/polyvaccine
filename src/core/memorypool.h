@@ -41,6 +41,7 @@ struct ST_MemoryPool {
 	ST_Pool *pool;
 	int64_t total_release_bytes;
 	int64_t total_acquire_bytes;
+	int32_t total_allocated;
 };
 
 typedef struct ST_MemoryPool ST_MemoryPool;
@@ -53,6 +54,7 @@ int MEPO_GetNumberMemorySegments(ST_MemoryPool *mp);
 int MEPO_IncrementMemoryPool(ST_MemoryPool *mp,int value);
 int MEPO_DecrementMemoryPool(ST_MemoryPool *mp,int value);
 void MEPO_Stats(ST_MemoryPool *mp,FILE *out);
+void MEPO_ResizeMemoryPool(ST_MemoryPool *mp,int value);
 
 /// TODO
 /// Need a function which reallocates the memory segments on the memorypool

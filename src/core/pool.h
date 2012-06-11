@@ -46,5 +46,6 @@ void POOL_Destroy(ST_Pool *p);
 void POOL_AddItem(ST_Pool *p,void *item);
 void *POOL_GetItem(ST_Pool *p);	
 int POOL_GetNumberItems(ST_Pool *p);
+void POOL_Reset(ST_Pool *p);
 
 #endif

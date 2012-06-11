@@ -39,6 +39,7 @@
 
 struct ST_UserPool {
 	ST_Pool *pool;
+	int32_t total_allocated;
 };
 
 typedef struct ST_UserPool ST_UserPool;
@@ -51,5 +52,6 @@ int USPO_GetNumberUsers(ST_UserPool *p);
 int USPO_IncrementUserPool(ST_UserPool *p,int value);
 int USPO_DecrementUserPool(ST_UserPool *p,int value);
 void USPO_Stats(ST_UserPool *p,FILE *out);
+void USPO_ResizeUserPool(ST_UserPool *p,int value);
 
 #endif

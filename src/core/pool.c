@@ -25,6 +25,21 @@
 #include "pool.h"
 
 /**
+ * POOL_Reset - Resets the counters of an ST_Pool
+ *
+ * @param p
+ * 
+ */
+void POOL_Reset(ST_Pool *p){
+
+        p->total_releases = 0;
+        p->total_acquires = 0;
+        p->total_errors = 0;
+	return;
+}
+
+
+/**
  * POOL_Init - Initialize a pool 
  *
  * @return ST_Pool
@@ -34,10 +49,8 @@ ST_Pool *POOL_Init() {
 	ST_Pool *pool = NULL;
 
 	pool = (ST_Pool*)g_new(ST_Pool,1);
-	pool->items = NULL;	
-        pool->total_releases = 0;
-        pool->total_acquires = 0;
-        pool->total_errors = 0;
+	pool->items = NULL;
+	POOL_Reset(pool);	
 
 	return pool;
 }

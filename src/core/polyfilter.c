@@ -71,9 +71,9 @@ void __POFR_ShowEndBanner() {
 	long stksize = 0;
         char asc_duration[90],asc_usertime[90],asc_systime[90];
 
-        fullmemory = MAX_FLOWS_PER_POOL * sizeof(ST_GenericFlow);
+        fullmemory = _polyFilter->flowpool->total_allocated * sizeof(ST_GenericFlow);
         fullmemory += MAX_MEMORY_SEGMENTS_PER_POOL * (sizeof(ST_MemorySegment)+MAX_SEGMENT_SIZE);
-        fullmemory += MAX_USERS_PER_POOL * sizeof(ST_User);
+        fullmemory += _polyFilter->userpool->total_allocated * sizeof(ST_User);
 	/* the caches comsumption */
 	fullmemory += HTAZ_GetCacheMemorySize();
 	fullmemory += DSAZ_GetCacheMemorySize();
@@ -281,6 +281,7 @@ void POFR_Init() {
 
 void POFR_EnableAnalyzers(char *analyzers){
 
+	// TODO.
 	// Tells the forwarder to enable the analyzers
 	FORD_EnableAnalyzerByName(_polyFilter->forwarder,analyzers);
 	return;
@@ -550,21 +551,35 @@ void POFR_RemoveTrustedUser(char *ip) {
 }
 
 
+/**
+ * POFR_SetInitialFlowsOnPool - Modify the initial value of the flowpool 
+ *
+ * @param value 
+ */
+
 void POFR_SetInitialFlowsOnPool(int value){
-	int pflows;
 	
 	if(value>0){
-		pflows = FLPO_GetNumberFlows(_polyFilter->flowpool);
-		if(value > pflows) { // We should increment the flow pool
-			FLPO_IncrementFlowPool(_polyFilter->flowpool,value - pflows);
-		}else{
-			if(value < pflows) {
-				FLPO_DecrementFlowPool(_polyFilter->flowpool,pflows - value);
-			}
-		}
+		FLPO_ResizeFlowPool(_polyFilter->flowpool,value);
+		MEPO_ResizeMemoryPool(_polyFilter->memorypool,value);
 	}
 	return;
 }
+
+/**
+ * POFR_SetInitialUsersOnPool - Modify the initial value of the userpool 
+ *
+ * @param value 
+ */
+
+void POFR_SetInitialUsersOnPool(int value){
+
+	if(value>0){
+		USPO_ResizeUserPool(_polyFilter->userpool,value);
+	}
+        return;
+}
+
 
 void POFR_GetTimeOfDay(struct timeval *t,struct pcap_pkthdr *hdr){
 

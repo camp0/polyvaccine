@@ -28,6 +28,41 @@
 #include "log.h"
 
 /**
+ * USPO_ResizeFlowPool - Resize the userpool with a specific value 
+ *
+ * @param p
+ * @param value
+ * 
+ */
+
+void USPO_ResizeUserPool(ST_UserPool *p,int value){
+	ST_User *user;
+	int items;
+	register int i;
+
+	items = g_slist_length(p->pool->items);
+
+	if(value > items) { // increment the pool
+        	for (i = 0;i<(value-items);i++){
+                	user = USER_Init();
+                	POOL_AddItem(p->pool,user);
+			p->total_allocated++;
+        	}
+	}else{
+		if(value < items) { // decrement the pool
+        		for (i = 0;i<(items-value);i++){
+                		user = (ST_User*)POOL_GetItem(p->pool);
+                		if(user)
+                        		USER_Destroy(user);
+				p->total_allocated--;
+        		}
+		}
+	}
+	POOL_Reset(p->pool);
+        return ;
+}
+
+/**
  * USPO_Init - Initialize a user pool 
  *
  * @return ST_UserPool
@@ -38,7 +73,7 @@ ST_UserPool *USPO_Init() {
 
 	pool = g_new(ST_UserPool,1);
 	pool->pool = POOL_Init(); 
-
+	pool->total_allocated = 0;
 	USPO_IncrementUserPool(pool,MAX_USERS_PER_POOL);
 	return pool;
 }
@@ -51,7 +86,8 @@ ST_UserPool *USPO_Init() {
  */
 
 void USPO_Stats(ST_UserPool *p,FILE *out){
-	int32_t value = MAX_USERS_PER_POOL * sizeof(ST_User);
+	int users = POOL_GetNumberItems(p->pool);
+	int32_t value = p->total_allocated * sizeof(ST_User);
         char *unit = "Bytes";
 
         if((value / 1024)>0){
@@ -66,7 +102,7 @@ void USPO_Stats(ST_UserPool *p,FILE *out){
 	fprintf(out,"UserPool statistics\n");
 	fprintf(out,"\tuser size:%d bytes\n",sizeof(ST_User));
 	fprintf(out,"\tallocated memory:%d %s\n",value,unit);
-	fprintf(out,"\tusers:%d\n\treleases:%d\n",POOL_GetNumberItems(p->pool),p->pool->total_releases);
+	fprintf(out,"\tusers:%d\n\treleases:%d\n",users,p->pool->total_releases);
 	fprintf(out,"\tacquires:%d\n\terrors:%d\n",p->pool->total_acquires,p->pool->total_errors);
 	return;
 }
@@ -106,6 +142,7 @@ int USPO_IncrementUserPool(ST_UserPool *p,int value){
         for (i = 0;i<value;i++){
 		ST_User *user = USER_Init();
 		POOL_AddItem(p->pool,user);
+		p->total_allocated++;
 	}
         return TRUE;
 }
@@ -130,8 +167,10 @@ int USPO_DecrementUserPool(ST_UserPool *p,int value) {
 		"Freeing %d users on pool",r);
         for (i = 0;i<r;i++){
 		user = (ST_User*)POOL_GetItem(p->pool);
-		if(user)
+		if(user){
 			USER_Destroy(user);
+			p->total_allocated--;
+		}
         }
 	return TRUE;
 }

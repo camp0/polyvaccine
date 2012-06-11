@@ -41,6 +41,7 @@ static struct option long_options[] = {
         {"sport",  	required_argument, 	0, 's'},
         {"dport",  	required_argument, 	0, 'd'},
         {"flows",  	required_argument, 	0, 'F'},
+        {"users",  	required_argument, 	0, 'U'},
         {"enable",  	required_argument, 	0, 'E'},
         {"force-post", 	no_argument, 		0, 'f'},
         {"unknown", 	no_argument, 		0, 'u'},
@@ -55,7 +56,7 @@ static struct option long_options[] = {
         {0, 0, 0, 0}
 };
 
-static char *short_options = "LI:p:hVF:fucE:Xs:Sd:D:ga";
+static char *short_options = "LI:p:hVF:fucE:Xs:Sd:D:gaU:";
 
 static char *common_http_headers [] = {
 	"GET /index.phtml HTTP/1.1",
@@ -101,6 +102,7 @@ static char *show_options = {
 	"\t-D, --dummy                          Add dummy IP for updates caches.\n"
 	"\t-L, --learning                       Caches all the information (update mode).\n"
 	"\t-F, --flows                          Sets the number of flows of the flowpool to process(default 262144).\n"
+	"\t-U, --users                          Sets the number of users of the userpool to process(default 16384).\n"
 	"\n"
 	"\tHTTP options\n"
 	"\t-p, --hport=<port number>            Web-server port number (80 default).\n"
@@ -123,6 +125,7 @@ static char *show_options = {
 
 /* options of the daemon */
 char *enable_analyzers = NULL; // String with the name of the analyzers to enable
+int users_on_pool = 0; // non set
 int flows_on_pool = 0; // non set
 char *dummy_ip = NULL;
 int show_sip_statistics_level = 0;
@@ -180,6 +183,9 @@ void main(int argc, char **argv) {
              			break;
            		case 'F':
              			flows_on_pool = atoi(optarg);
+             			break;
+           		case 'U':
+             			users_on_pool = atoi(optarg);
              			break;
            		case 'E':
              			enable_analyzers = optarg;
@@ -267,6 +273,9 @@ void main(int argc, char **argv) {
 
 	if(flows_on_pool>0)
 		POFR_SetInitialFlowsOnPool(flows_on_pool);
+
+	if(users_on_pool>0)
+		POFR_SetInitialUsersOnPool(users_on_pool);
 
 	if(enable_analyzers!=NULL)
 		POFR_EnableAnalyzers(enable_analyzers);

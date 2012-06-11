@@ -407,7 +407,6 @@ void PRCA_Method_IncreaseMemoryPool(DBusConnection *conn,DBusMessage *msg, void 
 
 	value = MEPO_IncrementMemoryPool(p->memorypool,param);
 
-
 	__CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,value);
 	return;
 }
@@ -553,9 +552,9 @@ void PRCA_Method_GetHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, v
 void PRCA_Method_AddHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void *data){
         ST_PolyFilter *p = (ST_PolyFilter*)data;
         DBusMessageIter args;
-        dbus_int32_t ret = 1;
+        int ret = 1;
         DBusMessage *reply = NULL;
-        char *value;
+        char *value = "";
 
         reply = dbus_message_new_method_return(msg);
 
@@ -575,9 +574,9 @@ void PRCA_Method_AddHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void
 void PRCA_Method_AddHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, void *data){
         ST_PolyFilter *p = (ST_PolyFilter*)data;
         DBusMessageIter args;
-        dbus_int32_t ret = 1;
+        int ret = 1;
         DBusMessage *reply = NULL;
-        char *value;
+        char *value = "";
 
         reply = dbus_message_new_method_return(msg);
 
@@ -651,7 +650,6 @@ void PRCA_Method_AddAuthorizedHost(DBusConnection *conn,DBusMessage *msg, void *
 
         reply = dbus_message_new_method_return(msg);
 
-        // read the arguments
         if (!dbus_message_iter_init(msg, &args))
                 fprintf(stderr, "Message has no arguments!\n");
         else if (DBUS_TYPE_STRING != dbus_message_iter_get_arg_type(&args))
@@ -674,7 +672,6 @@ void PRCA_Method_RemoveAuthorizedHost(DBusConnection *conn,DBusMessage *msg, voi
 
         reply = dbus_message_new_method_return(msg);
 
-        // read the arguments
         if (!dbus_message_iter_init(msg, &args))
                 fprintf(stderr, "Message has no arguments!\n");
         else if (DBUS_TYPE_STRING != dbus_message_iter_get_arg_type(&args))
@@ -819,7 +816,7 @@ void PRCA_Method_AddLinkToGraphCache(DBusConnection *conn,DBusMessage *msg, void
 	char *urisrc = NULL;
 	char *uridst = NULL;
 	dbus_int32_t cost = 0;       
-	dbus_int32_t ret = 1;
+	int ret = 1;
  
 	dbus_error_init(&error);
         
@@ -841,7 +838,7 @@ void PRCA_Method_AddLinkToGraphCache(DBusConnection *conn,DBusMessage *msg, void
 		//GACH_AddLink(p->graphcache,urisrc,uridst,cost);
 		ret = 1;
 	}
-        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,ret);
+        __CMD_GenericMethodResponse(conn,reply,&args,DBUS_TYPE_BOOLEAN,(void*)ret);
 	return;
 }
 

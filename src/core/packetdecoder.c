@@ -62,7 +62,7 @@ void PKDE_Stats(FILE *output) {
         fprintf(output,"\ttotal TCP packets %"PRId64"\n",_pktdec._totalTcpPackets);
         fprintf(output,"\ttotal UDP packets %"PRId64"\n",_pktdec._totalUdpPackets);
         fprintf(output,"\ttotal L7 packets %"PRId64"\n",_pktdec._totalL7Packets);
-        fprintf(output,"\ttotal Unknown packets %"PRId64"n",_pktdec._totalUnknownPackets);
+        fprintf(output,"\ttotal Unknown packets %"PRId64"\n",_pktdec._totalUnknownPackets);
         return;
 }
 

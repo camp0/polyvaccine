@@ -39,6 +39,7 @@
 
 struct ST_FlowPool {
 	ST_Pool *pool;
+	int32_t total_allocated;
 };
 
 typedef struct ST_FlowPool ST_FlowPool;
@@ -50,6 +51,7 @@ ST_GenericFlow *FLPO_GetFlow(ST_FlowPool *p);
 int FLPO_GetNumberFlows(ST_FlowPool *p);
 int FLPO_IncrementFlowPool(ST_FlowPool *p,int value);
 int FLPO_DecrementFlowPool(ST_FlowPool *p,int value);
+void FLPO_ResizeFlowPool(ST_FlowPool *p, int value);
 void FLPO_Stats(ST_FlowPool *p,FILE *out);
 
 #endif

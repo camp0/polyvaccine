@@ -25,6 +25,31 @@
 #include "memorypool.h"
 
 /**
+ * MEPO_ResizeFlowPool - Reize the memorypool with a specific value 
+ *
+ * @param p
+ * @param value
+ * 
+ */
+
+void MEPO_ResizeMemoryPool(ST_MemoryPool *mp,int value){
+	int items;
+
+	items = g_slist_length(mp->pool->items);
+
+	if(value > items) { // increment the pool
+       		MEPO_IncrementMemoryPool(mp,(value-items));
+	}else{
+		if(value < items) { // decrement the pool
+        		MEPO_DecrementMemoryPool(mp,(items-value));	
+		}
+	} 
+	POOL_Reset(mp->pool);
+        return ;
+}
+
+
+/**
  * MEPO_Init - Inits the memory pool 
  *
  */
@@ -35,7 +60,7 @@ ST_MemoryPool *MEPO_Init() {
 	mp->pool = POOL_Init();
         mp->total_release_bytes = 0;
         mp->total_acquire_bytes = 0;
-
+	mp->total_allocated = 0;
 	MEPO_IncrementMemoryPool(mp,MAX_MEMORY_SEGMENTS_PER_POOL);
 	return mp;
 }
@@ -72,6 +97,7 @@ int MEPO_IncrementMemoryPool(ST_MemoryPool *mp,int value){
 		ST_MemorySegment *m = MESG_Init();
 		mp->total_release_bytes += m->real_size;
 		POOL_AddItem(mp->pool,m);
+		mp->total_allocated++;
 	}
         return TRUE;
 }
@@ -97,6 +123,7 @@ int MEPO_DecrementMemoryPool(ST_MemoryPool *mp,int value) {
 		if(m) {
 			mp->total_acquire_bytes += m->real_size;
 			MESG_Destroy(m);
+			mp->total_allocated--;
 		}
         }
 	return TRUE;
@@ -121,7 +148,7 @@ ST_MemorySegment *MEPO_GetMemorySegment(ST_MemoryPool *mp){
 }
 
 void MEPO_Stats(ST_MemoryPool *mp,FILE *out){
-	int32_t value = MAX_MEMORY_SEGMENTS_PER_POOL * (sizeof(ST_MemorySegment)+MAX_SEGMENT_SIZE);
+	int32_t value = mp->total_allocated * (sizeof(ST_MemorySegment)+MAX_SEGMENT_SIZE);
 	char *unit = "Bytes";
 
 	if((value / 1024)>0){

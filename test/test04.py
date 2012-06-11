@@ -9,7 +9,7 @@ import ctypes
 import sys
 sys.path.append("../src/detection/")
 sys.path.append("../src/core/")
-import polyvaccine as pv
+import polyfilter as pv
 import polydetector as d 
 import unittest
 import testrunner
