@@ -24,24 +24,38 @@
 
 #include "memory.h"
 
-ST_MemorySegment *MESG_Init(){
-	ST_MemorySegment *m = g_new(ST_MemorySegment,1);
-	m->mem = malloc(MAX_SEGMENT_SIZE);
-	m->real_size = MAX_SEGMENT_SIZE;
-	MESG_Reset(m);
-	return m;
-}
+/**
+ * MESG_InitWithSize - Inits a ST_MemorySegment to store layer 7 data with a specific size. 
+ *
+ * @param size
+ *
+ * @return ST_MemorySegment 
+ * 
+ */
 
 ST_MemorySegment *MESG_InitWithSize(int size){
         ST_MemorySegment *m = g_new(ST_MemorySegment,1);
-        m->mem = (unsigned char *)malloc(size);
+        m->mem = g_malloc0(size);
         m->real_size = size;
+        m->virtual_size = 0;
         MESG_Reset(m);
         return m;
 }
 
+/**
+ * MESG_Init - Inits a ST_MemorySegment to store layer 7 data. 
+ *
+ * @return ST_MemorySegment 
+ * 
+ */
+
+ST_MemorySegment *MESG_Init(){
+
+	return MESG_InitWithSize(MAX_SEGMENT_SIZE);
+}
+
 void MESG_Destroy(ST_MemorySegment *m){
-	free(m->mem);
+	g_free(m->mem);
 	g_free(m);
 	m = NULL;
 }
@@ -57,7 +71,7 @@ void MESG_Reset(ST_MemorySegment *m){
 
 void MESG_Realloc(ST_MemorySegment *m, int size) {
 
-	m->mem = (unsigned char*)realloc(m->mem,size);
+	m->mem = g_realloc(m->mem,size);
 	if(m->mem == NULL){ 
 		perror("realloc");
                 exit(-1);

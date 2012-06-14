@@ -169,6 +169,22 @@ void POFR_Init() {
 	ST_Callback *current = NULL;
 	ST_Interface *interface = NULL;
 
+#ifdef HAVE_MALLOC
+        glib_mem_profiler_table->malloc = malloc;
+        glib_mem_profiler_table->free = free;
+        glib_mem_profiler_table->realloc = realloc;
+        glib_mem_profiler_table->calloc = NULL;
+        glib_mem_profiler_table->try_malloc = NULL;
+        glib_mem_profiler_table->try_realloc = NULL;
+        g_mem_set_vtable(glib_mem_profiler_table);
+#endif
+
+#ifdef DEBUG
+	LOG(POLYLOG_PRIORITY_DEBUG,"Initializing polyfilter engine....");
+	// Show glib memory profiler
+      	g_mem_set_vtable(glib_mem_profiler_table);
+        atexit(g_mem_profile);
+#endif
 	_polyFilter = (ST_PolyFilter*)g_new0(ST_PolyFilter,1);
 
 	POLG_Init();
@@ -230,7 +246,6 @@ void POFR_Init() {
 	COMN_SetMemoryPool(_polyFilter->conn,_polyFilter->memorypool);
 	USTA_SetUserPool(_polyFilter->users,_polyFilter->userpool);
 #ifdef DEBUG
-	LOG(POLYLOG_PRIORITY_DEBUG,"Initialized engine....");
 	LOG(POLYLOG_PRIORITY_DEBUG,"connection manager (0x%x)",_polyFilter->conn);
 	LOG(POLYLOG_PRIORITY_DEBUG,"user manager (0x%x)",_polyFilter->users);
 	LOG(POLYLOG_PRIORITY_DEBUG,"flowpool (0x%x)",_polyFilter->flowpool);

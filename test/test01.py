@@ -247,6 +247,8 @@ class Test_01(unittest.TestCase):
 #		print "(%s)" % final
 #		print "-------------------"
 #		self.assertEqual(len(s.mem),len(final))
+		print s.mem
+		print str(s.mem)
 		self.assertEqual(s.mem,final)		
 
 

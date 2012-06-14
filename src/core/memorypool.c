@@ -74,6 +74,7 @@ void MEPO_Destroy(ST_MemoryPool *mp){
 	MEPO_DecrementMemoryPool(mp,POOL_GetNumberItems(mp->pool));
 	POOL_Destroy(mp->pool);
 	g_free(mp);
+	mp = NULL;
 }
 
 int MEPO_GetNumberMemorySegments(ST_MemoryPool *mp){

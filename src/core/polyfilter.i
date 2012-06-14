@@ -16,6 +16,7 @@
 #include "polyfilter.h"
 %}
 
+%apply unsigned char * { gpointer }
 %apply unsigned int { uint32_t }
 %apply unsigned int { u_int32_t }
 %apply int { int32_t }

@@ -31,14 +31,13 @@
 
 #include <string.h>
 #include <stdlib.h>
-//#include "debug.h"
 #include <sys/types.h>
 #include <glib.h>
 
 #define MAX_SEGMENT_SIZE 512
 
 struct ST_MemorySegment {
-	unsigned char *mem;
+	gpointer mem;
 	int virtual_size;	
 	int real_size;
 }__attribute__((packed));

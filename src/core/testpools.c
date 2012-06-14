@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
+#include "memorypool.h"
 #include "flowpool.h"
 #include "userpool.h"
 #include "user.h"
@@ -86,12 +87,53 @@ void test05(void){
         user = USPO_GetUser(upool);
 	assert( user == NULL);
 	
-	USPO_IncrementUserPool(upool,200000);
+	USPO_IncrementUserPool(upool,20000);
 
         USPO_Destroy(upool);
         return;
 }
 
+void test06(void){
+        ST_MemoryPool *mpool = NULL;
+        ST_MemorySegment *mem = NULL;	
+
+	mpool = MEPO_Init();
+
+	mem = MEPO_GetMemorySegment(mpool);
+
+	MESG_AppendPayload(mem,"hola",4);
+
+	assert(mem->real_size == 512);	
+	assert(mem->virtual_size == 4);
+	
+	MESG_AppendPayload(mem,"holaaa",6);
+	assert(mem->virtual_size == 10);
+	assert(mem->real_size == 512);	
+
+	MESG_Reset(mem);
+	assert(mem->virtual_size == 0);
+	assert(mem->real_size == 512);	
+
+	MEPO_AddMemorySegment(mpool,mem);
+
+	mem = MESG_InitWithSize(16);
+	assert(mem->virtual_size == 0);
+	assert(mem->real_size == 16);	
+
+	MESG_AppendPayload(mem,"1234567890",10);
+	MESG_AppendPayload(mem,"1234567890",10);
+	MESG_AppendPayload(mem,"1234567890",10);
+	assert(mem->virtual_size == 30);
+	assert(mem->real_size == 30);	
+
+
+	MESG_Destroy(mem);
+	MEPO_Destroy(mpool);
+
+	//assert( mpool == NULL);
+
+	return;
+}
 
 static testmatrix tests[] = {
 	{ .desc = "test 01", .function = test01 },
@@ -99,6 +141,7 @@ static testmatrix tests[] = {
 	{ .desc = "test 03", .function = test03 },
 	{ .desc = "test 04 user pools", .function = test04 },
 	{ .desc = "test 05 user pools", .function = test05 },
+	{ .desc = "test 06 memory pools", .function = test06 },
 	{}
 };	
 

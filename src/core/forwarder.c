@@ -271,7 +271,6 @@ void FORD_AddAnalyzer(ST_Forwarder *fw, char *name,int16_t protocol,int16_t port
 		ga->notify_correct = notify_correct;
 		ga->notify_wrong = notify_wrong;
 		g_hash_table_insert(fw->analyzers,g_strdup(name),ga);
-		LOG(POLYLOG_PRIORITY_INFO,"Analyzer(0x%x)'%s' disabled port(%d)",ga,name,port);
 	}	
 	return;
 }
