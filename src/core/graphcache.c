@@ -43,6 +43,7 @@ ST_GraphLink *GACH_NewGraphLink(char *uri){
         link->uri = g_string_new("");
 	link->type = NODE_TYPE_REGULAR;
 	link->hited = 0;
+	link->key = 0;
         g_string_printf(link->uri,"%s",uri);
 
         return link;
@@ -66,6 +67,7 @@ ST_GraphNode *GACH_NewGraphNode(char *uri,int cost){
         node->cost = cost;
         node->hits = 0;
 	node->type = NODE_TYPE_REGULAR;
+	node->key = 0;
 	return node;
 }
 
@@ -104,7 +106,7 @@ int GACH_GetLinkCost(ST_GraphCache *gc, char *urisrc, char *uridst){
 }
 
 /**
- * GACH_AddGraphNodeFromLink - Adds a new graphnode from link and return it 
+ * GACH_AddGraphNodeFromLinkUpdate - Adds a new graphnode from link and return it 
  *
  * @param gc The cache
  * @param link
@@ -114,38 +116,47 @@ int GACH_GetLinkCost(ST_GraphCache *gc, char *urisrc, char *uridst){
  * @return ST_GraphNode
  */
 
-ST_GraphNode *GACH_AddGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, char *uri, int cost){
+ST_GraphNode *GACH_AddGraphNodeFromLinkUpdate(ST_GraphCache *gc,ST_GraphLink *link, char *uri, int cost){
 	ST_GraphNode *node = NULL;
 	ST_GraphLink *linkdst = NULL;
+	ST_GraphLink *linkaux = NULL;
 
 	node = (ST_GraphNode*)g_hash_table_lookup(link->uris,(gchar*)uri);
         if(node == NULL) {
-        	node = GACH_NewGraphNode(uri,cost);
+		/* First create the new node and the relation between the link */
+                node = GACH_NewGraphNode(uri,cost);
                 gc->size_memory += sizeof(ST_GraphNode)+strlen(uri);
                 g_hash_table_insert(link->uris,g_strdup(uri),node);
                 gc->total_links ++;
-                gc->total_ids++;
-                node->id_uri=gc->total_ids;
+
+		linkaux = GACH_GetBaseLinkUpdate(gc,uri);
+		if(linkaux != NULL){ // The node is a restransmition
+			node->key = linkaux->key;
+		}else{	
+                	gc->total_ids++;
+                	node->key=gc->total_ids;
+		}
                 linkdst = (ST_GraphLink *)g_hash_table_lookup(gc->uris,(gchar*)uri);
                 if(linkdst == NULL) {
                 	linkdst = GACH_NewGraphLink(uri);
                         gc->size_memory += sizeof(ST_GraphLink)+strlen(uri);
                         gc->total_nodes++;
-                        linkdst->id_uri = gc->total_ids;
+                        linkdst->key = gc->total_ids;
                         g_hash_table_insert(gc->uris,g_strdup(uri),linkdst);
                 }else{
-			linkdst->id_uri = node->id_uri;
-			//printf("yes yes\n");
+			linkdst->key = node->key;
 		}
 	}else{
-		// Update the cost of the link
+		// Update the cost of the link because the relation exists
                 node->cost = cost;
         }
 	return node;
 }
 
 /**
- * GACH_AddLink - Adds a link between to URIs given to the grapcache
+ * GACH_AddLinkUpdate - Adds a link between to URIs given to the grapcache
+ *	
+ * 	This function is for UPDATE
  *
  * @param gc The Graph cache
  * @param urisrc the previous uri of the http path
@@ -153,7 +164,7 @@ ST_GraphNode *GACH_AddGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, ch
  * @param cost the cost between the two uris 
  */
 
-void GACH_AddLink(ST_GraphCache *gc,char *urisrc, char *uridst, int cost){
+void GACH_AddLinkUpdate(ST_GraphCache *gc,char *urisrc, char *uridst, int cost){
 	ST_GraphLink *link = NULL;
 	ST_GraphNode *node;
 
@@ -166,11 +177,11 @@ void GACH_AddLink(ST_GraphCache *gc,char *urisrc, char *uridst, int cost){
                 gc->size_memory += sizeof(ST_GraphLink)+strlen(urisrc);
                 gc->total_nodes++;
                 gc->total_ids ++;
-                link->id_uri = gc->total_ids; // Set the id value of the uri
+                link->key = gc->total_ids; // Set the id value of the uri
 
                 g_hash_table_insert(gc->uris,g_strdup(urisrc),link);
 	}
-	node = GACH_AddGraphNodeFromLink(gc,link,uridst,cost);
+	node = GACH_AddGraphNodeFromLinkUpdate(gc,link,uridst,cost);
 	return;
 }
 
@@ -183,7 +194,7 @@ void GACH_AddLink(ST_GraphCache *gc,char *urisrc, char *uridst, int cost){
  * @return ST_GraphLink
  */
 
-ST_GraphLink *GACH_AddBaseLink(ST_GraphCache *gc,char *uri){
+ST_GraphLink *GACH_AddBaseLinkUpdate(ST_GraphCache *gc,char *uri){
         ST_GraphLink *link;
 
         link = (ST_GraphLink*)g_hash_table_lookup(gc->uris,(gchar*)uri);
@@ -193,13 +204,20 @@ ST_GraphLink *GACH_AddBaseLink(ST_GraphCache *gc,char *uri){
 
 		gc->total_nodes++;
 		gc->total_ids++;
-		link->id_uri = gc->total_ids;
+		link->key = gc->total_ids;
 		gc->size_memory += sizeof(link)+strlen(uri);
                 g_hash_table_insert(gc->uris,g_strdup(uri),link);
 	}
 	return link;
 } 
 
+
+ST_GraphLink *GACH_GetBaseLinkUpdate(ST_GraphCache *gc,char *uri){
+        ST_GraphLink *link = NULL;
+
+        link = (ST_GraphLink*)g_hash_table_lookup(gc->uris,(gchar*)uri);
+        return link;
+}
 
 ST_GraphLink *GACH_GetBaseLink(ST_GraphCache *gc,char *uri){
 	ST_GraphLink *link = NULL;
@@ -220,9 +238,9 @@ ST_GraphNode *GACH_GetGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, ch
 	ST_GraphNode *node = NULL;
 
         node = (ST_GraphNode*)g_hash_table_lookup(link->uris,(gchar*)uri);
-	if(node == NULL)
+	if(node == NULL){
 		gc->total_fails++;
-	else{
+	}else{
 		gc->total_hits++;
 		node->hits++;
 	}
@@ -230,24 +248,23 @@ ST_GraphNode *GACH_GetGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, ch
 }
 
 ST_GraphNode *GACH_GetGraphNode(ST_GraphCache *gc,char *urisrc,char *uridst){
-	ST_GraphLink *link = GACH_GetBaseLink(gc,urisrc);
+	ST_GraphLink *link = NULL;
 	ST_GraphNode *node = NULL;
 
+	link = GACH_GetBaseLink(gc,urisrc);
 	if(link != NULL) {
                 if(link->hited == 0){
                         link->hited = 1;
                         gc->total_node_hits++;
                 }
 		node = GACH_GetGraphNodeFromLink(gc,link,uridst);
-		if(node == NULL)
+		if(node == NULL){
 			gc->total_fails++;
-		else{
+		}else{
 			gc->total_hits++;
 			node->hits++;
 		}
 		return node;	
-	}else{
-		gc->total_node_fails++;
 	}
 	return NULL;
 }
@@ -321,7 +338,7 @@ void __GACH_DumpGraphOnGraphviz(ST_GraphCache *gc) {
                 g_hash_table_iter_init(&initer,link->uris);
                 while (g_hash_table_iter_next (&initer, &kk, &vv)) {
                 	ST_GraphNode *node = (ST_GraphNode*)vv;
-                        fprintf(fd,"\t\"%d\" -> \"%d\"\t[label=\"%d\"];\n",link->id_uri,node->id_uri,node->cost);
+                        fprintf(fd,"\t\"%d\" -> \"%d\"\t[label=\"%d\"];\n",link->key,node->key,node->cost);
                 }
         }
 	fprintf(fd,"}\n");
@@ -357,10 +374,10 @@ void GACH_Stats(ST_GraphCache *gc) {
 		effectiveness = (gc->total_hits*100)/(gc->total_hits+gc->total_fails);
 	}	
 	n_effectiveness = 0;
-	if((gc->total_nodes)>0){
-		n_effectiveness = (gc->total_node_hits*100)/(gc->total_nodes);
+	if((gc->total_node_hits+gc->total_node_fails)>0){
+		n_effectiveness = (gc->total_node_hits*100)/(gc->total_node_hits+gc->total_node_fails);
 	}	
-	fprintf(stdout,"GraphCache(0x%x) statistics\n",gc);
+	fprintf(stdout,"GraphCache(0x%x) statistics, level %d\n",gc,gc->statistics_level);
 	fprintf(stdout,"\tallocated memory:%d %s\n",value,unit);
 	fprintf(stdout,"\tLinks = %d \n",gc->total_links);
 	fprintf(stdout,"\tLink hits = %d\n\tLink fails = %d\n",gc->total_hits,gc->total_fails);
@@ -376,10 +393,10 @@ void GACH_Stats(ST_GraphCache *gc) {
 		while (g_hash_table_iter_next (&iter, &k, &v)) {
 			ST_GraphLink *link = (ST_GraphLink*)v;
 			g_hash_table_iter_init(&initer,link->uris);
-			fprintf(stdout,"\t\tUriSrc(%s)id(%d)\n",link->uri->str,link->id_uri);
+			fprintf(stdout,"\t\tUriSrc(%s)id(%d)\n",link->uri->str,link->key);
 			while (g_hash_table_iter_next (&initer, &kk, &vv)) {
 				ST_GraphNode *node = (ST_GraphNode*)vv;
-				fprintf(stdout,"\t\t\tUriDst(%s)id(%d)cost(%d)hits(%d)\n",node->uri->str,node->id_uri,node->cost,node->hits);
+				fprintf(stdout,"\t\t\tUriDst(%s)id(%d)cost(%d)hits(%d)\n",node->uri->str,node->key,node->cost,node->hits);
 			}
 		}
 		if(gc->statistics_level > 2) {

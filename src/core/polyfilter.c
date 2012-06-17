@@ -37,7 +37,7 @@
 
 static ST_PolyFilter *_polyFilter = NULL;
 
-static int timeout_checker = 180;
+static int timeout_checker = 10;
 
 /**
  * __POFR_ShowStartBanner - Shows the initial banner of the application.
@@ -399,12 +399,14 @@ void POFR_SetMode(char *mode) {
 			if((hosts == 0)&&(i != POLYFILTER_MODE_SOMECACHE)){ //We can only switch if there is no hosts
 				_polyFilter->mode = i;
         			LOG(POLYLOG_PRIORITY_INFO,
-                			"Changing mode=%s",polyfilter_modes_str[_polyFilter->mode]);
+                			"Changing mode='%s'",polyfilter_modes_str[_polyFilter->mode]);
 				return;
 			}
 		}
 		i++;
 	}
+      	LOG(POLYLOG_PRIORITY_INFO,
+       		"Non supported mode='%s'",mode);
 	return;
 }
 

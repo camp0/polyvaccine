@@ -64,7 +64,7 @@ enum polyfilter_mode {
 	POLYFILTER_MODE_FULLCACHE // The engine is updating the cache.
 };
 
-static const char *polyfilter_modes_str [] = { "detection","hybrid","update"};
+static const char *polyfilter_modes_str [] = { "detection","hybrid","update",NULL};
 
 #define POLYVACCINE_FILTER_ENGINE_NAME "Polyvaccine filter engine"
 

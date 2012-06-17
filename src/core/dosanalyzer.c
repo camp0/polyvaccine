@@ -129,8 +129,8 @@ void *DSAZ_Stats(void) {
 	fprintf(stdout,"\ttotal nonexist URIs %"PRId32"\n",_dos.total_nonexist_uri);
 	fprintf(stdout,"\ttotal statistic reach by users %"PRId32"\n",_dos.users_statistics_reach);
 	if(_dos.statistics_level>0){
-		PACH_Stats(_dos.pathcache);
 		GACH_Stats(_dos.graphcache);
+		PACH_Stats(_dos.pathcache);
 	}
 	if(_dos.statistics_level>1)
 		__DSAZ_DumpTimeStatistics();
@@ -142,6 +142,7 @@ void DSAZ_SetGraphStatisticsLevel(int level){
 
 	_dos.statistics_level = level;	
 	GACH_SetStatisticsLevel(_dos.graphcache,level);
+	PACH_SetStatisticsLevel(_dos.graphcache,level);
 	return;
 }
 
@@ -209,16 +210,18 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 			link = GACH_GetBaseLink(_dos.graphcache,uri);
 			if(link != NULL) { // The uri is on the graphcache
 				f->lasturi = link->uri->str;
-				f->lasturi_id = link->id_uri;
+				f->lasturi_id = link->key;
 				_dos.total_exist_uri++;
 				user->request_hits++;
 			}else{
 				_dos.total_nonexist_uri++;
 				user->request_fails++;
+				f->lasturi = NULL;
+				f->lasturi_id = -1;
 			}
 #ifdef DEBUG
         		LOG(POLYLOG_PRIORITY_DEBUG,
-                		"User(0x%x)flow(0x%x)first uri cached %s\n",
+                		"User(0x%x)flow(0x%x)first uri cached %s",
                 		user,f,link==NULL?"no":"yes");
 #endif
 		}else{
@@ -247,14 +250,26 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 
                         	// Check the path of the flow on the pathcache
 				memset(pathhash,0,1024);
+			
 				if(f->path != NULL){ // The flow contains a path reference
-					snprintf(pathhash,1024,"%s %d",f->path->path->str,node->id_uri);
+					if(node->key != f->lasturi_id) // The request is different
+						snprintf(pathhash,1024,"%s %d",f->path->path->str,node->key);
+					else 	// a restransmision
+						snprintf(pathhash,1024,"%s",f->path->path->str);
 				}else{
-					snprintf(pathhash,1024,"%d %d",f->lasturi_id,node->id_uri);
+					if(node->key != f->lasturi_id)
+						snprintf(pathhash,1024,"%d %d",f->lasturi_id,node->key);
+                                	else
+                                        	snprintf(pathhash,1024,"%d",node->key);
                         	}
+			
+#ifdef DEBUG            
+                        	LOG(POLYLOG_PRIORITY_DEBUG,
+                                	"User(0x%x)flow(0x%x)path(%s)",user,f,pathhash);
+#endif
                         	f->path =(ST_PathNode*)PACH_GetPath(_dos.pathcache,&pathhash);
 				f->lasturi = node->uri->str;
-				f->lasturi_id = node->id_uri;
+				f->lasturi_id = node->key;
 				user->path_hits++;
 			}else{
 				_dos.total_nonexist_links++;
@@ -359,30 +374,44 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
 		// Updates the graphcache
 		costvalue = 0;
 		if(f->lasturi == NULL){
-			link = GACH_AddBaseLink(_dos.graphcache,uri);
+			link = GACH_AddBaseLinkUpdate(_dos.graphcache,uri);
 			f->lasturi = link->uri->str;
-			uri_id = link->id_uri;
+			f->lasturi_id = link->key;
 		}else{
 			// At least is the second or more uri on the flow
 			struct timeval t_cost;
 
 			SYIN_TimevalSub(&t_cost,&(f->current_time),&(f->last_uri_seen));
 			costvalue = t_cost.tv_sec/1000 + (t_cost.tv_usec);
-			link = GACH_GetBaseLink(_dos.graphcache,f->lasturi);
-			node = GACH_AddGraphNodeFromLink(_dos.graphcache,link,uri,costvalue);
-			//node = GACH_GetGraphNodeFromLink(_dos.graphcache,link,uri);
-			f->lasturi = node->uri->str;
-			uri_id = node->id_uri;	
+			
+			/* Get the previous request of the packet */
+			link = GACH_GetBaseLinkUpdate(_dos.graphcache,f->lasturi);
+			
+			node = GACH_AddGraphNodeFromLinkUpdate(_dos.graphcache,link,uri,costvalue);
+		
+			uri_id = node->key;	
 
 			// Updates the pathcache;
 			// Only updates when two uris appears;
 			memset(pathhash,0,1024);
 			if(f->path != NULL){ // The flow contains a path reference
-				snprintf(pathhash,1024,"%s %d",f->path->path->str,node->id_uri);
+				if(node->key != link->key)
+					snprintf(pathhash,1024,"%s %d",f->path->path->str,node->key);
+				else
+					snprintf(pathhash,1024,"%s",f->path->path->str);
 			}else{
-				snprintf(pathhash,1024,"%d %d",link->id_uri,node->id_uri);
+				if(node->key != link->key)
+					snprintf(pathhash,1024,"%d %d",link->key,node->key);
+				else
+					snprintf(pathhash,1024,"%d",node->key);
 			}
+#ifdef DEBUG
+        		LOG(POLYLOG_PRIORITY_DEBUG,
+                		"UserAuthorized(0x%x)flow(0x%x)path(%s)",user,f,pathhash);
+#endif
 			f->path = PACH_AddPath(_dos.pathcache,(char*)&pathhash);
+			f->lasturi = node->uri->str;
+			f->lasturi_id = node->key;
 		}
 
 

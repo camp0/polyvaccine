@@ -37,7 +37,7 @@ ST_PathNode *PACH_GetPath(ST_PathCache *pc,char *path){
 
 	path_n = (ST_PathNode*)g_hash_table_lookup(pc->paths,(gchar*)path);
 	if(path_n == NULL) {
-		pc->total_fails--;
+		pc->total_fails++;
 	}else{
 		path_n->hits++;
 		pc->total_hits ++;
@@ -64,13 +64,17 @@ ST_PathNode *PACH_InitPathNode(){
 
 
 ST_PathNode *PACH_AddPath(ST_PathCache *pc, char *path){
-	ST_PathNode *path_n = PACH_InitPathNode();
+	ST_PathNode *path_n = NULL;
 
-        g_string_printf(path_n->path,"%s",path);
+	path_n = (ST_PathNode*)g_hash_table_lookup(pc->paths,(gchar*)path);
+	if(path_n == NULL) {
+		path_n = PACH_InitPathNode();
 
-	g_hash_table_insert(pc->paths,g_strdup(path),path_n);
-	pc->total_paths++;
-	pc->size_memory += sizeof(path_n)+strlen(path);
+        	g_string_printf(path_n->path,"%s",path);
+		g_hash_table_insert(pc->paths,g_strdup(path),path_n);
+		pc->total_paths++;
+		pc->size_memory += sizeof(path_n)+strlen(path);
+	}
 	return path_n;
 }
 
@@ -107,6 +111,7 @@ void PACH_Destroy(ST_PathCache *pc) {
 	g_hash_table_iter_init (&iter, pc->paths);
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
 		node = (ST_PathNode*)v;
+	
 		g_string_free(node->path,TRUE);
 		node->path = NULL;
 		g_free(node);
@@ -143,10 +148,10 @@ void PACH_Stats(ST_PathCache *pc) {
 	if((pc->total_hits+pc->total_fails)>0){
 		effectiveness = (pc->total_hits*100)/(pc->total_hits+pc->total_fails);
 	}	
-	fprintf(stdout,"PathCache(0x%x) statistics\n",pc);
+	fprintf(stdout,"PathCache(0x%x) statistics, level %d\n",pc,pc->statistics_level);
 	fprintf(stdout,"\tallocated memory:%d %s\n",value,unit);
-	fprintf(stdout,"\tPaths = %d \n",pc->total_paths);
-	fprintf(stdout,"\tPath hits = %d\n\tPath fails = %d\n",pc->total_hits,pc->total_fails);
+	fprintf(stdout,"\tPaths = %"PRId32" \n",pc->total_paths);
+	fprintf(stdout,"\tPath hits = %"PRId32"\n\tPath fails = %"PRId32"\n",pc->total_hits,pc->total_fails);
 	fprintf(stdout,"\tPath effectiveness = %d\%\n",effectiveness);
 
 	if(pc->statistics_level > 0 ) {
