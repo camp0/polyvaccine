@@ -61,8 +61,14 @@ ST_PathNode *PACH_InitPathNode(){
 	return path_n;
 }
 
-
-
+/**
+ * PACH_AddPath - Adds a path to the cache. 
+ *
+ * @param pc The ST_PathCache
+ * @param path
+ *
+ * @return ST_PathNode 
+ */
 ST_PathNode *PACH_AddPath(ST_PathCache *pc, char *path){
 	ST_PathNode *path_n = NULL;
 
@@ -79,11 +85,23 @@ ST_PathNode *PACH_AddPath(ST_PathCache *pc, char *path){
 }
 
 
-void PACH_ShowPathCache(ST_PathCache *pc){};
+void PACH_ShowPathCache(ST_PathCache *pc){
+        GHashTableIter iter;
+        gpointer k,v;
+	ST_PathNode *node;
+
+	fprintf(stdout,"\tPath nodes\n");
+	g_hash_table_iter_init (&iter, pc->paths);
+	while (g_hash_table_iter_next (&iter, &k, &v)) {
+		node = (ST_PathNode*)v;
+		fprintf(stdout,"\t\tPath(%s)Hits(%d)\n",node->path->str,node->hits);
+	}
+	return;
+}
 
 
 /**
- * PACH_Init - Initalize the cache
+ * PACH_Init - Initalize the pathcache
  *
  */
 ST_PathCache *PACH_Init(){
@@ -101,7 +119,7 @@ ST_PathCache *PACH_Init(){
 }
 
 /**
- * PACH_Destroy - Destroy all the fields of the graphcache
+ * PACH_Destroy - Destroy all the fields of the pathcache
  */
 void PACH_Destroy(ST_PathCache *pc) {
 	GHashTableIter iter;
@@ -125,12 +143,10 @@ void PACH_Destroy(ST_PathCache *pc) {
 /**
  * PACH_Stats - Shows the statistcis of a ST_PathCache 
  * 
- * @param c The graphcache
+ * @param c The pathcache
  * 
  */
 void PACH_Stats(ST_PathCache *pc) {
-	GHashTableIter iter;
-	gpointer k,v;
 	int effectiveness;
 	int32_t value = pc->size_memory;
         char *unit = "Bytes";
@@ -154,16 +170,16 @@ void PACH_Stats(ST_PathCache *pc) {
 	fprintf(stdout,"\tPath hits = %"PRId32"\n\tPath fails = %"PRId32"\n",pc->total_hits,pc->total_fails);
 	fprintf(stdout,"\tPath effectiveness = %d\%\n",effectiveness);
 
-	if(pc->statistics_level > 0 ) {
-		fprintf(stdout,"\tPath nodes\n");
-		g_hash_table_iter_init (&iter, pc->paths);
-		while (g_hash_table_iter_next (&iter, &k, &v)) {
-			ST_PathNode *nod = (ST_PathNode*)v;
-			fprintf(stdout,"\t\tPath(%s)Hits(%d)\n",nod->path->str,nod->hits);
-		}
+	if(pc->statistics_level > 1 ) {
+		PACH_ShowPathCache(pc);
 	}
 	return;
 }
 
-
+/**
+ * PACH_SetStatisticsLevel - Sets the statistcis level of a ST_PathCache 
+ * 
+ * @param pc The pathcache
+ * @param level 
+ */
 void PACH_SetStatisticsLevel(ST_PathCache *gc,int level) {gc->statistics_level = level;};

@@ -211,6 +211,14 @@ ST_GraphLink *GACH_AddBaseLinkUpdate(ST_GraphCache *gc,char *uri){
 	return link;
 } 
 
+/**
+ * GACH_GetBaseLinkUpdate - Gets a base link given a uri.
+ *
+ * @param c The graphcache
+ * @param uri 
+ *
+ * @return ST_GraphLink
+ */
 
 ST_GraphLink *GACH_GetBaseLinkUpdate(ST_GraphCache *gc,char *uri){
         ST_GraphLink *link = NULL;
@@ -219,10 +227,19 @@ ST_GraphLink *GACH_GetBaseLinkUpdate(ST_GraphCache *gc,char *uri){
         return link;
 }
 
+/**
+ * GACH_GetBaseLink - Gets a base link given a uri, but updates counters.
+ *
+ * @param c The graphcache
+ * @param uri 
+ *
+ * @return ST_GraphLink
+ */
+
 ST_GraphLink *GACH_GetBaseLink(ST_GraphCache *gc,char *uri){
 	ST_GraphLink *link = NULL;
 
-	link = (ST_GraphLink*)g_hash_table_lookup(gc->uris,(gchar*)uri);
+	link = GACH_GetBaseLinkUpdate(gc,uri); 
 	if(link!= NULL) {
                 if(link->hited == 0){
                         link->hited = 1;
@@ -233,6 +250,16 @@ ST_GraphLink *GACH_GetBaseLink(ST_GraphCache *gc,char *uri){
 	}
        	return link; 
 }
+
+/**
+ * GACH_GetGraphNodeFromLink - Gets a graph node from a base link.
+ *
+ * @param c The graphcache
+ * @param link
+ * @param uri 
+ *
+ * @return ST_GraphNode
+ */
 
 ST_GraphNode *GACH_GetGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, char *uri){
 	ST_GraphNode *node = NULL;
@@ -246,6 +273,16 @@ ST_GraphNode *GACH_GetGraphNodeFromLink(ST_GraphCache *gc,ST_GraphLink *link, ch
 	}
 	return node;
 }
+
+/**
+ * GACH_GetGraphNode - Gets a graph node from two char uris.
+ *
+ * @param c The graphcache
+ * @param urisrc 
+ * @param uridst 
+ *
+ * @return ST_GraphNode
+ */
 
 ST_GraphNode *GACH_GetGraphNode(ST_GraphCache *gc,char *urisrc,char *uridst){
 	ST_GraphLink *link = NULL;
@@ -323,6 +360,7 @@ void GACH_Destroy(ST_GraphCache *gc) {
 	gc = NULL;
 }
 
+
 void __GACH_DumpGraphOnGraphviz(ST_GraphCache *gc) {
         GHashTableIter iter,initer;
         gpointer k,v,kk,vv;
@@ -346,6 +384,26 @@ void __GACH_DumpGraphOnGraphviz(ST_GraphCache *gc) {
         return;
 }
 
+void GACH_ShowGraphCache(ST_GraphCache *gc){
+	GHashTableIter iter,initer;
+	ST_GraphLink *link;
+	ST_GraphNode *node;
+	gpointer k,v,kk,vv;
+
+	fprintf(stdout,"\tLink nodes\n");
+	g_hash_table_iter_init (&iter, gc->uris);
+	while (g_hash_table_iter_next (&iter, &k, &v)) {
+		link = (ST_GraphLink*)v;
+		g_hash_table_iter_init(&initer,link->uris);
+		fprintf(stdout,"\t\tUriSrc(%s)id(%d)\n",link->uri->str,link->key);
+		while (g_hash_table_iter_next (&initer, &kk, &vv)) {
+			node = (ST_GraphNode*)vv;
+			fprintf(stdout,"\t\t\tUriDst(%s)id(%d)cost(%d)hits(%d)\n",node->uri->str,node->key,node->cost,node->hits);
+		}
+        }
+	return;
+}
+
 /**
  * GACH_Stats - Shows the statistcis of a ST_GraphCache 
  * 
@@ -353,8 +411,6 @@ void __GACH_DumpGraphOnGraphviz(ST_GraphCache *gc) {
  * 
  */
 void GACH_Stats(ST_GraphCache *gc) {
-	GHashTableIter iter,initer;
-	gpointer k,v,kk,vv;
 	int effectiveness;
 	int n_effectiveness;
 	int32_t value = gc->size_memory;
@@ -388,17 +444,7 @@ void GACH_Stats(ST_GraphCache *gc) {
 	fprintf(stdout,"\tNode effectiveness = %d\%\n",n_effectiveness);
 
 	if(gc->statistics_level > 1) {
-		fprintf(stdout,"\tLink nodes\n");
-		g_hash_table_iter_init (&iter, gc->uris);
-		while (g_hash_table_iter_next (&iter, &k, &v)) {
-			ST_GraphLink *link = (ST_GraphLink*)v;
-			g_hash_table_iter_init(&initer,link->uris);
-			fprintf(stdout,"\t\tUriSrc(%s)id(%d)\n",link->uri->str,link->key);
-			while (g_hash_table_iter_next (&initer, &kk, &vv)) {
-				ST_GraphNode *node = (ST_GraphNode*)vv;
-				fprintf(stdout,"\t\t\tUriDst(%s)id(%d)cost(%d)hits(%d)\n",node->uri->str,node->key,node->cost,node->hits);
-			}
-		}
+		GACH_ShowGraphCache(gc);
 		if(gc->statistics_level > 2) {
 			fprintf(stdout,"Dumping graph to grapcache.viz file\n");
 			__GACH_DumpGraphOnGraphviz(gc);
@@ -406,6 +452,5 @@ void GACH_Stats(ST_GraphCache *gc) {
 	}
 	return;
 }
-
 
 void GACH_SetStatisticsLevel(ST_GraphCache *gc,int level) {gc->statistics_level = level;};

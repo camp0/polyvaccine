@@ -142,7 +142,7 @@ void DSAZ_SetGraphStatisticsLevel(int level){
 
 	_dos.statistics_level = level;	
 	GACH_SetStatisticsLevel(_dos.graphcache,level);
-	PACH_SetStatisticsLevel(_dos.graphcache,level);
+	PACH_SetStatisticsLevel(_dos.pathcache,level);
 	return;
 }
 
@@ -228,6 +228,7 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 			node = GACH_GetGraphNode(_dos.graphcache,f->lasturi,uri);
 			if(node != NULL){
 				user->request_hits++;
+				user->link_hits++;
 				_dos.total_exist_links++;
 				// Check if the time is on the cost range
 				// TODO
@@ -267,13 +268,14 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
                         	LOG(POLYLOG_PRIORITY_DEBUG,
                                 	"User(0x%x)flow(0x%x)path(%s)",user,f,pathhash);
 #endif
-                        	f->path =(ST_PathNode*)PACH_GetPath(_dos.pathcache,&pathhash);
+                        	f->path =(ST_PathNode*)PACH_GetPath(_dos.pathcache,(char*)&pathhash);
 				f->lasturi = node->uri->str;
 				f->lasturi_id = node->key;
 				user->path_hits++;
 			}else{
 				_dos.total_nonexist_links++;
 				user->path_fails++;
+				user->link_fails++;
 				user->request_fails++;
 			}
 #ifdef DEBUG

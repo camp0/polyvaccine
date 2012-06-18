@@ -48,6 +48,8 @@ void USER_Reset(ST_User *user){
 	user->request_hits = 0;
 	user->request_fails = 0;
 	user->statistics_reach = 0;
+	user->link_hits = 0;
+	user->link_fails = 0;
 }
 
 ST_User *USER_Init(){
