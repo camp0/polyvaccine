@@ -209,7 +209,8 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 		if(f->lasturi == NULL) { // Is the first request of the flow
 			link = GACH_GetBaseLink(_dos.graphcache,uri);
 			if(link != NULL) { // The uri is on the graphcache
-				f->lasturi = link->uri->str;
+				f->lasturi = link->uri;
+				//f->lasturi = link->uri->str;
 				f->lasturi_id = link->key;
 				_dos.total_exist_uri++;
 				user->request_hits++;
@@ -230,8 +231,8 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 				user->request_hits++;
 				user->link_hits++;
 				_dos.total_exist_links++;
+
 				// Check if the time is on the cost range
-				// TODO
 	                        int value = 0;
                         	struct timeval t_cost;
 
@@ -254,9 +255,9 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 			
 				if(f->path != NULL){ // The flow contains a path reference
 					if(node->key != f->lasturi_id) // The request is different
-						snprintf(pathhash,1024,"%s %d",f->path->path->str,node->key);
+						snprintf(pathhash,1024,"%s %d",f->path->path,node->key);
 					else 	// a restransmision
-						snprintf(pathhash,1024,"%s",f->path->path->str);
+						snprintf(pathhash,1024,"%s",f->path->path);
 				}else{
 					if(node->key != f->lasturi_id)
 						snprintf(pathhash,1024,"%d %d",f->lasturi_id,node->key);
@@ -269,7 +270,7 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
                                 	"User(0x%x)flow(0x%x)path(%s)",user,f,pathhash);
 #endif
                         	f->path =(ST_PathNode*)PACH_GetPath(_dos.pathcache,(char*)&pathhash);
-				f->lasturi = node->uri->str;
+				f->lasturi = node->uri;
 				f->lasturi_id = node->key;
 				user->path_hits++;
 			}else{
@@ -314,7 +315,7 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 				user->statistics_reach++;
 			}else{
 				/* Check the graph cache and the path cache values */
-
+				/* TODO check the limits of the path_fails,link_fails and request_fails */
 
 			}
                         t = localtime(&(f->current_time.tv_sec));
@@ -377,7 +378,8 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
 		costvalue = 0;
 		if(f->lasturi == NULL){
 			link = GACH_AddBaseLinkUpdate(_dos.graphcache,uri);
-			f->lasturi = link->uri->str;
+			f->lasturi = link->uri;
+			//f->lasturi = link->uri->str;
 			f->lasturi_id = link->key;
 		}else{
 			// At least is the second or more uri on the flow
@@ -398,9 +400,9 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
 			memset(pathhash,0,1024);
 			if(f->path != NULL){ // The flow contains a path reference
 				if(node->key != link->key)
-					snprintf(pathhash,1024,"%s %d",f->path->path->str,node->key);
+					snprintf(pathhash,1024,"%s %d",f->path->path,node->key);
 				else
-					snprintf(pathhash,1024,"%s",f->path->path->str);
+					snprintf(pathhash,1024,"%s",f->path->path);
 			}else{
 				if(node->key != link->key)
 					snprintf(pathhash,1024,"%d %d",link->key,node->key);
@@ -412,7 +414,8 @@ void *DSAZ_AnalyzeDummyHTTPRequest(ST_User *user,ST_GenericFlow *f){
                 		"UserAuthorized(0x%x)flow(0x%x)path(%s)",user,f,pathhash);
 #endif
 			f->path = PACH_AddPath(_dos.pathcache,(char*)&pathhash);
-			f->lasturi = node->uri->str;
+			f->lasturi = node->uri;
+			//f->lasturi = node->uri->str;
 			f->lasturi_id = node->key;
 		}
 

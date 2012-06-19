@@ -44,6 +44,7 @@ enum {
 };
 
 struct ST_CacheNode {
+	gchar *uri;
 	int32_t matchs;
 	int type;
 };

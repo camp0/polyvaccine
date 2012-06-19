@@ -63,6 +63,23 @@ void CACH_Destroy(ST_Cache *c) {
 	g_free(c);	
 }
 
+
+void __CACH_AddToCache(ST_Cache *c, GHashTable *t, char *value, int type){
+        ST_CacheNode *node = NULL;
+
+        node = (ST_CacheNode*)g_hash_table_lookup(t,(gchar*)value);
+        if(node == NULL) { 
+                node = g_new(ST_CacheNode,1);
+                node->type = type;
+                node->matchs = 0;
+                node->uri = g_strdup(value);
+
+                c->memorysize += strlen(value);
+                g_hash_table_insert(t,node->uri,node);
+        }
+        return;
+}
+
 /**
  * CACH_AddHeaderToCache - Adds a new header cacheable field to the cache
  * 
@@ -71,12 +88,9 @@ void CACH_Destroy(ST_Cache *c) {
  * @param type
  */
 void CACH_AddHeaderToCache(ST_Cache *c,char *value,int type) {
-	ST_CacheNode *nod = g_new(ST_CacheNode,1);
-	nod->type = type;
-	nod->matchs = 0;
 
-	c->memorysize += strlen(value);
-	g_hash_table_insert(c->header_cache,g_strdup(value),nod);
+	__CACH_AddToCache(c,c->header_cache,value,type);
+	return;
 }
 
 /**
@@ -87,12 +101,9 @@ void CACH_AddHeaderToCache(ST_Cache *c,char *value,int type) {
  * @param type
  */
 void CACH_AddParameterToCache(ST_Cache *c,char *value,int type) {
-        ST_CacheNode *nod = g_new(ST_CacheNode,1);
-        nod->type = type;
-        nod->matchs = 0;
-
-	c->memorysize += strlen(value);
-        g_hash_table_insert(c->parameter_cache,g_strdup(value),nod);
+	
+	__CACH_AddToCache(c,c->parameter_cache,value,type);
+	return; 
 }
 
 /**

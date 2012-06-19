@@ -36,7 +36,7 @@
 #include "debug.h"
 
 struct ST_PathNode {
-	GString *path;
+	gchar *path;
 	int32_t hits;
 };
 

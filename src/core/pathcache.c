@@ -56,7 +56,7 @@ ST_PathNode *PACH_InitPathNode(){
 
 	path_n = g_new0(ST_PathNode,1);
 	path_n->hits = 0;
-	path_n->path = g_string_new("");
+	path_n->path = NULL;
 
 	return path_n;
 }
@@ -76,8 +76,8 @@ ST_PathNode *PACH_AddPath(ST_PathCache *pc, char *path){
 	if(path_n == NULL) {
 		path_n = PACH_InitPathNode();
 
-        	g_string_printf(path_n->path,"%s",path);
-		g_hash_table_insert(pc->paths,g_strdup(path),path_n);
+		path_n->path = g_strdup(path);
+		g_hash_table_insert(pc->paths,path_n->path,path_n);
 		pc->total_paths++;
 		pc->size_memory += sizeof(path_n)+strlen(path);
 	}
@@ -94,7 +94,7 @@ void PACH_ShowPathCache(ST_PathCache *pc){
 	g_hash_table_iter_init (&iter, pc->paths);
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
 		node = (ST_PathNode*)v;
-		fprintf(stdout,"\t\tPath(%s)Hits(%d)\n",node->path->str,node->hits);
+		fprintf(stdout,"\t\tPath(%s)Hits(%d)\n",node->path,node->hits);
 	}
 	return;
 }
@@ -130,10 +130,10 @@ void PACH_Destroy(ST_PathCache *pc) {
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
 		node = (ST_PathNode*)v;
 	
-		g_string_free(node->path,TRUE);
+		g_free(node->path);
 		node->path = NULL;
 		g_free(node);
-	}
+	} 
 	g_hash_table_destroy(pc->paths);
 	g_free(pc);
 	pc = NULL;

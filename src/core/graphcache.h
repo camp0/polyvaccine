@@ -42,7 +42,7 @@ enum node_types {
 } ;
 
 struct ST_GraphNode {
-	GString *uri;
+	gchar *uri;
 	int key;
 	int cost;
 	int32_t hits;
@@ -53,7 +53,7 @@ typedef struct ST_GraphNode ST_GraphNode;
 
 struct ST_GraphLink {
 	GHashTable *uris;
-	GString *uri;
+	gchar *uri;
 	int key;
 	int hited;
 	enum node_types type;
@@ -80,7 +80,6 @@ ST_GraphCache *GACH_Init(void);
 void GACH_Destroy(ST_GraphCache *gc);
 void GACH_Stats(ST_GraphCache *gc);
 void GACH_SetStatisticsLevel(ST_GraphCache *gc, int level);
-//void GACH_AddLink(ST_GraphCache *gc,char *urisrc, char *uridst, int cost);
 
 /* For update mode */
 ST_GraphLink *GACH_AddBaseLinkUpdate(ST_GraphCache *gc,char *uri);
