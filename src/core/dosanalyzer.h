@@ -44,6 +44,10 @@
 #include "polydbus.h"
 
 #define MAX_GRAPH_CACHE_SENSIBILITY 5
+#define MAX_REQUEST_FAILS_PER_USER 5
+#define MAX_LINK_FAILS_PER_USER 5
+#define MAX_PATH_FAILS_PER_USER 5
+
 #define OVECCOUNT 30
 
 struct ST_DoSAnalyzer{

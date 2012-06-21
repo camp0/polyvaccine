@@ -55,6 +55,7 @@ struct ST_User{
 	int16_t request_fails;
 	int16_t link_hits;
 	int16_t link_fails;
+	int cache_reach;
 
 	/* Statistics history, could be removed but its usefull for the research */
 	int requests_per_minute[SAMPLE_TIME];

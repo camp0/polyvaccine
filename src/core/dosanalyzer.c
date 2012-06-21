@@ -162,6 +162,62 @@ void *DSAZ_Destroy() {
 }
 
 /**
+ * __DSAZ_GetUserVeredict - Decides if the user is suspicious or not. Is the core algoritm of 
+ *	the detection. 
+ *
+ * @param user The ST_User.
+ * @param f The ST_GenericFlow to analyze.
+ * @param idx
+ *
+ * @return veredict
+ */
+
+int __DSAZ_GetUserVeredict(ST_User *user,ST_GenericFlow *f,int idx){
+	int veredict = FALSE;
+
+	/* First check the statistics */
+
+	if((user->requests_per_minute[idx] > _dos.max_request_per_user[idx])&&
+        (user->flows_per_minute[idx] > _dos.max_flows_per_user[idx])){
+       		/* is the first time */
+                if(user->statistics_reach == 0){
+                	_dos.users_statistics_reach++;
+		}
+                veredict = TRUE;
+		user->statistics_reach++;
+	}else{
+		/* Check the graph cache and the path cache values */
+                /* check the limits of the path_fails,link_fails and request_fails */
+                if(user->request_fails > MAX_REQUEST_FAILS_PER_USER) {
+			user->cache_reach++;
+                        veredict = TRUE;
+		}else{
+			if(user->link_fails > MAX_LINK_FAILS_PER_USER) {
+				user->cache_reach ++;
+				veredict = TRUE;
+			}else{
+				if(user->path_fails > MAX_PATH_FAILS_PER_USER) {
+					user->cache_reach++;
+					veredict = TRUE;
+				}
+			}
+		}	
+	}
+	if(veredict == TRUE){
+		if((user->statistics_reach == 1)||(user->cache_reach==1)){
+                	LOG(POLYLOG_PRIORITY_INFO,
+                        	"User(0x%x)flow(0x%x)idx(%d)sr(%d)cr(%d)[r(%d)l(%d)p(%d)]",
+				user,f,idx,
+				user->statistics_reach,
+				user->cache_reach,
+				user->request_fails,user->link_fails,user->path_fails);
+		}
+	}
+	return veredict;
+}
+
+
+/**
  * DSAZ_AnalyzeHTTPRequest - Analyze the HTTP segment in order to evaluate if the fields exist on the http cache.
  * also tryes to find suspicious opcodes on the fields if it dont exist on the http cache.
  *
@@ -299,25 +355,10 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 
 		if(_dos.prev_sample.tv_sec + 60 < f->current_time.tv_sec) {
                         struct tm *t;
-
-			/* Check if the statistics of the user are correct */	
-			if((user->requests_per_minute[idx] > _dos.max_request_per_user[idx])&& 
-			(user->flows_per_minute[idx] > _dos.max_flows_per_user[idx])){
-				/* is the first time */
-				if(user->statistics_reach == 0){
-					_dos.users_statistics_reach++;
-                        		LOG(POLYLOG_PRIORITY_INFO,
-                                		"User(0x%x)flow(0x%x)idx(%d) reach request(%d)flows(%d)",
-                                		user,f,idx,_dos.max_request_per_user[idx],
-						_dos.max_flows_per_user[idx]);
-					veredict = TRUE;
-				}
-				user->statistics_reach++;
-			}else{
-				/* Check the graph cache and the path cache values */
-				/* TODO check the limits of the path_fails,link_fails and request_fails */
-
-			}
+			
+			/* Every minute make a recheck of the values of the user */
+			veredict = __DSAZ_GetUserVeredict(user,f,idx);
+			
                         t = localtime(&(f->current_time.tv_sec));
                         idx = _dos.statistics_index = ((t->tm_hour) * 60)+ t->tm_min;
                         _dos.prev_sample.tv_sec = f->current_time.tv_sec;

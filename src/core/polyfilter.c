@@ -37,7 +37,7 @@
 
 static ST_PolyFilter *_polyFilter = NULL;
 
-static int timeout_checker = 10;
+static int timeout_checker = 180;
 
 /**
  * __POFR_ShowStartBanner - Shows the initial banner of the application.

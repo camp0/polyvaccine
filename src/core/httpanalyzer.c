@@ -80,20 +80,24 @@ void *HTAZ_Init() {
 #endif
 	_http.t_off = TROF_Init(); // Init the stack offsets
 
-	_http.methods = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
-	_http.parameters = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
+	_http.methods = g_hash_table_new(g_str_hash,g_str_equal);
+	//_http.methods = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
+	//_http.parameters = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
+	_http.parameters = g_hash_table_new(g_str_hash,g_str_equal);
 
 	f = &ST_HTTPTypeHeaders[0];
 	i = 0;
 	while((f->name!= NULL)) {
-		g_hash_table_insert(_http.methods,g_strdup(f->name),f);
+		g_hash_table_insert(_http.methods,f->name,f);
+		//g_hash_table_insert(_http.methods,g_strdup(f->name),f);
 		i ++;
 		f = &ST_HTTPTypeHeaders[i];
 	}	
 	f = &ST_HTTPFields[0];
 	i = 0;
 	while((f->name!= NULL)) {
-		g_hash_table_insert(_http.parameters,g_strdup(f->name),f);
+		g_hash_table_insert(_http.parameters,f->name,f);
+		//g_hash_table_insert(_http.parameters,g_strdup(f->name),f);
 		i++;
 		f = &ST_HTTPFields[i];
 	}	
@@ -212,7 +216,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 		} 
 		user->total_request++;
 
-		memcpy(method,&(seg->mem[0]), methodlen);
+		memcpy(method,(void*)&(seg->mem[0]), methodlen);
 		method[methodlen] = '\0';
 		if(g_hash_table_lookup_extended(_http.methods,(gchar*)method,NULL,&pointer) == TRUE){
 			h_field = (ST_HTTPField*)pointer;

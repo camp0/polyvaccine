@@ -12,7 +12,7 @@
         <!-- root category ========================================= -->
         <category name="root" priority="notice"/>
         <!-- <category name="polyvaccine.filter.ddos" priority="debug" appender="none"/> --> 
-         <!-- <category name="polyvaccine.filter.http" priority="debug" appender="none"/> --> 
+        <!--- <category name="polyvaccine.filter.http" priority="debug" appender="none"/> --> 
         <!--<category name="polyvaccine.filter.tcp" priority="debug" appender="none"/>--> 
         <!-- <category name="polyvaccine.filter.connection" priority="debug" appender="none"/> -->
         <!-- <category name="polyvaccine.filter" priority="debug" appender="file"/> --> 
