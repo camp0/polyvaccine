@@ -74,7 +74,7 @@ void __USTA_DumpUsersToFile(ST_UserTable *ut) {
          */
 
 	fprintf(stdout,"Dumping users information to file user.info\n");
-	fprintf(fd,"#ip,request,duration,cost,requesthits,requestfail,pathhits,pathfails,flows,sreach\n");
+	fprintf(fd,"#ip,request,duration,cost,requesthits,retransmisions,requestfail,pathhits,pathfails,flows,sreach\n");
 	g_hash_table_iter_init(&iter,ut->table);
 	while( g_hash_table_iter_next(&iter,&k,&v)){
 		user = (ST_User*)v;
@@ -83,7 +83,7 @@ void __USTA_DumpUsersToFile(ST_UserTable *ut) {
 		fprintf(fd,"%s,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
 			ip,user->total_request,
 			user->current_time.tv_sec - user->arrive_time.tv_sec,user->acumulated_cost,
-			user->request_hits, user->request_fails,
+			user->request_hits, user->repetition_requests,user->request_fails,
 			user->path_hits, user->path_fails,
 			user->total_flows,user->statistics_reach);
 	}
@@ -117,11 +117,14 @@ void USTA_Stats(ST_UserTable *ut,FILE *out) {
 
 			inet_ntop(AF_INET, &(user->ip), ip, INET_ADDRSTRLEN);
 			fprintf(out,"\tUser(0x%x)IP(%s)\n",user,ip);
-			fprintf(out,"\t\tRequest(%d)Duration(%d)Cost(%d)RequestHits(%d)RequestFail(%d)PathHits(%d)PathFails(%d)\n",
+			fprintf(out,"\t\tRequest(%d)Duration(%d)Cost(%d)\n",
 				user->total_request,
-				user->current_time.tv_sec - user->arrive_time.tv_sec,user->acumulated_cost,
+				user->current_time.tv_sec - user->arrive_time.tv_sec,user->acumulated_cost);
+
+			fprintf(out,"\t\tRHits(%d)RFail(%d)LHits(%d)LFails(%d)PHits(%d)PFails(%d)RTrans(%d)\n",
 				user->request_hits, user->request_fails,
-				user->path_hits, user->path_fails);
+				user->link_hits, user->link_fails,
+				user->path_hits, user->path_fails,user->repetition_requests);
 			fprintf(out,"\t\tFlows(%d)SReach(%d)\n",user->total_flows,user->statistics_reach);
 			if(ut->statistics_level>2){
 				register int i;

@@ -363,10 +363,10 @@ void *SPAZ_AnalyzeDummySIPRequest(ST_User *user,ST_GenericFlow *f){
         ST_MemorySegment *seg = f->memory;
         ST_CacheNode *nod = NULL;
         int lret,i;
-        ST_SIPField *h_field = NULL;
+        /*ST_SIPField *h_field = NULL;
         ST_SIPField *p_field = NULL;
         gpointer pointer = NULL;
-
+	*/
 #ifdef DEBUG
 	LOG(POLYLOG_PRIORITY_DEBUG,
         	"UserAuthorized(0x%x)flow(0x%x)[bytes(%d)packets(%d)]seg(0x0%x)[rsize(%d)vsize(%d)]\n",

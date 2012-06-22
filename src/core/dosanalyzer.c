@@ -56,6 +56,8 @@ void *DSAZ_Init() {
 	_dos.prev_sample.tv_sec = 0;
 	_dos.prev_sample.tv_usec = 0;
 	_dos.users_statistics_reach = 0;
+	_dos.users_pathcache_reach = 0;
+	_dos.users_graphcache_reach = 0;
 	_dos.graph_cache_sensibility = MAX_GRAPH_CACHE_SENSIBILITY;
 	gettimeofday(&_dos.curr_sample,NULL);
 
@@ -128,6 +130,8 @@ void *DSAZ_Stats(void) {
 	fprintf(stdout,"\ttotal exist URIs %"PRId32"\n",_dos.total_exist_uri);
 	fprintf(stdout,"\ttotal nonexist URIs %"PRId32"\n",_dos.total_nonexist_uri);
 	fprintf(stdout,"\ttotal statistic reach by users %"PRId32"\n",_dos.users_statistics_reach);
+	fprintf(stdout,"\ttotal graphcache reach by users %"PRId32"\n",_dos.users_graphcache_reach);
+	fprintf(stdout,"\ttotal pathcache reach by users %"PRId32"\n",_dos.users_pathcache_reach);
 	if(_dos.statistics_level>0){
 		GACH_Stats(_dos.graphcache);
 		PACH_Stats(_dos.pathcache);
@@ -191,12 +195,15 @@ int __DSAZ_GetUserVeredict(ST_User *user,ST_GenericFlow *f,int idx){
                 if(user->request_fails > MAX_REQUEST_FAILS_PER_USER) {
 			user->cache_reach++;
                         veredict = TRUE;
+			_dos.users_graphcache_reach++;
 		}else{
 			if(user->link_fails > MAX_LINK_FAILS_PER_USER) {
 				user->cache_reach ++;
 				veredict = TRUE;
+				_dos.users_graphcache_reach++;
 			}else{
 				if(user->path_fails > MAX_PATH_FAILS_PER_USER) {
+					_dos.users_pathcache_reach++;
 					user->cache_reach++;
 					veredict = TRUE;
 				}
@@ -206,11 +213,12 @@ int __DSAZ_GetUserVeredict(ST_User *user,ST_GenericFlow *f,int idx){
 	if(veredict == TRUE){
 		if((user->statistics_reach == 1)||(user->cache_reach==1)){
                 	LOG(POLYLOG_PRIORITY_INFO,
-                        	"User(0x%x)flow(0x%x)idx(%d)sr(%d)cr(%d)[r(%d)l(%d)p(%d)]",
+                        	"User(0x%x)flow(0x%x)idx(%d)sr(%d)cr(%d)[r(%d)l(%d)p(%d)rt(%d)]",
 				user,f,idx,
 				user->statistics_reach,
 				user->cache_reach,
-				user->request_fails,user->link_fails,user->path_fails);
+				user->request_fails,user->link_fails,user->path_fails,
+				user->repetition_requests);
 		}
 	}
 	return veredict;
@@ -310,15 +318,19 @@ void *DSAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 				memset(pathhash,0,1024);
 			
 				if(f->path != NULL){ // The flow contains a path reference
-					if(node->key != f->lasturi_id) // The request is different
+					if(node->key != f->lasturi_id){ // The request is different
 						snprintf(pathhash,1024,"%s %d",f->path->path,node->key);
-					else 	// a restransmision
+					}else{ 	// a restransmision
 						snprintf(pathhash,1024,"%s",f->path->path);
+						user->repetition_requests++;
+					}
 				}else{
-					if(node->key != f->lasturi_id)
+					if(node->key != f->lasturi_id){
 						snprintf(pathhash,1024,"%d %d",f->lasturi_id,node->key);
-                                	else
+                                	}else{
                                         	snprintf(pathhash,1024,"%d",node->key);
+						user->repetition_requests++;
+					}
                         	}
 			
 #ifdef DEBUG            

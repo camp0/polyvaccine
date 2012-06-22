@@ -1,0 +1,3 @@
+In order to test the effectivenes of the path and graph cache you should take care of the next points:
+
+- If you use the same trace for test the effetiveness you should wait for the timeout of the flows.

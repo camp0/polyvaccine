@@ -51,6 +51,9 @@ void USER_Reset(ST_User *user){
 	user->cache_reach = 0;
 	user->link_hits = 0;
 	user->link_fails = 0;
+	user->repetition_requests = 0;
+
+	return;
 }
 
 ST_User *USER_Init(){

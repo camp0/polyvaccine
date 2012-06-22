@@ -74,6 +74,8 @@ struct ST_DoSAnalyzer{
 
 	/* statistics from the users */
 	int32_t users_statistics_reach;
+	int32_t users_pathcache_reach;
+	int32_t users_graphcache_reach;
 
 	/* statistics related to the flows */
 	struct timeval prev_sample;
