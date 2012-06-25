@@ -439,7 +439,7 @@ void GACH_Stats(ST_GraphCache *gc) {
 	fprintf(stdout,"\tNodes = %d\n",gc->total_nodes);
 	fprintf(stdout,"\tNode hits  = %"PRId32"\n",gc->total_node_hits);
 	fprintf(stdout,"\tNode fails  = %"PRId32"\n",gc->total_node_fails);
-	fprintf(stdout,"\tNode effectiveness = %d\%\n",n_effectiveness);
+	fprintf(stdout,"\tNode effectiveness = %d%%\n",n_effectiveness);
 
 	if(gc->statistics_level > 1) {
 		GACH_ShowGraphCache(gc);

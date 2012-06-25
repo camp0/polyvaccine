@@ -168,7 +168,7 @@ void PACH_Stats(ST_PathCache *pc) {
 	fprintf(stdout,"\tallocated memory:%d %s\n",value,unit);
 	fprintf(stdout,"\tPaths = %"PRId32" \n",pc->total_paths);
 	fprintf(stdout,"\tPath hits = %"PRId32"\n\tPath fails = %"PRId32"\n",pc->total_hits,pc->total_fails);
-	fprintf(stdout,"\tPath effectiveness = %d\%\n",effectiveness);
+	fprintf(stdout,"\tPath effectiveness = %d%%\n",effectiveness);
 
 	if(pc->statistics_level > 1 ) {
 		PACH_ShowPathCache(pc);

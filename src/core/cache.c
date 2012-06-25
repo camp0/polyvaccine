@@ -181,9 +181,9 @@ void CACH_Stats(ST_Cache *c,int level) {
 	fprintf(stdout,"Cache(0x%x) statistics\n",c);
 	fprintf(stdout,"\tallocated memory:%d %s\n",value,unit);
 	fprintf(stdout,"\tHeader hits = %d\n\tHeader fails = %d\n",c->header_hits,c->header_fails);
-	fprintf(stdout,"\tHeader effectiveness = %d\%\n",h_effectiveness);
+	fprintf(stdout,"\tHeader effectiveness = %d%%\n",h_effectiveness);
 	fprintf(stdout,"\tParameter hits = %d\n\tParameter fails = %d\n",c->parameter_hits,c->parameter_fails);
-	fprintf(stdout,"\tParameter effectiveness = %d\%\n",p_effectiveness);
+	fprintf(stdout,"\tParameter effectiveness = %d%%\n",p_effectiveness);
 	fprintf(stdout,"\tSuspicious Headers = %d\n\tSuspicious parameters = %d\n",
 		c->header_suspicious_opcodes,c->parameter_suspicious_opcodes);
 

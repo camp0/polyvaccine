@@ -102,6 +102,8 @@ void POFR_Destroy(void);
 void POFR_SetSource(char *source);
 void POFR_SetExitOnPcap(int value);
 
+void POFR_EnableAnalyzers(char *analyzers);
+
 void POFR_Stats(void);
 void POFR_Start(void);
 void POFR_Stop(void);
@@ -121,7 +123,6 @@ void POFR_AddToHTTPCache(int type,char *value);
 void POFR_SetHTTPSourcePort(int port);
 void POFR_SetForceAnalyzeHTTPPostData(int value);
 void POFR_ShowUnknownHTTP(int value);
-void POFR_EnableAnalyzers(char *analyzers);
 void POFR_SetHTTPStatisticsLevel(int level);
 
 int32_t POFR_GetHTTPHeaderCacheHits(void);
