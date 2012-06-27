@@ -176,6 +176,7 @@ void FORD_Destroy(ST_Forwarder *fw){
 	g_hash_table_iter_init (&iter, fw->tcp_analyzers);
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
 		ga = (ST_GenericAnalyzer*)v;
+	
 		ga->destroy();
 		g_free(ga);
 		ga = NULL;
@@ -183,6 +184,7 @@ void FORD_Destroy(ST_Forwarder *fw){
 	g_hash_table_iter_init (&iter, fw->udp_analyzers);
 	while (g_hash_table_iter_next (&iter, &k, &v)) {
 		ga = (ST_GenericAnalyzer*)v;
+
 		ga->destroy();
 		g_free(ga);
 		ga = NULL;
@@ -270,7 +272,7 @@ void FORD_AddAnalyzer(ST_Forwarder *fw, char *name,int16_t protocol,int16_t port
 		ga->learn = learn;
 		ga->notify_correct = notify_correct;
 		ga->notify_wrong = notify_wrong;
-		g_hash_table_insert(fw->analyzers,g_strdup(name),ga);
+		g_hash_table_insert(fw->analyzers,ga->name,ga);
 	}	
 	return;
 }

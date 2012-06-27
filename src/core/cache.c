@@ -47,6 +47,7 @@ ST_Cache *CACH_Init(){
 }
 
 static gboolean CACH_DestroyCallback(gpointer k , gpointer v, gpointer p ) {
+
         g_free(k);
         g_free(v);
         return TRUE;

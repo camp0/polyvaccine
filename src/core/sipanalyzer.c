@@ -78,20 +78,20 @@ void *SPAZ_Init() {
 #endif
 	_sip.t_off = TROF_Init(); // Init the stack offsets
 
-	_sip.methods = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
-	_sip.parameters = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
+	_sip.methods = g_hash_table_new(g_str_hash,g_str_equal);
+	_sip.parameters = g_hash_table_new(g_str_hash,g_str_equal);
 
 	f = &ST_SIPTypeHeaders[0];
 	i = 0;
 	while((f->name!= NULL)) {
-		g_hash_table_insert(_sip.methods,g_strdup(f->name),f);
+		g_hash_table_insert(_sip.methods,f->name,f);
 		i ++;
 		f = &ST_SIPTypeHeaders[i];
 	}	
 	f = &ST_SIPFields[0];
 	i = 0;
 	while((f->name!= NULL)) {
-		g_hash_table_insert(_sip.parameters,g_strdup(f->name),f);
+		g_hash_table_insert(_sip.parameters,f->name,f);
 		i++;
 		f = &ST_SIPFields[i];
 	}	
@@ -202,6 +202,7 @@ void *SPAZ_AnalyzeSIPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 		if (methodlen>15){
 			exit(-1);
 		} 
+		bzero(&method,16);
 		memcpy(method,&(seg->mem[0]), methodlen);
 		if(g_hash_table_lookup_extended(_sip.methods,(gchar*)method,NULL,&pointer) == TRUE){
 			h_field = (ST_SIPField*)pointer;
@@ -214,6 +215,7 @@ void *SPAZ_AnalyzeSIPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 				WARNING("Unknown SIP header(%.*s)\n",128,method);
 				
 		}	
+
 		if(urilen>MAX_URI_LENGTH) {
 			urilen = MAX_URI_LENGTH-1;
 		}

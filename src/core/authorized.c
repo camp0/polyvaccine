@@ -35,7 +35,8 @@ void AUHT_Destroy(ST_AuthorizedHost *a){
 
 	g_hash_table_destroy(a->hosts);
 	g_free(a);
-
+	a = NULL;
+	return;
 }
 
 void AUHT_AddHost(ST_AuthorizedHost *a,char *ip){

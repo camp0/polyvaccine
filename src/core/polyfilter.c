@@ -186,9 +186,10 @@ void POFR_Init() {
         atexit(g_mem_profile);
 #endif
 	_polyFilter = (ST_PolyFilter*)g_new0(ST_PolyFilter,1);
-
+	
 	POLG_Init();
-	PODS_Init();
+	PODS_Init(); // TODO: some blocks are no freez properly, check glib profiler
+
 	_polyFilter->polyfilter_status = POLYFILTER_STATE_STOP;
 	_polyFilter->mode = POLYFILTER_MODE_NONCACHE;
 	_polyFilter->is_pcap_file = FALSE;
@@ -229,7 +230,7 @@ void POFR_Init() {
 			interface = &ST_PublicInterfaces[i];
 		}		
 	}
-	
+
 	PKCX_Init();
 	SYIN_Init();
 	TCAZ_Init();
@@ -253,7 +254,6 @@ void POFR_Init() {
 	LOG(POLYLOG_PRIORITY_DEBUG,"userpool (0x%x)",_polyFilter->userpool);
 #endif
 	// Plugin the analyzers
-
         FORD_AddAnalyzer(_polyFilter->forwarder,
                 "ddos",IPPROTO_TCP,80,
                 (void*)DSAZ_Init,

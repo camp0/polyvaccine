@@ -33,48 +33,50 @@ static ST_PolyDbus polybus;
  */
 void PODS_Init(){
 	polybus.total_watches = 0;
-	polybus.private_callbacks = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
-	polybus.interfaces = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
+	polybus.private_callbacks = g_hash_table_new(g_str_hash,g_str_equal);
+	polybus.interfaces = g_hash_table_new(g_str_hash,g_str_equal);
 
 	// The properties are reference on two hashes, the first one is for improve the 
 	// efficiency of the system and the second is for ipython trait_names.
-	polybus.properties = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
+	polybus.properties = g_hash_table_new(g_str_hash,g_str_equal);
 	return;
 }
 
 ST_PolyDbusInterface *PODS_GetInterface(ST_Interface *iface) {
-        ST_PolyDbusInterface *i = NULL;
+        ST_PolyDbusInterface *idf = NULL;
 
-        i = (ST_PolyDbusInterface*)g_hash_table_lookup(polybus.interfaces,iface->name);
-        if(i == NULL) {
-                i = g_new(ST_PolyDbusInterface,1);
-                i->methods = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
-                i->iface = iface;
+        idf = (ST_PolyDbusInterface*)g_hash_table_lookup(polybus.interfaces,iface->name);
+        if(idf == NULL) {
+                idf = g_new(ST_PolyDbusInterface,1);
+                idf->methods = g_hash_table_new(g_str_hash,g_str_equal);
+                idf->iface = iface;
 //                i->signals = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
-                i->properties = g_hash_table_new_full(g_str_hash,g_str_equal,g_free,NULL);
-                g_hash_table_insert(polybus.interfaces,g_strdup(iface->name),i);
+                idf->properties = g_hash_table_new(g_str_hash,g_str_equal);
+
+                g_hash_table_insert(polybus.interfaces,iface->name,idf);
         }
-	return i;
+	return idf;
 }
 
 void PODS_AddPublicProperty(ST_Interface *iface,ST_Callback *call){
         ST_PolyDbusInterface *ipoly = PODS_GetInterface(iface);
 
 	// the property is added to two hashs
-        g_hash_table_insert(ipoly->properties,g_strdup(call->name),call);
-        g_hash_table_insert(polybus.properties,g_strdup(call->name),call);
+        g_hash_table_insert(ipoly->properties,call->name,call);
+        g_hash_table_insert(polybus.properties,call->name,call);
 	return;
 }
 
 void PODS_AddPublicMethod(ST_Interface *iface, ST_Callback *call){
         ST_PolyDbusInterface *ipoly = PODS_GetInterface(iface);
 
-	g_hash_table_insert(ipoly->methods,g_strdup(call->name),call);
+	g_hash_table_insert(ipoly->methods,call->name,call);
 	return;
 }
 
 void PODS_AddPrivateCallback(ST_Callback *call){
-	g_hash_table_insert(polybus.private_callbacks,g_strdup(call->name),call);
+
+	g_hash_table_insert(polybus.private_callbacks,call->name,call);
 	return;
 }
 
@@ -86,7 +88,8 @@ void PODS_Destroy() {
         g_hash_table_iter_init (&iter, polybus.interfaces);
         while (g_hash_table_iter_next (&iter, &k, &v)) {
                 iface = (ST_PolyDbusInterface*)v;
-                g_hash_table_destroy(iface->methods);
+        
+	        g_hash_table_destroy(iface->methods);
                 g_hash_table_destroy(iface->properties);
 		g_free(iface);
 		iface = NULL;
@@ -95,6 +98,7 @@ void PODS_Destroy() {
 	g_hash_table_destroy(polybus.properties);
 	g_hash_table_destroy(polybus.interfaces);
 	g_hash_table_destroy(polybus.private_callbacks);
+	
 	return;
 }
 
