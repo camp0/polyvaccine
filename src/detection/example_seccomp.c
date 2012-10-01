@@ -14,7 +14,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "config.h"
 
 #include "seccomp-bpf.h"
 
@@ -34,6 +33,12 @@ static int install_syscall_filter(void)
 		ALLOW_SYSCALL(exit),
 		ALLOW_SYSCALL(read),
 		ALLOW_SYSCALL(write),
+ 		/* Add more syscalls here. */
+		ALLOW_SYSCALL(fstat),
+		ALLOW_SYSCALL(mmap),
+		ALLOW_SYSCALL(rt_sigprocmask),
+		ALLOW_SYSCALL(rt_sigaction),
+		ALLOW_SYSCALL(nanosleep),
 		KILL_PROCESS,
 	};
 	struct sock_fprog prog = {
@@ -61,11 +66,13 @@ int main(int argc, char *argv[])
 {
 	char buf[1024];
 
+	if (install_syscall_reporter())
+		return 1;
 	if (install_syscall_filter())
 		return 1;
 
 	printf("Type stuff here: ");
-	fflush(NULL);
+	//fflush(NULL);
 	buf[0] = '\0';
 	fgets(buf, sizeof(buf), stdin);
 	printf("You typed: %s", buf);

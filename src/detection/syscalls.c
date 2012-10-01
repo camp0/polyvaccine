@@ -80,12 +80,9 @@ void SYSU_Init(){
 	/* parent and child shares a context */
 	ctx = COXT_GetContext();
 
-	ctx->parent_pid = getpid();	
-        tracer->original_segment = NULL;
-        tracer->segment_with_opcodes = NULL;
-        tracer->executable_segment = NULL;
-        tracer->original_segment_size = 0;
-        tracer->executable_segment_size = 0;
+	ctx->parent_pid = getpid();
+
+	tracer->sx = EXSG_InitExecutableSegment();	
 
 	i = 0;
 	while((sys!=NULL)&&(sys->number>0)) {
@@ -350,7 +347,6 @@ int got_child_signal = 0;
 
 void SYSU_NewExecutionProcess(ST_SharedContext *c) {
         char *pointer;
-        void (*function)();
 	int i,status;
 
 #ifdef DEBUG
@@ -361,7 +357,6 @@ void SYSU_NewExecutionProcess(ST_SharedContext *c) {
 	LOG(POLYLOG_PRIORITY_DEBUG,
         	"child(%d) size=%d",getpid(),ctx->size);
 #endif
-//        	printf("child(%d) preparing to execute %d bytes from offset %d",getpid(),ctx->size,ctx->virtualeip);
 	if (ctx->isptracechild == FALSE) {
 
                 if((ctx->virtualeip >= ctx->size)||(ctx->virtualeip < 0)) {
@@ -373,14 +368,13 @@ void SYSU_NewExecutionProcess(ST_SharedContext *c) {
                         exit(0);
                 }
 		PTRC_TraceMe();
-//                SYSU_PTraceVoid(TRACE_TRACEME, 0, NULL, SIGUSR1);
                 SYSU_Kill(ctx->parent_pid, SIGUSR1);
                 ctx->isptracechild = TRUE;
                 while (!got_child_signal);
 		/* At this momment al the steps taked by the process are traced */
         }
-        function = (void (*)(void)) ctx->memory;
-        (*function)();
+
+	EXSG_ExecuteExecutableSegment(tracer->sx);
         return;
 }
 
@@ -412,7 +406,6 @@ int SYSU_TraceProcess(ST_Tracer *t, pid_t child_pid){
         }
 
 	PTRC_TraceSyscall(child_pid,SIGUSR1);
-//	SYSU_PTraceVoid(TRACE_SYSCALL, child_pid, TRACE_O_TRACEFORK, (void*)SIGUSR1);
 	SYSU_DestroySuspiciousSyscalls();
 	LOG(POLYLOG_PRIORITY_INFO,
 		"parent(%d)ready for child(%d) execution",getpid(),child_pid);
@@ -532,10 +525,10 @@ void SYSU_SigSegvHandler(int sig, siginfo_t *info, void *data) {
                 ctx->virtualeip = ctx->size;
                 exit(0);
         }
-        memcpy(tracer->executable_segment ,
-		tracer->segment_with_opcodes,tracer->executable_segment_size);              /* Copy the Buffer */
+        memcpy(tracer->sx->executable_segment ,
+		tracer->sx->segment_with_opcodes,tracer->sx->executable_segment_size);              /* Copy the Buffer */
         ctx->virtualeip ++;
-        memcpy(tracer->executable_segment + 9 ,&(ctx->virtualeip),4);
+        memcpy(tracer->sx->executable_segment + 9 ,&(ctx->virtualeip),4);
 
         ctx->isptracechild == TRUE;
         ctx->incbychild++;
@@ -574,43 +567,8 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
 		perror("signal");
 		exit(1);
 	}
- 
-       	tracer->original_segment = buffer;
-        tracer->original_segment_size = size;
-
-#if __WORDSIZE == 64 // 64 Bits machine
-	jump_size = 5;
-	init_regs_size = 12;
-	real_size = size + init_regs_size + jump_size; 
-#else
-	jump_size = 5;
-	init_regs_size = 8;
-	real_size = size + init_regs_size + jump_size; 
-#endif
-
-        tracer->executable_segment_size = real_size;
-        tracer->executable_segment = mmap(0, tracer->executable_segment_size, 
-		PROT_EXEC|PROT_READ|PROT_WRITE, MAP_SHARED|SEGMENT_EXECUTABLE|SEGMENT_ANONYMOUS, -1, 0);
-        if (tracer->executable_segment == MAP_FAILED) {
-		perror("mmap");
-                return 0;
-        }
-
-	memset(tracer->executable_segment,"\x90",real_size); /* Init all with nops */
-#if __WORDSIZE == 64
-        memcpy(tracer->executable_segment,"\x48\x31\xc0" "\x48\x31\xdb" "\x48\x31\xc9" "\x48\x31\xd2",init_regs_size);/* Init Registers */
-#else
-        memcpy(tracer->executable_segment,"\x31\xc0" "\x31\xc9" "\x31\xdb" "\x31\xd2",init_regs_size);/* Init Registers */
-#endif
-	/* Makes a jmp to next instruction */
-        memcpy(tracer->executable_segment + init_regs_size ,"\xe9\x00\x00\x00\x00",jump_size); 
-	/* Copy the offset Jmp Jump */
-        memcpy(tracer->executable_segment + (init_regs_size + 1) ,&offset ,4);            
-	/* Copy the Buffer */
-        memcpy(tracer->executable_segment + init_regs_size + jump_size ,buffer,tracer->executable_segment_size);
-
-	tracer->segment_with_opcodes = malloc(tracer->executable_segment_size);
-        memcpy(tracer->segment_with_opcodes,tracer->executable_segment,tracer->executable_segment_size);
+	tracer->sx = EXSG_InitExecutableSegment();
+	EXSG_PrepareExecutableSegment(tracer->sx,buffer,size); 
 
 	if(t_off == NULL){
 		tr_off.offsets_start[0] = 0;
@@ -633,10 +591,10 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
 	*/
 	ctx->t_off = &tr_off;
 	ctx->t_off->index = 0;
-        ctx->memory = tracer->executable_segment;
+        ctx->memory = tracer->sx->executable_segment;
 	parent_pid = getpid();
         ctx->parent_pid = getpid();
-        ctx->size = tracer->executable_segment_size;
+        ctx->size = tracer->sx->executable_segment_size;
 	int index = 0;
 
 	ctx->virtualeip = 0;
@@ -683,7 +641,7 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
                      	ctx->child_pid = getpid();
 
 			/* copy the jmp address to the next offset */ 
-                        memcpy(tracer->executable_segment + (init_regs_size + 1) ,&(ctx->virtualeip) ,4);
+                        memcpy(tracer->sx->executable_segment + (init_regs_size + 1) ,&(ctx->virtualeip) ,4);
                         if((ctx->virtualeip > ctx->size)||(ctx->virtualeip < 0)) {
                                 ctx->virtualeip = ctx->size;
 				//DEBUG_TRACER("Avoid overflow execution,virtualeip(%d)size(%d)\n",ctx->virtualeip,ctx->size);
@@ -697,16 +655,14 @@ int SYSU_AnalyzeSegmentMemory(char *buffer, int size, ST_TrustOffsets *t_off){
 		ctx->child_pid = child_pid;
 		ret = SYSU_TraceProcess(tracer,child_pid);
                 if (ret == 1) {
-                        munmap(tracer->executable_segment,tracer->executable_segment_size);
-			free(tracer->segment_with_opcodes);
+			EXSG_DestroyExecutableSegment(tracer->sx);
                         ctx->memory = NULL;
                         return 1;
                 }
 		ctx->virtualeip++;	
 	}while(ctx->virtualeip < ctx->size);
 	
-        munmap(tracer->executable_segment,tracer->executable_segment_size);
-	free(tracer->segment_with_opcodes);
+	EXSG_DestroyExecutableSegment(tracer->sx);
         ctx->memory = NULL;
         return 0;
 }

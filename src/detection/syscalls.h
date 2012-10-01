@@ -46,6 +46,7 @@
 #include "pvtrace.h"
 #include "../core/trustoffset.h"
 #include "interfaces.h"
+#include "segment.h"
 
 #ifndef TRUE
 #define TRUE 1
@@ -73,22 +74,6 @@ enum {
 	EXPECT_STOPPED
 };
 
-#ifdef __LINUX__
-enum {
-	SEGMENT_EXECUTABLE = MAP_EXECUTABLE,
-	SEGMENT_ANONYMOUS =MAP_ANONYMOUS
-}segment_types;
-
-#endif
-#ifdef __FREEBSD__
-enum {
-	SEGMENT_EXECUTABLE = PROT_EXEC,
-	SEGMENT_ANONYMOUS = MAP_ANON
-}segment_types;
-
-#endif
-
-
 struct ST_ProcessExitCode {
         int signal;
         char *description;
@@ -111,12 +96,8 @@ struct ST_Tracer {
 
 	/* Info shared with the child */
 	ST_SharedContext *ctx;
-	char buffer[1024];	
-        void *original_segment; // Original segment, the http header with no modifications
-	void *segment_with_opcodes; // original segment but with the opcodes modifications	
-        void *executable_segment; // a copy of the segment_with_opcodes but executable;
-        int original_segment_size; // sizeof (original_segment)
-	int executable_segment_size; // sizeof (segment_with_opcodes) and sizeof (executable_segment)
+	char buffer[1024];
+	ST_ExecutableSegment *sx;	
 };
 typedef struct ST_Tracer ST_Tracer;
 
