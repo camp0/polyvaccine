@@ -310,6 +310,7 @@ DBusConnection *PODS_Connect(char *interface,void *engine) {
         char* sigvalue;
 
         dbus_error_init(&err);
+        //bus = dbus_bus_get(DBUS_BUS_SYSTEM, &err);
         bus = dbus_bus_get(DBUS_BUS_SESSION, &err);
         if (dbus_error_is_set(&err)) {
                 fprintf(stderr, "Connection Error (%s)\n", err.message);
