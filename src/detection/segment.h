@@ -29,6 +29,7 @@
 #include <config.h>
 #endif
 
+#include <glib.h>
 #include <sys/mman.h>
 #include <stdio.h>
 
@@ -49,7 +50,8 @@ enum {
 
 struct ST_ExecutableSegment {
 	int registers_size;
-	int virtualeip;
+	int jump_offset;
+	int max_jump_offset;
         void *original_segment; 	// Original segment, the http header with no modifications
         void *segment_with_opcodes; 	// original segment but with the opcodes modifications
         void *executable_segment; 	// a copy of the segment_with_opcodes but executable;
@@ -62,7 +64,7 @@ ST_ExecutableSegment *EXSG_InitExecutableSegment(void);
 void EXSG_PrepareExecutableSegment(ST_ExecutableSegment *sg,char *buffer,int size);
 void EXSG_DestroyExecutableSegment(ST_ExecutableSegment *sg);
 void EXSG_ExecuteExecutableSegment(ST_ExecutableSegment *sg);
-void EXSG_IncreaseEIPOnExecutableSegment(ST_ExecutableSegment *sg);
+void EXSG_SetJumpOffsetOnExecutableSegment(ST_ExecutableSegment *sg,int offset);
 void EXSG_PrintExecutableSegment(ST_ExecutableSegment *sg);
 
 #endif

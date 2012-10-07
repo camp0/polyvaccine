@@ -35,15 +35,11 @@ void PODT_Init() {
         register int i,j;
 
         _polyDetector = (ST_PolyDetector*)g_new0(ST_PolyDetector,1);
-	_polyDetector->executed_segments = 0;
-	_polyDetector->shellcodes_detected = 0;
-	_polyDetector->show_received_payload = FALSE;
-	_polyDetector->block_syscalls = FALSE;
 
-	POLG_Init();
 	SYIN_Init();
 	PODS_Init();
         _polyDetector->bus = PODS_Connect(POLYVACCINE_DETECTION_INTERFACE,(void*)_polyDetector);
+	_polyDetector->sandbox = SABX_Init();
 
 	if(_polyDetector->bus != NULL) {
 		i=0;	
@@ -75,15 +71,12 @@ void PODT_Init() {
                 	interface = &ST_PublicInterfaces[i];
 		}
         }
-	SYSU_Init();
         return;
 }
 
 void PODT_Stats() {
 	fprintf(stdout,"Statistics\n");
-	fprintf(stdout,"\tExecuted segments %d\n",_polyDetector->executed_segments);
-	fprintf(stdout,"\tShellcodes detected %d\n",_polyDetector->shellcodes_detected);
-	SYSU_Stats();
+	SABX_Statistics(_polyDetector->sandbox);
 	fprintf(stdout,"\n");
 	return;
 }
@@ -131,33 +124,12 @@ void PODT_Run() {
         return;
 }
 
-void PODT_ShowExecutionPath(int value){
-	SYSU_ShowExecutionPath(value);
-	return;
-}
-  
-
-void PODT_BlockDetectedSyscalls(int value){
-	_polyDetector->block_syscalls = value;
-	SYSU_BlockDetectedSyscalls(value);
-	return;
-}
-
-void PODT_ShowAvailableSyscalls(void){
-	SUSY_ShowSyscallSuspiciousTable();
-	return;
-}
 void PODT_Destroy(void){
 	PODS_Destroy();
 	PODT_Stats();
-	SYSU_Destroy();
-	POLG_Destroy();
+	SABX_Destroy(_polyDetector->sandbox);
 	g_free(_polyDetector);
 	_polyDetector = NULL;
 	return;
 }
 
-void PODT_ShowReceivedPayload(int value) {
-	_polyDetector->show_received_payload = value;
-	return;
-}

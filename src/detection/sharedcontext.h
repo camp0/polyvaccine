@@ -40,8 +40,8 @@ struct ST_SharedContext {
 	ST_TrustOffsets *t_off;
         pid_t child_pid;
 	pid_t parent_pid;
-        int virtualeip;
-        int size;
+        int jump_offset;
+        int max_jump_offset;
 	int magic_token;
 	int total_forks;
 	int total_segs_by_child;
@@ -51,6 +51,7 @@ typedef struct ST_SharedContext ST_SharedContext;
 ST_SharedContext *COXT_GetContext(void);
 ST_SharedContext *COXT_AttachContext(void);
 void COXT_FreeContext(ST_SharedContext *c);
+void COXT_ResetContext(ST_SharedContext *c);
 void COXT_Printf(ST_SharedContext *c);
 
 #endif

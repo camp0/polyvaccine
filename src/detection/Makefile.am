@@ -10,15 +10,15 @@ noinst_HEADERS =	syscalls.h examples.h context.h examples64.h linux_syscalls.h s
 			examples64freebsd.h pvtrace.h freebsd_syscalls.h syscallnode.h segment.h sandbox.h \
 			sharedcontext.h
 
-bin_PROGRAMS = pvde sendexploit pvde_comp
+bin_PROGRAMS = pvde sendexploit test_pvde 
 
-pvde_SOURCES =  main.c	polydetector.c privatecallbacks.c pvtrace.c suspicious.c syscalls.c context.c ../core/system.c \
-		../core/trustoffset.c segment.c
+pvde_SOURCES =  main.c polydetector.c privatecallbacks.c sharedcontext.c segment.c sandbox.c \
+		../core/system.c ../core/trustoffset.c 
 
-pvde_comp_SOURCES = example_seccomp1.c segment.c sandbox.c sharedcontext.c
-pvde_comp_LDADD = -lseccomp -lglib-2.0
- 
-pvde_LDADD = -lglib-2.0 -ldbus-1 ../bus/libpolybus.la 
+pvde_LDADD = -lglib-2.0 -ldbus-1 ../bus/libpolybus.la -lseccomp 
+
+test_pvde_SOURCES = sharedcontext.c segment.c sandbox.c test_pvde.c
+test_pvde_LDADD = -lglib-2.0 -lseccomp
 
 sendexploit_SOURCES = sendexploit.c
 sendexploit_LDFLAGS = `pkg-config --libs dbus-1`

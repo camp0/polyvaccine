@@ -51,6 +51,10 @@ ST_SharedContext *COXT_AttachContext(){
                 return NULL;
         }
         result = mmap(0, sizeof(ST_SharedContext), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	if(result == MAP_FAILED) {
+		perror("mmap");
+		return NULL;
+	}
         close(fd);
         return (ST_SharedContext*)result;
 }
@@ -64,6 +68,23 @@ ST_SharedContext *COXT_AttachContext(){
 
 void COXT_FreeContext(ST_SharedContext *c){
 	munmap(c,sizeof(ST_SharedContext));	
+	c = NULL;
+	return;
+}
+
+/**
+ * COXT_ResetContext - Free the shared context
+ *
+ * @param ST_SharedContext c
+ */
+
+void COXT_ResetContext(ST_SharedContext *c){
+      	c->child_pid = 0;
+	c->parent_pid = 0;
+	c->jump_offset = 1;
+	c->max_jump_offset = 1;
+	c->magic_token = 0;	 
+        return;
 }
 
 
@@ -72,6 +93,7 @@ void COXT_Printf(ST_SharedContext *c) {
 	printf("Shared context\n");
 	printf("\tctx(0x%x)child_pid(%d)parent_pid(%d)\n",c,c->child_pid,c->parent_pid);
 	printf("\ttotal_forks(%d)total_segs_by_child(%d)\n",c->total_forks,c->total_segs_by_child);
+	printf("\tjump offset(%d)max jump offset(%d)\n",c->jump_offset,c->max_jump_offset);
 
 	return;
 }

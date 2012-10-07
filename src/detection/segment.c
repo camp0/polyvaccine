@@ -33,9 +33,9 @@
 ST_ExecutableSegment *EXSG_InitExecutableSegment() {
 	ST_ExecutableSegment *sg = NULL;
 
-	sg = (ST_ExecutableSegment*)malloc(sizeof(ST_ExecutableSegment));
+	sg = g_new0(ST_ExecutableSegment,1);
 	if(sg == NULL) {
-		perror("malloc");
+		perror("g_new0");
 		return NULL;
 	}
         sg->original_segment = NULL;
@@ -43,7 +43,8 @@ ST_ExecutableSegment *EXSG_InitExecutableSegment() {
         sg->executable_segment = NULL;
         sg->original_segment_size = 0;
         sg->executable_segment_size = 0;
-	sg->virtualeip = 0;
+	sg->jump_offset = 0;
+	sg->max_jump_offset = 0;
 	sg->registers_size = 0;
 	return sg;
 }
@@ -63,15 +64,16 @@ void EXSG_PrepareExecutableSegment(ST_ExecutableSegment *sg,char *buffer, int si
 
 	offset = 1;
 	
-#if __WORDSIZE == 64 // 64 Bits machine
         jump_size = 5;
+#if __WORDSIZE == 64 // 64 Bits machine
 	sg->registers_size = 12;
 #else
-        jump_size = 5;
         sg->registers_size = 8;
 #endif
         real_size = size + sg->registers_size + jump_size;
 
+	sg->max_jump_offset = size;
+	sg->jump_offset = 1;
         sg->executable_segment_size = real_size;
        	sg->executable_segment = mmap(0, sg->executable_segment_size,
                 PROT_EXEC|PROT_READ|PROT_WRITE, MAP_SHARED|SEGMENT_EXECUTABLE|SEGMENT_ANONYMOUS, -1, 0);
@@ -90,7 +92,7 @@ void EXSG_PrepareExecutableSegment(ST_ExecutableSegment *sg,char *buffer, int si
         memcpy(sg->executable_segment + sg->registers_size ,"\xe9\x00\x00\x00\x00",jump_size);
 
         /* Copy the offset Jmp Jump */
-        memcpy(sg->executable_segment + (sg->registers_size + 1) ,&offset ,4);
+        memcpy(sg->executable_segment + (sg->registers_size + 1) ,&(sg->jump_offset) ,4);
 
         /* Copy the suspicious buffer */
         memcpy(sg->executable_segment + sg->registers_size + jump_size ,buffer,sg->executable_segment_size);
@@ -98,23 +100,22 @@ void EXSG_PrepareExecutableSegment(ST_ExecutableSegment *sg,char *buffer, int si
         sg->segment_with_opcodes = malloc(sg->executable_segment_size);
         memcpy(sg->segment_with_opcodes,sg->executable_segment,sg->executable_segment_size);
 	
-	sg->virtualeip = 0;
 	return sg;
 }
 
 /**
- * EXSG_IncreaseEIPOnExecutableSegment - Increase the jump for execution
+ * EXSG_SetJumpOffsetOnExecutableSegment - Increase the jump for execution
  *
  * @param sg
- *
+ * @param offset
  */
 
-void EXSG_IncreaseEIPOnExecutableSegment(ST_ExecutableSegment *sg){
+void EXSG_SetJumpOffsetOnExecutableSegment(ST_ExecutableSegment *sg,int offset){
 
+	sg->jump_offset = offset;
         memcpy(sg->executable_segment ,
         	sg->segment_with_opcodes,sg->executable_segment_size);              /* Copy the Buffer */
-        sg->virtualeip ++;
-        memcpy(sg->executable_segment + (sg->registers_size + 1) ,&(sg->virtualeip),4);
+        memcpy(sg->executable_segment + (sg->registers_size + 1) ,&(sg->jump_offset),4);
 
 	return;
 }
@@ -130,8 +131,8 @@ void EXSG_DestroyExecutableSegment(ST_ExecutableSegment *sg){
 
 	free(sg->segment_with_opcodes);
         munmap(sg->executable_segment,sg->executable_segment_size);
-      	free(sg);
-	sg = NULL;
+      	g_free(sg);
+//	sg = NULL;
 	return; 
 }
 
@@ -165,7 +166,7 @@ void EXSG_PrintExecutableSegment(ST_ExecutableSegment *sg) {
 	int size = sg->executable_segment_size;
 
         ptr = sg->executable_segment;
-        printf("\neip(%d)size(%d)",sg->virtualeip,size);
+	write(0,"\n",1);
         for ( i= 0;i<size;i++) {
                 if ( online == 16 ) {
                         write(0,"\n",1);

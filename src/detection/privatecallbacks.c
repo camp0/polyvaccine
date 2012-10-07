@@ -121,26 +121,16 @@ void PRCA_Signaling_AnalyzeSegment(DBusConnection *conn,DBusMessage *msg, void *
 	fprintf(stdout,"\n");
 	for (i =0;i<8;i++) fprintf(stdout,"[%d]",t_off.offsets_end[i]);
 */
-	if(p->show_received_payload) {
-		fprintf(stdout,"Payload received:\n");
-		printfhex(array,length);
-		fprintf(stdout,"\n");
-	}
 
-	ret = SYSU_AnalyzeSegmentMemory(array,length,&t_off);
-	if(ret)
-		p->shellcodes_detected++;
-	SYSU_DestroySuspiciousSyscalls();
+	ret = SABX_AnalyzeSegmentMemory(p->sandbox,array,length,&t_off);
 
 	/* For some reason if the -b option is set the dbus sends a 
            Disconect message and the pvde exists. This should be 
 	   fixed one day :D
         */
-	if(p->block_syscalls == FALSE) 
-		PODS_SendVerifiedSegment(conn,
-			"/polyvaccine/protector","polyvaccine.protector.veredict","Veredict",
-                	seq,hash,ret);
-	p->executed_segments ++;
+	PODS_SendVerifiedSegment(conn,
+		"/polyvaccine/protector","polyvaccine.protector.veredict","Veredict",
+               	seq,hash,ret);
 	return;
 }
 
@@ -148,7 +138,7 @@ void PRCA_Property_GetNumberExecutedSegments(DBusConnection *conn,DBusMessage *m
 	ST_PolyDetector *p = (ST_PolyDetector*)data;
         dbus_int32_t value = 0;
 
-        value = p->executed_segments;
+        value = p->sandbox->total_executed;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
         return;
 }
@@ -157,7 +147,7 @@ void PRCA_Property_GetNumberShellcodesDetected(DBusConnection *conn,DBusMessage 
 	ST_PolyDetector *p = (ST_PolyDetector*)data;
         dbus_int32_t value = 0;
 
-        value = p->shellcodes_detected;
+        value = p->sandbox->total_shellcodes;
         __CMD_GenericPropertyGetter(conn,msg,DBUS_TYPE_INT32,(void*)value);
 	return;
 }

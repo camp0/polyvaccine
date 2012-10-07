@@ -35,18 +35,22 @@
 #include <seccomp.h>
 #include "segment.h"
 #include "sharedcontext.h"
+#include "interfaces.h"
+#include <stdlib.h>
 
 struct ST_Sandbox {
 	/* Info shared with the child */
-	ST_SharedContext *ctx;
 	ST_ExecutableSegment *seg;	
+	ST_SharedContext *ctx;
 	int total_executed;
 	int total_shellcodes;
+	int debug_level;
 };
 typedef struct ST_Sandbox ST_Sandbox;
 
 
 ST_Sandbox *SABX_Init(void);
+void SABX_SetDebug(int level);
 void SABX_Destroy(ST_Sandbox *sx);
 void SABX_Statistics(ST_Sandbox *sx);
 int SABX_AnalyzeSegmentMemory(ST_Sandbox *sx,char *buffer, int size, ST_TrustOffsets *t_off);

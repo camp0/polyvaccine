@@ -28,7 +28,7 @@
 #include "log.h"
 
 static ST_Sandbox *sandbox = NULL;
-static ST_SharedContext *ctx = NULL; 
+static ST_SharedContext *shctx = NULL; 
 int got_child_signal;
 
 /**
@@ -38,17 +38,21 @@ int got_child_signal;
  *
  */
 ST_Sandbox *SABX_Init() {
-	ST_Sandbox *sand = g_new0(ST_Sandbox,1);
+	ST_Sandbox *sx = g_new0(ST_Sandbox,1);
 
-	sand->total_executed = 0;
-	sand->total_shellcodes = 0;
+	srand(time(NULL));
 
-       /* parent and child shares a context */
-        sand->ctx = COXT_GetContext();
-	
-	sandbox = sand; // this is ugly :( TODO	
-	ctx = sand->ctx;
-	return sand;
+	sx->total_executed = 0;
+	sx->total_shellcodes = 0;
+	sx->debug_level = 0;
+    
+	/* Creates a new shared context */
+        shctx = COXT_GetContext();
+
+        sx->ctx = shctx;
+	POLG_Init();	
+	sandbox = sx; // this is ugly :( TODO	
+	return sx;
 }
 
 /**
@@ -59,9 +63,7 @@ ST_Sandbox *SABX_Init() {
  */
 void SABX_Destroy(ST_Sandbox *sx){
 
-	if(sx->seg!= NULL) {
-		EXSG_DestroyExecutableSegment(sx->seg);
-	}
+	POLG_Destroy();
 	COXT_FreeContext(sx->ctx);
 	sx->seg = NULL;
 	sx->ctx = NULL;
@@ -81,7 +83,7 @@ void SABX_Statistics(ST_Sandbox *sx) {
 
 	printf("Sandox statistics\n");
 	printf("\ttotal executed %d, total shellcodes %d\n",sx->total_executed,sx->total_shellcodes);
-	COXT_Printf(sx->ctx);	
+	COXT_Printf(shctx);	
 
 	return;
 
@@ -151,26 +153,28 @@ void __SABX_SigSegvHandler(int sig, siginfo_t *info, void *data) {
 
 #ifdef DEBUG
         LOG(POLYLOG_PRIORITY_DEBUG,
-                "child(%d) receives signal %d on virtualeip %d",getpid(),sig,ctx->virtualeip);
+                "child(%d) receives signal %d on jump offset %d",getpid(),sig,shctx->jump_address);
 #endif
-	printf("child(%d) receives signal(%d)size(%d)virtualeip(%d)\n",getpid(),sig,seg->executable_segment_size,seg->virtualeip);
-        if((seg->virtualeip>=seg->executable_segment_size)||(seg->virtualeip < 0)) {
+        LOG(POLYLOG_PRIORITY_INFO,
+		"signal(%d)jump offset(%d)size(%d)token(%d)",
+		sig,shctx->jump_offset,shctx->max_jump_offset,shctx->magic_token);
+
+        if((shctx->jump_offset>=shctx->max_jump_offset)||(shctx->jump_offset < 0)) {
 #ifdef DEBUG
                 LOG(POLYLOG_PRIORITY_DEBUG,
                         "child(%d) Overflow exit on virtualeip=%d size=%d",getpid(),
                         ctx->virtualeip ,ctx->size);
 #endif
-                seg->virtualeip = seg->executable_segment_size;
-                exit(ctx->magic_token);
+                shctx->jump_offset = shctx->max_jump_offset;
+                exit(shctx->magic_token);
         }
+	shctx->jump_offset++;
+	shctx->total_segs_by_child++;
+	EXSG_SetJumpOffsetOnExecutableSegment(seg,shctx->jump_offset);
 
-	ctx->total_segs_by_child++;
-	EXSG_IncreaseEIPOnExecutableSegment(seg);
-	EXSG_PrintExecutableSegment(seg);
 	EXSG_ExecuteExecutableSegment(seg);
 
         exit(0);
-        return;
 }
 
 
@@ -210,26 +214,28 @@ void __SABX_SigUsrSignalHandler(int signal) {
  * @param magic_token
  *
  */
-void __SABX_Executor(ST_ExecutableSegment *sg,int magic_token) {
+void __SABX_Executor(ST_ExecutableSegment *sg) {
         int ret;
 
-	ctx->child_pid = getpid();
-	ctx->parent_pid = getppid();
-	ctx->total_forks++;
+	shctx->child_pid = getpid();
+	shctx->parent_pid = getppid();
+	shctx->total_forks++;
 
 	__SABX_SetSignalHandlers();       
-
-        printf("child executing with magic_token(%d)\n",magic_token);
 	kill(getppid(), SIGUSR1);
 	while(!got_child_signal);
 
-        ret = __SABX_InitSandbox(magic_token);
-        fprintf(stdout,"child on seccomp sandbox ret = %d\n",ret);
+        LOG(POLYLOG_PRIORITY_INFO,
+                "Executing segment on sandbox token(%d)",shctx->magic_token);
+
+        ret = __SABX_InitSandbox(shctx->magic_token);
 
         EXSG_ExecuteExecutableSegment(sg);
 
-        exit(magic_token);
+        exit(shctx->magic_token);
 }
+
+#define POLYLOG_CATEGORY_NAME POLYVACCINE_DETECTION_INTERFACE ".sandbox"
 
 /**
  * __SABX_WaitForExecution - The sandbox waits child execution 
@@ -243,29 +249,44 @@ int __SABX_WaitForExecution(pid_t pid) {
 	siginfo_t sig;
 	int ret = 0;
 
-        printf("parent waiting for %d\n",pid);
         status = waitid(P_PID,pid,&sig,WEXITED|WSTOPPED|WCONTINUED|WNOWAIT);
+	//printf("status = %d\n",status);
         status = sig.si_pid;
         int ifexisted = WIFEXITED(status);
         int ifexisstatus = WEXITSTATUS(status);
         int ifsignaled = WIFSIGNALED(status);
 
         switch(sig.si_code){
+		case CLD_STOPPED:
+			//printf("child stoped\n");
+			break;
+		case CLD_TRAPPED:
+			//printf("child trapped\n");
+			break;
+		case CLD_DUMPED:
+			//printf("child dumpede\n");
+			break;
+		case CLD_CONTINUED:
+			//printf("child continue\n");
+			break;
                 case CLD_EXITED:
-                        printf("child exists correct\n");
+                        //printf("child exists correct\n");
                         break;
                 case CLD_KILLED:
 			if(sig.si_status == SIGSYS) {
-                        	printf("child killed by seccomp\n");
+                        //	printf("child killed by seccomp\n");
 				ret = 1;
 			}else{
-				printf("child killed by other reason\n");
+			//	printf("child killed by other reason\n");
 			}
                         break;
         }
-        printf("status(%d)si_pid(%d)si_code(%d)si_status(%d)\n",status,sig.si_pid,sig.si_code,sig.si_status);
-        printf("process return status = %d,ifexisted=%d,ifexitstatus=%d,ifsignaled=%d\n",
-                status,ifexisted,ifexisstatus,ifsignaled);
+        LOG(POLYLOG_PRIORITY_INFO,
+                "Sandbox receives from process status(%d)pid(%d)code(%d)killseccomp(%d)",
+		status,sig.si_pid,sig.si_code,ret);
+        //printf("status(%d)si_pid(%d)si_code(%d)si_status(%d)\n",status,sig.si_pid,sig.si_code,sig.si_status);
+        //printf("process return status = %d,ifexisted=%d,ifexitstatus=%d,ifsignaled=%d\n",
+         //       status,ifexisted,ifexisstatus,ifsignaled);
 	return ret;
 }
 
@@ -282,31 +303,43 @@ int __SABX_WaitForExecution(pid_t pid) {
  */
 int SABX_AnalyzeSegmentMemory(ST_Sandbox *sx,char *buffer, int size, ST_TrustOffsets *t_off) {
 	int ret = 0;
-	int magic_token = 12;
 	pid_t pid;
 	int status;
-
+	
 	got_child_signal = 0;
 	signal(SIGUSR1, __SABX_SigUsrSignalHandler);
 
-	sx->ctx->magic_token = magic_token;
+	/* Reset shared context */
+	COXT_ResetContext(sx->ctx);
+
+	shctx->magic_token = rand(); 
+	shctx->jump_offset = 1;
+	shctx->max_jump_offset = size;
+
+        LOG(POLYLOG_PRIORITY_INFO,
+                "Analyzing segment on sandbox magicToken(%d)",shctx->magic_token);
+
+	/* Creates a new execution segment for the suspicious request */
 	sx->seg = EXSG_InitExecutableSegment();
         EXSG_PrepareExecutableSegment(sx->seg,buffer,size);
-	
+
 	pid = fork();
 	if(pid == 0){
-		__SABX_Executor(sx->seg,magic_token);
+		__SABX_Executor(sx->seg);
 	}
 	while(!got_child_signal);
         kill(pid, SIGUSR1);
-	waitpid(pid,&status,0);
 
 	ret = __SABX_WaitForExecution(pid);
-	if(ret == 1)
+	if(ret == 1){
+		LOG(POLYLOG_PRIORITY_WARN,"Shellcode detected on segment");
 		sx->total_shellcodes ++;
+	}
+        LOG(POLYLOG_PRIORITY_INFO,
+               	"Analisys done");
+	COXT_Printf(shctx);
 	sx->total_executed++;
 
 	EXSG_DestroyExecutableSegment(sx->seg);
-
 	return ret;
 }
