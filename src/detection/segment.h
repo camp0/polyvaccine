@@ -32,6 +32,7 @@
 #include <glib.h>
 #include <sys/mman.h>
 #include <stdio.h>
+#include <string.h>
 
 #ifdef __LINUX__
 enum {

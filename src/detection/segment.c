@@ -24,6 +24,13 @@
 
 #include "segment.h"
 
+/**
+ * __EXSG_PrintBuffer - Prints a buffer 
+ *
+ * @param ptr
+ * @param size
+ *
+ */
 void __EXSG_PrintBuffer(unsigned char *ptr, int size) {
         char buffer[10];
         int i,fd;

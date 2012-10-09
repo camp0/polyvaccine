@@ -44,6 +44,7 @@ struct ST_Sandbox {
 	ST_SharedContext *ctx;
 	int total_executed;
 	int total_shellcodes;
+	int total_bytes_process;
 	int debug_level;
 };
 typedef struct ST_Sandbox ST_Sandbox;

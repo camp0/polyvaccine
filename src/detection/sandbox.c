@@ -42,6 +42,7 @@ ST_Sandbox *SABX_Init() {
 
 	srand(time(NULL));
 
+	sx->total_bytes_process = 0;
 	sx->total_executed = 0;
 	sx->total_shellcodes = 0;
 	sx->debug_level = 0;
@@ -63,6 +64,7 @@ ST_Sandbox *SABX_Init() {
  */
 void SABX_Destroy(ST_Sandbox *sx){
 
+	seccomp_release();
 	POLG_Destroy();
 	COXT_FreeContext(sx->ctx);
 	sx->seg = NULL;
@@ -81,8 +83,9 @@ void SABX_Destroy(ST_Sandbox *sx){
  */
 void SABX_Statistics(ST_Sandbox *sx) {
 
-	printf("Sandox statistics\n");
+	printf("Sandbox statistics\n");
 	printf("\ttotal executed %d, total shellcodes %d\n",sx->total_executed,sx->total_shellcodes);
+	printf("\ttotal bytes %d\n",sx->total_bytes_process);
 	COXT_Printf(shctx);	
 
 	return;
@@ -179,7 +182,6 @@ void __SABX_SigSegvHandler(int sig, siginfo_t *info, void *data) {
         LOG(POLYLOG_PRIORITY_INFO,
                "exiting segment on sandbox token(%d)jump(%d)size(%d)",shctx->magic_token,shctx->jump_offset,shctx->max_jump_offset);
         exit(shctx->magic_token);
-        //exit(0);
 }
 
 
@@ -293,7 +295,7 @@ int __SABX_WaitForExecution(pid_t pid) {
 				ret = 2;
 				break;
 			}
-			printf("child killed by other reason\n");
+			//printf("child killed by other reason\n");
                         break;
         }
         LOG(POLYLOG_PRIORITY_INFO,
@@ -326,6 +328,7 @@ int SABX_AnalyzeSegmentMemory(ST_Sandbox *sx,char *buffer, int size, ST_TrustOff
 	/* Reset shared context for this request */
 	COXT_ResetContext(sx->ctx);
 
+	sx->total_bytes_process += size;
 	shctx->magic_token = rand(); 
 	shctx->jump_offset = 1;
 	shctx->max_jump_offset = size;
@@ -366,7 +369,9 @@ int SABX_AnalyzeSegmentMemory(ST_Sandbox *sx,char *buffer, int size, ST_TrustOff
 
 	LOG(POLYLOG_PRIORITY_INFO,
                	"Analisys done");
+#ifdef DEBUG
 	COXT_Printf(shctx);
+#endif
 	sx->total_executed++;
 
 	EXSG_DestroyExecutableSegment(sx->seg);
