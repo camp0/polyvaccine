@@ -1,7 +1,7 @@
 %module polydetector
 
 %{
-#include "syscalls.h"
+#include "sandbox.h"
 %}
 
-%include "syscalls.h"
+%include "sandbox.h"

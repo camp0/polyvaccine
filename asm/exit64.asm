@@ -9,6 +9,7 @@ _start:
     nop
     nop
 	jmp pepe
+	ret
 pepe:    mov     rbx, 0x1
     mov     rax, __NR_exit    ;;exit(0);
     mov     rdi,1 

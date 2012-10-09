@@ -50,7 +50,6 @@ typedef struct ST_Sandbox ST_Sandbox;
 
 
 ST_Sandbox *SABX_Init(void);
-void SABX_SetDebug(int level);
 void SABX_Destroy(ST_Sandbox *sx);
 void SABX_Statistics(ST_Sandbox *sx);
 int SABX_AnalyzeSegmentMemory(ST_Sandbox *sx,char *buffer, int size, ST_TrustOffsets *t_off);

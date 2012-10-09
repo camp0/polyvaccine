@@ -47,6 +47,7 @@ else
         AX_SWIG_PYTHON
 fi
 
+
 dnl Checks for libraries
 AC_PYTHON_MODULE(unittest)
 

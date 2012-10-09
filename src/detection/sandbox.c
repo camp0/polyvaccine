@@ -122,7 +122,8 @@ int __SABX_InitSandbox(int magic_token) {
         ret = seccomp_rule_add_exact(SCMP_ACT_ALLOW, SCMP_SYS(nanosleep), 0);
         if (ret != 0) return ret;
 
-        ret = seccomp_rule_add_exact(SCMP_ACT_ALLOW, SCMP_SYS(stat), 0);
+	/* The log subsystem log4c uses this syscall */
+        ret = seccomp_rule_add_exact(SCMP_ACT_ALLOW, SCMP_SYS(gettimeofday), 0);
         if (ret != 0) return ret;
 
         /* some libcs caches the values
@@ -156,7 +157,7 @@ void __SABX_SigSegvHandler(int sig, siginfo_t *info, void *data) {
                 "child(%d) receives signal %d on jump offset %d",getpid(),sig,shctx->jump_address);
 #endif
         LOG(POLYLOG_PRIORITY_INFO,
-		"signal(%d)jump offset(%d)size(%d)token(%d)",
+		"signal(%d)jump(%d)size(%d)token(%d)",
 		sig,shctx->jump_offset,shctx->max_jump_offset,shctx->magic_token);
 
         if((shctx->jump_offset>=shctx->max_jump_offset)||(shctx->jump_offset < 0)) {
@@ -170,11 +171,15 @@ void __SABX_SigSegvHandler(int sig, siginfo_t *info, void *data) {
         }
 	shctx->jump_offset++;
 	shctx->total_segs_by_child++;
+
 	EXSG_SetJumpOffsetOnExecutableSegment(seg,shctx->jump_offset);
 
 	EXSG_ExecuteExecutableSegment(seg);
 
-        exit(0);
+        LOG(POLYLOG_PRIORITY_INFO,
+               "exiting segment on sandbox token(%d)jump(%d)size(%d)",shctx->magic_token,shctx->jump_offset,shctx->max_jump_offset);
+        exit(shctx->magic_token);
+        //exit(0);
 }
 
 
@@ -191,7 +196,6 @@ void __SABX_SetSignalHandlers(void) {
         sa.sa_flags = SA_RESTART | SA_NODEFER; // el flag SA_NODEFER es el que hace que se itere
 
         sigaction(SIGSEGV, &sa, NULL); // Invalid memory Reference
-        sigaction(SIGILL, &sa, NULL); // Illegal Instruction
 
 	return;
 }
@@ -226,12 +230,18 @@ void __SABX_Executor(ST_ExecutableSegment *sg) {
 	while(!got_child_signal);
 
         LOG(POLYLOG_PRIORITY_INFO,
-                "Executing segment on sandbox token(%d)",shctx->magic_token);
+               "Executing segment on sandbox token(%d)jump(%d)",shctx->magic_token,shctx->jump_offset);
 
         ret = __SABX_InitSandbox(shctx->magic_token);
 
+#ifdef DEBUG
+	EXSG_PrintExecutableSegment(sg);
+#endif
+
         EXSG_ExecuteExecutableSegment(sg);
 
+        LOG(POLYLOG_PRIORITY_INFO,
+               "Escape from sandbox token(%d)",shctx->magic_token);
         exit(shctx->magic_token);
 }
 
@@ -250,11 +260,6 @@ int __SABX_WaitForExecution(pid_t pid) {
 	int ret = 0;
 
         status = waitid(P_PID,pid,&sig,WEXITED|WSTOPPED|WCONTINUED|WNOWAIT);
-	//printf("status = %d\n",status);
-        status = sig.si_pid;
-        int ifexisted = WIFEXITED(status);
-        int ifexisstatus = WEXITSTATUS(status);
-        int ifsignaled = WIFSIGNALED(status);
 
         switch(sig.si_code){
 		case CLD_STOPPED:
@@ -271,22 +276,30 @@ int __SABX_WaitForExecution(pid_t pid) {
 			break;
                 case CLD_EXITED:
                         //printf("child exists correct\n");
+			ret = 2;
                         break;
                 case CLD_KILLED:
 			if(sig.si_status == SIGSYS) {
-                        //	printf("child killed by seccomp\n");
+                        	//printf("child killed by seccomp\n");
 				ret = 1;
-			}else{
-			//	printf("child killed by other reason\n");
+				break;
 			}
+			if(sig.si_status == SIGILL) { // the process executes an illegal isntruction
+				//printf("child killed by SIGILL\n");
+				ret = 2;
+				break;
+			}
+			if(sig.si_status == SIGSEGV) {
+				ret = 2;
+				break;
+			}
+			printf("child killed by other reason\n");
                         break;
         }
         LOG(POLYLOG_PRIORITY_INFO,
-                "Sandbox receives from process status(%d)pid(%d)code(%d)killseccomp(%d)",
-		status,sig.si_pid,sig.si_code,ret);
-        //printf("status(%d)si_pid(%d)si_code(%d)si_status(%d)\n",status,sig.si_pid,sig.si_code,sig.si_status);
-        //printf("process return status = %d,ifexisted=%d,ifexitstatus=%d,ifsignaled=%d\n",
-         //       status,ifexisted,ifexisstatus,ifsignaled);
+                "Sandbox receives status(%d)pid(%d)code(%d)status(%d)killseccomp(%d)",
+		status,sig.si_pid,sig.si_code,sig.si_status,ret);
+
 	return ret;
 }
 
@@ -303,13 +316,14 @@ int __SABX_WaitForExecution(pid_t pid) {
  */
 int SABX_AnalyzeSegmentMemory(ST_Sandbox *sx,char *buffer, int size, ST_TrustOffsets *t_off) {
 	int ret = 0;
+	register int i;
 	pid_t pid;
 	int status;
 	
 	got_child_signal = 0;
 	signal(SIGUSR1, __SABX_SigUsrSignalHandler);
 
-	/* Reset shared context */
+	/* Reset shared context for this request */
 	COXT_ResetContext(sx->ctx);
 
 	shctx->magic_token = rand(); 
@@ -317,25 +331,40 @@ int SABX_AnalyzeSegmentMemory(ST_Sandbox *sx,char *buffer, int size, ST_TrustOff
 	shctx->max_jump_offset = size;
 
         LOG(POLYLOG_PRIORITY_INFO,
-                "Analyzing segment on sandbox magicToken(%d)",shctx->magic_token);
+                "Analyzing segment on sandbox token(%d)size(%d)",shctx->magic_token,size);
 
 	/* Creates a new execution segment for the suspicious request */
 	sx->seg = EXSG_InitExecutableSegment();
         EXSG_PrepareExecutableSegment(sx->seg,buffer,size);
 
-	pid = fork();
-	if(pid == 0){
-		__SABX_Executor(sx->seg);
-	}
-	while(!got_child_signal);
-        kill(pid, SIGUSR1);
+	/* Check all the posible offsets of the request */
+	do {
+		/* Generate a magic token for allow exit syscall */
+		shctx->magic_token = rand(); 
+		pid = fork();
+		if(pid == 0){
+			__SABX_Executor(sx->seg);
+		}
+		while(!got_child_signal);
+		kill(pid, SIGUSR1);
 
-	ret = __SABX_WaitForExecution(pid);
-	if(ret == 1){
-		LOG(POLYLOG_PRIORITY_WARN,"Shellcode detected on segment");
-		sx->total_shellcodes ++;
-	}
-        LOG(POLYLOG_PRIORITY_INFO,
+		ret = __SABX_WaitForExecution(pid);
+		if(ret == 1){ // The request contains a syscall 
+			LOG(POLYLOG_PRIORITY_WARN,"Shellcode detected on segment");
+			sx->total_shellcodes ++;
+			break;
+		}else{
+			if(ret == 2) {
+				shctx->jump_offset ++;
+        			EXSG_SetJumpOffsetOnExecutableSegment(sx->seg,shctx->jump_offset);	
+			}		
+		}
+		/* update the magic token for allow exit syscall */
+		shctx->magic_token = rand(); 
+	}while(shctx->jump_offset < shctx->max_jump_offset);
+
+
+	LOG(POLYLOG_PRIORITY_INFO,
                	"Analisys done");
 	COXT_Printf(shctx);
 	sx->total_executed++;

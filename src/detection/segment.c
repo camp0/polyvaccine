@@ -24,6 +24,27 @@
 
 #include "segment.h"
 
+void __EXSG_PrintBuffer(unsigned char *ptr, int size) {
+        char buffer[10];
+        int i,fd;
+        int online = 0;
+
+        write(0,"\n",1);
+        for ( i= 0;i<size;i++) {
+                if ( online == 16 ) {
+                        write(0,"\n",1);
+                        online = 0;
+                }
+                online ++;
+                sprintf(buffer,"%02x ",*ptr);
+                write(0,buffer,strlen(buffer));
+                ptr++;
+        }
+        write(0,"\n",1);
+        return;
+}
+
+
 /**
  * EXSG_InitExecutableSegment - Inits a executable segment for the suspicious opcodes  
  *
@@ -61,7 +82,7 @@ ST_ExecutableSegment *EXSG_InitExecutableSegment() {
 
 void EXSG_PrepareExecutableSegment(ST_ExecutableSegment *sg,char *buffer, int size) {
 	int offset,jump_size,real_size;
-
+	int ret_size = 1;
 	offset = 1;
 	
         jump_size = 5;
@@ -70,7 +91,7 @@ void EXSG_PrepareExecutableSegment(ST_ExecutableSegment *sg,char *buffer, int si
 #else
         sg->registers_size = 8;
 #endif
-        real_size = size + sg->registers_size + jump_size;
+        real_size = size + sg->registers_size + jump_size + ret_size;
 
 	sg->max_jump_offset = size;
 	sg->jump_offset = 1;
@@ -79,10 +100,14 @@ void EXSG_PrepareExecutableSegment(ST_ExecutableSegment *sg,char *buffer, int si
                 PROT_EXEC|PROT_READ|PROT_WRITE, MAP_SHARED|SEGMENT_EXECUTABLE|SEGMENT_ANONYMOUS, -1, 0);
         if (sg->executable_segment == MAP_FAILED) {
                 perror("mmap");
-                return NULL;
+                exit(-1);
         }
 
         memset(sg->executable_segment,"\x90",real_size); /* Init all with nops */
+
+	/* Set the ret for the return function */
+	memcpy((sg->executable_segment + real_size - ret_size) ,"\xc3",ret_size);
+
 #if __WORDSIZE == 64
         memcpy(sg->executable_segment,"\x48\x31\xc0" "\x48\x31\xdb" "\x48\x31\xc9" "\x48\x31\xd2",sg->registers_size);/* Init Registers */
 #else
@@ -95,12 +120,12 @@ void EXSG_PrepareExecutableSegment(ST_ExecutableSegment *sg,char *buffer, int si
         memcpy(sg->executable_segment + (sg->registers_size + 1) ,&(sg->jump_offset) ,4);
 
         /* Copy the suspicious buffer */
-        memcpy(sg->executable_segment + sg->registers_size + jump_size ,buffer,sg->executable_segment_size);
+        memcpy(sg->executable_segment + sg->registers_size + jump_size ,buffer,sg->max_jump_offset);
 
         sg->segment_with_opcodes = malloc(sg->executable_segment_size);
         memcpy(sg->segment_with_opcodes,sg->executable_segment,sg->executable_segment_size);
 	
-	return sg;
+	return ;
 }
 
 /**
@@ -159,24 +184,7 @@ void EXSG_ExecuteExecutableSegment(ST_ExecutableSegment *sg){
  */
 
 void EXSG_PrintExecutableSegment(ST_ExecutableSegment *sg) {
-        char buffer[10];
-        int i,fd;
-        unsigned char *ptr;
-        int online = 0;
-	int size = sg->executable_segment_size;
 
-        ptr = sg->executable_segment;
-	write(0,"\n",1);
-        for ( i= 0;i<size;i++) {
-                if ( online == 16 ) {
-                        write(0,"\n",1);
-                        online = 0;
-                }
-                online ++;
-                sprintf(buffer,"%02x ",*ptr);
-                write(0,buffer,strlen(buffer));
-                ptr++;
-        }
-        write(0,"\n",1);
+	__EXSG_PrintBuffer(sg->executable_segment,sg->executable_segment_size);
 	return;
 }
