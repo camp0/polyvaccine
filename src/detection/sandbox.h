@@ -37,6 +37,7 @@
 #include "sharedcontext.h"
 #include "interfaces.h"
 #include <stdlib.h>
+#include <sched.h>
 
 struct ST_Sandbox {
 	/* Info shared with the child */
@@ -49,6 +50,11 @@ struct ST_Sandbox {
 };
 typedef struct ST_Sandbox ST_Sandbox;
 
+enum {
+	SABX_SHELLCODE_DETECTED = 0,
+	SABX_SHELLCODE_CLEAN,
+	SABX_SHELLCODE_CONTINUE
+}sabx_status;
 
 ST_Sandbox *SABX_Init(void);
 void SABX_Destroy(ST_Sandbox *sx);

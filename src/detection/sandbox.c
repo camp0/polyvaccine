@@ -259,7 +259,7 @@ void __SABX_Executor(ST_ExecutableSegment *sg) {
 int __SABX_WaitForExecution(pid_t pid) {
 	int status;
 	siginfo_t sig;
-	int ret = 0;
+	int ret = SABX_SHELLCODE_CONTINUE;
 
         status = waitid(P_PID,pid,&sig,WEXITED|WSTOPPED|WCONTINUED|WNOWAIT);
 
@@ -277,25 +277,23 @@ int __SABX_WaitForExecution(pid_t pid) {
 			//printf("child continue\n");
 			break;
                 case CLD_EXITED:
-                        //printf("child exists correct\n");
-			ret = 2;
+//                        printf("child exists correct\n");
+			ret = SABX_SHELLCODE_CLEAN;
                         break;
                 case CLD_KILLED:
 			if(sig.si_status == SIGSYS) {
-                        	//printf("child killed by seccomp\n");
-				ret = 1;
+ //                       	printf("child killed by seccomp\n");
+				ret = SABX_SHELLCODE_DETECTED;
 				break;
 			}
 			if(sig.si_status == SIGILL) { // the process executes an illegal isntruction
-				//printf("child killed by SIGILL\n");
-				ret = 2;
-				break;
+//				printf("child killed by SIGILL\n");
 			}
 			if(sig.si_status == SIGSEGV) {
-				ret = 2;
-				break;
+				//ret = 2;
+				//break;
 			}
-			//printf("child killed by other reason\n");
+//			printf("child killed by other reason\n");
                         break;
         }
         LOG(POLYLOG_PRIORITY_INFO,
@@ -343,24 +341,23 @@ int SABX_AnalyzeSegmentMemory(ST_Sandbox *sx,char *buffer, int size, ST_TrustOff
 	/* Check all the posible offsets of the request */
 	do {
 		/* Generate a magic token for allow exit syscall */
-		shctx->magic_token = rand(); 
+		shctx->magic_token = rand();
+
 		pid = fork();
 		if(pid == 0){
 			__SABX_Executor(sx->seg);
-		}
+		} 
 		while(!got_child_signal);
 		kill(pid, SIGUSR1);
 
 		ret = __SABX_WaitForExecution(pid);
-		if(ret == 1){ // The request contains a syscall 
+		if(ret == SABX_SHELLCODE_DETECTED){ // The request contains a syscall 
 			LOG(POLYLOG_PRIORITY_WARN,"Shellcode detected on segment");
 			sx->total_shellcodes ++;
 			break;
 		}else{
-			if(ret == 2) {
-				shctx->jump_offset ++;
-        			EXSG_SetJumpOffsetOnExecutableSegment(sx->seg,shctx->jump_offset);	
-			}		
+			shctx->jump_offset ++;
+        		EXSG_SetJumpOffsetOnExecutableSegment(sx->seg,shctx->jump_offset);	
 		}
 		/* update the magic token for allow exit syscall */
 		shctx->magic_token = rand(); 
