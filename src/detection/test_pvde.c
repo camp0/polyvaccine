@@ -177,12 +177,11 @@ static void test07(void) {
 
         ret = SABX_AnalyzeSegmentMemory(sand,buffer,size,NULL);
 
+	//SABX_Statistics(sand);
         assert(sand->total_shellcodes == 0);
         assert(sand->total_executed == 1);
-        //assert(sand->ctx->total_segs_by_child == 8);
-        //assert(sand->ctx->jump_offset == 14);
-        assert(sand->ctx->total_forks == 38);
-	//printf("forks = %d\n",sand->ctx->total_forks);
+        assert(sand->ctx->total_segs_by_child == 263);
+        assert(sand->ctx->total_forks == 36);
         SABX_Destroy(sand);
 
         return;
@@ -226,9 +225,7 @@ static void test08(void) {
         assert(sand->total_executed == 1);
         assert(sand->ctx->jump_offset == 1);
         assert(sand->ctx->total_forks == 1);
-        printf("forks = %d\n",sand->ctx->total_forks);
-        printf("jump = %d\n",sand->ctx->jump_offset);
-
+	//SABX_Statistics(sand);
         SABX_Destroy(sand);
 
         return;

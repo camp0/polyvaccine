@@ -251,7 +251,8 @@ void __SABX_Executor(ST_ExecutableSegment *sg) {
 
 /**
  * __SABX_WaitForExecution - The sandbox waits child execution 
- *
+ *		The parent process monitors childs execution in order to verify
+ *		if the segment contains a shellcode.
  * @param pid 
  *
  * @return status
@@ -265,35 +266,19 @@ int __SABX_WaitForExecution(pid_t pid) {
 
         switch(sig.si_code){
 		case CLD_STOPPED:
-			//printf("child stoped\n");
-			break;
 		case CLD_TRAPPED:
-			//printf("child trapped\n");
-			break;
 		case CLD_DUMPED:
-			//printf("child dumpede\n");
-			break;
 		case CLD_CONTINUED:
-			//printf("child continue\n");
 			break;
                 case CLD_EXITED:
-//                        printf("child exists correct\n");
+			/* The child exits correct due to the magig_token */
 			ret = SABX_SHELLCODE_CLEAN;
                         break;
                 case CLD_KILLED:
 			if(sig.si_status == SIGSYS) {
- //                       	printf("child killed by seccomp\n");
 				ret = SABX_SHELLCODE_DETECTED;
 				break;
 			}
-			if(sig.si_status == SIGILL) { // the process executes an illegal isntruction
-//				printf("child killed by SIGILL\n");
-			}
-			if(sig.si_status == SIGSEGV) {
-				//ret = 2;
-				//break;
-			}
-//			printf("child killed by other reason\n");
                         break;
         }
         LOG(POLYLOG_PRIORITY_INFO,
@@ -347,7 +332,7 @@ int SABX_AnalyzeSegmentMemory(ST_Sandbox *sx,char *buffer, int size, ST_TrustOff
 		if(pid == 0){
 			__SABX_Executor(sx->seg);
 		} 
-		while(!got_child_signal);
+		//while(!got_child_signal);
 		kill(pid, SIGUSR1);
 
 		ret = __SABX_WaitForExecution(pid);

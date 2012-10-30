@@ -152,7 +152,7 @@ DBusHandlerResult DB_FilterDbusFunctionMessage(DBusConnection *c, DBusMessage *m
         const char *member = dbus_message_get_member(msg);
         const char *path = dbus_message_get_path(msg);
 	ST_PolyDbusInterface *iface = NULL; 
-	char *real_interface;
+	const char *real_interface = NULL;
 
 	if(interface == NULL){ // ipython generates no interface.
 		real_interface = path;

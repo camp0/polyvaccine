@@ -1,7 +1,5 @@
 AUTOMAKE_OPTIONS = gnu
 
-CFLAGS=
-
 INCLUDES =      -I../utils/ -I../opcodes/ \
 		-I../bus/ \
 		`pkg-config --cflags glib-2.0 dbus-1` 
