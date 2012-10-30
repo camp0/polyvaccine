@@ -152,7 +152,7 @@ DBusHandlerResult DB_FilterDbusFunctionMessage(DBusConnection *c, DBusMessage *m
         const char *member = dbus_message_get_member(msg);
         const char *path = dbus_message_get_path(msg);
 	ST_PolyDbusInterface *iface = NULL; 
-	char *real_interface;
+	const char *real_interface = NULL;
 
 	if(interface == NULL){ // ipython generates no interface.
 		real_interface = path;
@@ -310,6 +310,7 @@ DBusConnection *PODS_Connect(char *interface,void *engine) {
         char* sigvalue;
 
         dbus_error_init(&err);
+        //bus = dbus_bus_get(DBUS_BUS_SYSTEM, &err);
         bus = dbus_bus_get(DBUS_BUS_SESSION, &err);
         if (dbus_error_is_set(&err)) {
                 fprintf(stderr, "Connection Error (%s)\n", err.message);

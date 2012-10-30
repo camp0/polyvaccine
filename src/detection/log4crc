@@ -16,7 +16,7 @@
         <!-- <category name="polyvaccine.filter.connection" priority="debug" appender="none"/> -->
 <!--        <category name="polyvaccine.detector" priority="debug" appender="stdout"/> --> 
 <!--         <category name="polyvaccine.detector" priority="info" appender="stdout"/> -->
-        <category name="polyvaccine.detector.tracer" priority="debug" appender="stdout"/>
+        <category name="polyvaccine.detector.sandbox" priority="debug" appender="stdout"/>
         <category name="polyvaccine.bus" priority="info" appender="stdout"/>
 <!--        <category name="polyvaccine.detector.tracer.child" priority="debug" appender="stdout"/> -->
 

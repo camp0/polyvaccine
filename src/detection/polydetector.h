@@ -33,7 +33,7 @@
 #include "banner.h"
 #include "polydbus.h"
 #include "callbacks.h" 
-#include "context.h"
+#include "sandbox.h"
 #include <glib.h>
 #include <dbus/dbus.h>
 #include "interfaces.h"
@@ -53,10 +53,7 @@ static const char *polydetector_states_str [] = { "stop","running"};
 struct ST_PolyDetector {
         DBusConnection *bus;
 	int state;
-	int show_received_payload;
-	int block_syscalls;
-	int32_t executed_segments;
-	int32_t shellcodes_detected;
+	ST_Sandbox *sandbox;	
 	unsigned char buffer[MAX_DBUS_SEGMENT_BUFFER];
 };
 

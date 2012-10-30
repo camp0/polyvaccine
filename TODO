@@ -17,3 +17,4 @@
 - Send a signal when a user reach the limits (Done).
 - Print out the size of the caches on bytes, megabytes, etc....(Done).
 - Use a parameter for limit the number of users created -U 1000. (Done).
+- Add verification on the configure.in of the Python.h file.

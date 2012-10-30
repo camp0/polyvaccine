@@ -99,15 +99,6 @@ void main(int argc, char **argv) {
 
 	signal(SIGINT,sigquit);
 
-	if(show_syscalls == TRUE){
-		PODT_ShowAvailableSyscalls();
-	}
-
-	if(show_received_payload == TRUE)
-		PODT_ShowReceivedPayload(show_received_payload);
-
-	PODT_BlockDetectedSyscalls(block_syscalls);
-	PODT_ShowExecutionPath(show_execution_path);	
 	PODT_Run();
 	return;
 }

@@ -22,41 +22,43 @@
  *
  */
 
-#ifndef _CONTEXT_H_
-#define _CONTEXT_H_
+#ifndef _SANDBOX_H_
+#define _SANDBOX_H_
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#include "../core/trustoffset.h"
-#include "debug.h"
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <sys/time.h>
+#include <glib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <seccomp.h>
+#include "segment.h"
+#include "sharedcontext.h"
+#include "interfaces.h"
+#include <stdlib.h>
+#include <sched.h>
 
-struct ST_SharedContext {
-	ST_TrustOffsets *t_off;
-	struct timeval total_latency;
-        int isptracechild;
-        pid_t child_pid;
-	pid_t parent_pid;
-        int signal;
-        int virtualeip;
-        int size;
-        int incbytracer;
-        int incbychild;
-	int status;
-	int request;
-	int cpu_execed;
-        void *memory;
+struct ST_Sandbox {
+	/* Info shared with the child */
+	ST_ExecutableSegment *seg;	
+	ST_SharedContext *ctx;
+	int total_executed;
+	int total_shellcodes;
+	int total_bytes_process;
+	int debug_level;
 };
-typedef struct ST_SharedContext ST_SharedContext;
+typedef struct ST_Sandbox ST_Sandbox;
 
-ST_SharedContext *COXT_GetContext(void);
-ST_SharedContext *COXT_AttachContext(void);
-void COXT_FreeContext(ST_SharedContext *c);
-void COXT_Printf(ST_SharedContext *c);
+enum {
+	SABX_SHELLCODE_DETECTED = 0,
+	SABX_SHELLCODE_CLEAN,
+	SABX_SHELLCODE_CONTINUE
+}sabx_status;
+
+ST_Sandbox *SABX_Init(void);
+void SABX_Destroy(ST_Sandbox *sx);
+void SABX_Statistics(ST_Sandbox *sx);
+int SABX_AnalyzeSegmentMemory(ST_Sandbox *sx,char *buffer, int size, ST_TrustOffsets *t_off);
 
 #endif
