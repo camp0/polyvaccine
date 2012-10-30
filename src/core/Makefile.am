@@ -12,12 +12,14 @@ BUILT_SOURCES = $(srcdir)/polyfilter_wrap.c
 libpolyfilter_la_SOURCES =	system.c memory.c pool.c memorypool.c privatecallbacks.c flowpool.c \
 				connection.c packetdecoder.c authorized.c trustoffset.c tcpanalyzer.c \
 				httpanalyzer.c sipanalyzer.c user.c userpool.c dosanalyzer.c cache.c \
-				forwarder.c polyfilter.c pathcache.c usertable.c graphcache.c 
+				forwarder.c polyfilter.c pathcache.c usertable.c graphcache.c \
+				httpsignalbalancer.c 
 
 noinst_HEADERS =	httpvalues.h flowpool.h connection.h cache.h polyfilter.h forwarder.h tcpanalyzer.h \
 			packetdecoder.h packetcontext.h genericflow.h authorized.h privatecallbacks.h \
 			httpanalyzer.h memory.h memorypool.h system.h trustoffset.h sipvalues.h pathcache.h \
-			sipanalyzer.h userpool.h user.h dosanalyzer.h pool.h usertable.h graphcache.h 
+			sipanalyzer.h userpool.h user.h dosanalyzer.h pool.h usertable.h graphcache.h \
+			httpsignalbalancer.h 
 
 libpolyfilter_la_LIBADD = ../opcodes/libopcodes.la ../bus/libpolybus.la $(DEPS_LIBS) 
 libpolyfilter_la_LDFLAGS = -version-info 0:0:0 $(DEPS_LIBS) `pkg-config --libs glib-2.0 dbus-1 libpcre`

@@ -1,0 +1,4 @@
+version 0.4:
+	- Support for libseccomp library. Thanks to paul moore for his support.
+	- Support for multicore systems in order to balance the suspicious segments.
+

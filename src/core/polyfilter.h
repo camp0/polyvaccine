@@ -124,6 +124,7 @@ void POFR_SetHTTPSourcePort(int port);
 void POFR_SetForceAnalyzeHTTPPostData(int value);
 void POFR_ShowUnknownHTTP(int value);
 void POFR_SetHTTPStatisticsLevel(int level);
+void POFR_AddDetectorNode(char *interface,char *name);
 
 int32_t POFR_GetHTTPHeaderCacheHits(void);
 int32_t POFR_GetHTTPHeaderCacheFails(void);

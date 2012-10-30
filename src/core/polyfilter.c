@@ -255,7 +255,7 @@ void POFR_Init() {
 #endif
 	// Plugin the analyzers
         FORD_AddAnalyzer(_polyFilter->forwarder,
-                "ddos",IPPROTO_TCP,80,
+                "ddos",IPPROTO_TCP,8000,
                 (void*)DSAZ_Init,
                 (void*)DSAZ_Destroy,
                 (void*)DSAZ_Stats,
@@ -265,7 +265,7 @@ void POFR_Init() {
 		(void*)DSAZ_NotifyWrong);
 
 	FORD_AddAnalyzer(_polyFilter->forwarder,
-		"http",IPPROTO_TCP,8080,
+		"http",IPPROTO_TCP,80,
 		(void*)HTAZ_Init,
 		(void*)HTAZ_Destroy,
 		(void*)HTAZ_Stats,	
@@ -778,7 +778,7 @@ void POFR_Run() {
 
                                                 user->current_time.tv_sec = currenttime.tv_sec;
                                                 user->current_time.tv_usec = currenttime.tv_usec;
-	
+							
 						if(protocol == IPPROTO_TCP){
 							// Update the tcp flow
 							TCAZ_Analyze(flow);
@@ -879,4 +879,8 @@ int32_t POFR_GetHTTPParameterCacheFails() {
         return HTAZ_GetParameterFails(); 
 }
 
+void POFR_AddDetectorNode(char *interface,char *name){
 
+	HTAZ_AddDetectorNode(interface,name);
+	return;
+}

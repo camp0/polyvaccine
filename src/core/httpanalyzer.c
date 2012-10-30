@@ -99,6 +99,7 @@ void *HTAZ_Init() {
 	}	
 	COSU_Init();
 	_http.httpcache = CACH_Init();
+	_http.sb = HTSB_Init();;
 	return;
 }
 
@@ -162,6 +163,7 @@ void *HTAZ_Destroy() {
 #else
 	pcre_free(_http.pe_header);
 #endif
+	HTSB_Destroy(_http.sb);
 	CACH_Destroy(_http.httpcache);
 	COSU_Destroy();
 }
@@ -520,17 +522,24 @@ void *HTAZ_NotifyCorrect(DBusConnection *bus,ST_User *user,ST_GenericFlow *f,uns
 void *HTAZ_NotifyWrong(DBusConnection *bus,ST_User *user,ST_GenericFlow *f,unsigned long hash,u_int32_t seq){
 	ST_MemorySegment *seg = NULL;
 	ST_TrustOffsets *t_off = NULL;
-	
+	ST_HTTPDetectorNode *nod = NULL;
+		
 	if(bus == NULL) {
 		LOG(POLYLOG_PRIORITY_ALERT,
 			"Cannot send suspicious segment over dbus, no connection available");
 		return;
 	}
+	nod = HTSB_GetNext(_http.sb);
+	if(nod == NULL) {
+		LOG(POLYLOG_PRIORITY_ALERT,
+			"Cannot send suspicious segment to detector, no process available");
+		return;
+	}
 	seg = f->memory;
 	t_off = HTAZ_GetTrustOffsets();
 	PODS_SendSuspiciousSegment(bus,
-		POLYVACCINE_DETECTION_OBJECT,
-		POLYVACCINE_DETECTION_INTERFACE,
+		nod->name,
+		nod->interface,
 		"Analyze",
 		seg->mem,
 		seg->virtual_size,
@@ -620,3 +629,13 @@ int32_t HTAZ_GetParameterHits() { return _http.httpcache->parameter_hits;}
 int32_t HTAZ_GetParameterFails() { return _http.httpcache->parameter_fails;}
 
 int32_t HTAZ_GetCacheMemorySize() { return _http.httpcache->memorysize;}
+
+void HTAZ_AddDetectorNode(char *interface,char *name){
+
+
+	HTSB_AddDetectorNode(_http.sb,interface,name);
+        LOG(POLYLOG_PRIORITY_INFO,"Adding detector for notify (%s)(%s)",interface,name);
+
+	return;
+}
+

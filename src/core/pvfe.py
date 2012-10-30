@@ -29,6 +29,7 @@ __version__ = "0.1"
 import sys
 import polyfilter as pf
 from optparse import OptionParser
+import time
 
 def parseOptions():
         """Parse the user options"""
@@ -53,13 +54,22 @@ if __name__ == '__main__':
 
 	pf.POFR_Init();
 
-
 	pf.POFR_SetSource(options.interface)
 
 	# TODO
 	# Use the functions of the polyfilter.h
 	# in order to fix with your requirements.
 	#
+
+	pf.POFR_EnableAnalyzers("http")
+	pf.POFR_SetHTTPSourcePort(80)
+	pf.POFR_AddDetectorNode("polyvaccine.detector","/polyvaccine/detector");
+
+	# For using multicore architecture
+	# pf.POFR_AddDetectorNode("polyvaccine.detector0","/polyvaccine/detector0");
+	# pf.POFR_AddDetectorNode("polyvaccine.detector1","/polyvaccine/detector1");
+	# pf.POFR_AddDetectorNode("polyvaccine.detector2","/polyvaccine/detector2");
+	# pf.POFR_AddDetectorNode("polyvaccine.detector3","/polyvaccine/detector3");
 
 	# General options
 	# POFR_SetExitOnPcap - Exists when the pcap file is process
@@ -83,11 +93,14 @@ if __name__ == '__main__':
 	#
 	# Functions related to the SIP analyzer
 
+	# main functions
+	pf.POFR_Start()
 	try:
 		pf.POFR_Run()
-        except (KeyboardInterrupt, SystemExit):
-                pf.POFR_Stop()
-	
+	except (KeyboardInterrupt, SystemExit):
+               	pf.POFR_Stop()
+
+	pf.POFR_Stats()	
 	pf.POFR_Destroy()
 	
 	sys.exit(0)

@@ -11,7 +11,7 @@ source_files = ['polyfilter_wrap.c', 'cache.c','polyfilter.c','flowpool.c','conn
 source_files = source_files + ['privatecallbacks.c','packetdecoder.c','memory.c','memorypool.c','httpanalyzer.c','system.c']
 source_files = source_files + ['../bus/polydbus.c','../opcodes/counter.c','authorized.c','trustoffset.c','tcpanalyzer.c']
 source_files = source_files + ['userpool.c','user.c','dosanalyzer.c','pool.c','usertable.c']
-source_files = source_files + ['sipanalyzer.c','graphcache.c','pathcache.c']
+source_files = source_files + ['sipanalyzer.c','graphcache.c','pathcache.c','httpsignalbalancer.c']
 
 polyfilter_module = Extension('_polyfilter',
 	sources = source_files,

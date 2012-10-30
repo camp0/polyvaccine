@@ -29,21 +29,27 @@ static ST_PolyDetector *_polyDetector = NULL;
 /**
  * PODT_Init - Initialize the main structures of the polydetector
  */
-void PODT_Init() {
+void PODT_Init(char *name) {
         ST_Callback *current = NULL;
         ST_Interface *interface = NULL;
         register int i,j;
 
         _polyDetector = (ST_PolyDetector*)g_new0(ST_PolyDetector,1);
 
+	if(name == NULL) 
+		snprintf(_polyDetector->interface_name,1024,"%s",POLYVACCINE_DETECTION_INTERFACE);
+	else
+		snprintf(_polyDetector->interface_name,1024,"%s",name);
+		
 	SYIN_Init();
 	PODS_Init();
-        _polyDetector->bus = PODS_Connect(POLYVACCINE_DETECTION_INTERFACE,(void*)_polyDetector);
+        _polyDetector->bus = PODS_Connect(_polyDetector->interface_name,(void*)_polyDetector);
 	_polyDetector->sandbox = SABX_Init();
 
 	if(_polyDetector->bus != NULL) {
 		i=0;	
 		interface = &ST_PublicInterfaces[0];
+		interface->name = _polyDetector->interface_name;
 		while(interface->name != NULL) {
 			/* Loads the methods first */
 			current = &interface->methods[0];

@@ -52,6 +52,7 @@ static const char *polydetector_states_str [] = { "stop","running"};
 
 struct ST_PolyDetector {
         DBusConnection *bus;
+	char interface_name[1024];
 	int state;
 	ST_Sandbox *sandbox;	
 	unsigned char buffer[MAX_DBUS_SEGMENT_BUFFER];
@@ -100,7 +101,7 @@ static ST_Interface ST_PublicInterfaces [] = {
 	{}
 };
 
-void PODT_Init(void);
+void PODT_Init(char *interface);
 void PODT_Run(void);
 void PODT_ShowAvailableSyscalls(void);
 void PODT_ShowExecutionPath(int value);

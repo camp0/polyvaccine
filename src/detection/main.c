@@ -32,12 +32,13 @@ static struct option long_options[] = {
         {"syscalls",  		no_argument,      	0, 's'},
         {"payload",  		no_argument,      	0, 'x'},
         {"block",  		no_argument,      	0, 'b'},
+        {"interface",  		required_argument,	0, 'i'},
         {"help",        	no_argument,            0, 'h'},
         {"version",     	no_argument,            0, 'V'},
         {0, 0, 0, 0}
 };
 
-static char *short_options = "shVpxb";
+static char *short_options = "shVpxbi:";
 
 void sigquit(int signal) {
         PODT_Destroy();
@@ -48,6 +49,8 @@ void usage(char *prog){
         fprintf(stdout,"%s %s\n",POLYVACCINE_DETECTION_ENGINE_NAME,VERSION);
         fprintf(stdout,"Usage %s [option(s)]\n",prog);
         fprintf(stdout,"The options are:\n");
+        fprintf(stdout,"\t-i, --interface                      Sets the interface name on the dbus(%s).\n",
+		POLYVACCINE_DETECTION_INTERFACE);
         fprintf(stdout,"\t-s, --syscall                        Shows the available syscalls.\n");
         fprintf(stdout,"\t-p, --execution-path                 Shows the execution syscall path of the executions.\n");
         fprintf(stdout,"\t-x, --payload                        Shows the execution payload received by the daemon.\n");
@@ -67,6 +70,7 @@ void main(int argc, char **argv) {
 	int show_execution_path = FALSE;
 	int show_received_payload = FALSE;	
 	int block_syscalls  = FALSE;
+	char *interface = NULL;
 
         while((c = getopt_long(argc,argv,short_options,
                             long_options, &option_index)) != -1) {
@@ -83,6 +87,9 @@ void main(int argc, char **argv) {
                         case 'p':
                                	show_execution_path = TRUE; 
                                 break;
+                        case 'i':
+                               	interface = optarg; 
+                                break;
                         case 'h':
                                 usage(argv[0]);
                                 exit(0);
@@ -95,7 +102,7 @@ void main(int argc, char **argv) {
                 }
         }
 
-	PODT_Init();
+	PODT_Init(interface);
 
 	signal(SIGINT,sigquit);
 

@@ -42,6 +42,7 @@
 #include "interfaces.h"
 #include "counter.h"
 #include "polydbus.h"
+#include "httpsignalbalancer.h"
 
 #define OVECCOUNT 30
 
@@ -54,6 +55,7 @@ struct ST_HTTPAnalyzer{
 	ST_TrustOffsets *t_off;
         int ovector[OVECCOUNT];
 	ST_Cache *httpcache;
+	ST_HTTPSignalBalancer *sb;
 	/* configuration options */	
 	int on_suspicious_header_break;
 	int on_suspicious_parameter_break;
@@ -106,5 +108,7 @@ int32_t HTAZ_GetParameterHits(void);
 int32_t HTAZ_GetParameterFails(void);
 int32_t HTAZ_GetCacheMemorySize(void);
 
+/* for balance the signals to the detection engine */
+void HTAZ_AddDetectorNode(char *interface,char *name);
 
 #endif
