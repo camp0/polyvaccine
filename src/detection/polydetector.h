@@ -28,6 +28,8 @@
 #include <config.h>
 #endif
 
+#define _GNU_SOURCE 
+#include <sched.h>
 #include <stdio.h>
 #include "debug.h"
 #include "banner.h"
@@ -102,6 +104,7 @@ static ST_Interface ST_PublicInterfaces [] = {
 };
 
 void PODT_Init(char *interface);
+void PODT_SetCpu(int cpu);
 void PODT_Run(void);
 void PODT_ShowAvailableSyscalls(void);
 void PODT_ShowExecutionPath(int value);

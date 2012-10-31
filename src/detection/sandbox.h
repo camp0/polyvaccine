@@ -37,6 +37,7 @@
 #include "sharedcontext.h"
 #include "interfaces.h"
 #include <stdlib.h>
+#define _GNU_SOURCE
 #include <sched.h>
 
 struct ST_Sandbox {

@@ -27,6 +27,23 @@
 static ST_PolyDetector *_polyDetector = NULL;
 
 /**
+ * PODT_SetCpu - Sets the current process of polydetector to
+ *		a specific cpu(usefull for multicore systems).
+ *
+ * @param cpu
+ *
+ */
+
+void PODT_SetCpu(int cpu){
+  	cpu_set_t mask;
+
+	CPU_ZERO(&mask);
+  	CPU_SET(cpu,&mask);
+  	sched_setaffinity(getpid(), sizeof(mask), &mask);
+	return;
+}
+
+/**
  * PODT_Init - Initialize the main structures of the polydetector
  */
 void PODT_Init(char *name) {

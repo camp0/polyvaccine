@@ -33,12 +33,13 @@ static struct option long_options[] = {
         {"payload",  		no_argument,      	0, 'x'},
         {"block",  		no_argument,      	0, 'b'},
         {"interface",  		required_argument,	0, 'i'},
+        {"cpu",  		required_argument,	0, 'c'},
         {"help",        	no_argument,            0, 'h'},
         {"version",     	no_argument,            0, 'V'},
         {0, 0, 0, 0}
 };
 
-static char *short_options = "shVpxbi:";
+static char *short_options = "shVpxbi:c:";
 
 void sigquit(int signal) {
         PODT_Destroy();
@@ -51,7 +52,7 @@ void usage(char *prog){
         fprintf(stdout,"The options are:\n");
         fprintf(stdout,"\t-i, --interface                      Sets the interface name on the dbus(%s).\n",
 		POLYVACCINE_DETECTION_INTERFACE);
-        fprintf(stdout,"\t-s, --syscall                        Shows the available syscalls.\n");
+        fprintf(stdout,"\t-c, --cpu                            Sets the process to a specific CPU.\n");
         fprintf(stdout,"\t-p, --execution-path                 Shows the execution syscall path of the executions.\n");
         fprintf(stdout,"\t-x, --payload                        Shows the execution payload received by the daemon.\n");
         fprintf(stdout,"\t-b, --block                          Blocks the syscall detected and continue exexution path.\n");
@@ -71,6 +72,7 @@ void main(int argc, char **argv) {
 	int show_received_payload = FALSE;	
 	int block_syscalls  = FALSE;
 	char *interface = NULL;
+	int cpu = -1;
 
         while((c = getopt_long(argc,argv,short_options,
                             long_options, &option_index)) != -1) {
@@ -83,6 +85,9 @@ void main(int argc, char **argv) {
                                 break;
                         case 's':
                                	show_syscalls = TRUE; 
+                                break;
+                        case 'c':
+                               	cpu = atoi(optarg); 
                                 break;
                         case 'p':
                                	show_execution_path = TRUE; 
@@ -103,6 +108,9 @@ void main(int argc, char **argv) {
         }
 
 	PODT_Init(interface);
+
+	if(cpu>=0)
+		PODT_SetCpu(cpu);
 
 	signal(SIGINT,sigquit);
 
