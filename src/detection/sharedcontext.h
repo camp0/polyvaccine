@@ -43,13 +43,13 @@ struct ST_SharedContext {
         int jump_offset;
         int max_jump_offset;
 	int magic_token;
-	int total_forks;
-	int total_segs_by_child;
+	int32_t total_forks;
+	int32_t total_segs_by_child;
+	int32_t total_expire_timers;
 };
 typedef struct ST_SharedContext ST_SharedContext;
 
 ST_SharedContext *COXT_GetContext(void);
-ST_SharedContext *COXT_AttachContext(void);
 void COXT_FreeContext(ST_SharedContext *c);
 void COXT_ResetContext(ST_SharedContext *c);
 void COXT_Printf(ST_SharedContext *c);

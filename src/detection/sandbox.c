@@ -157,12 +157,9 @@ void __SABX_SigSegvHandler(int sig, siginfo_t *info, void *data) {
 
 #ifdef DEBUG
         LOG(POLYLOG_PRIORITY_DEBUG,
-                "child(%d) receives signal %d on jump offset %d",getpid(),sig,shctx->jump_address);
-#endif
-        LOG(POLYLOG_PRIORITY_INFO,
 		"signal(%d)jump(%d)size(%d)token(%d)",
 		sig,shctx->jump_offset,shctx->max_jump_offset,shctx->magic_token);
-
+#endif
         if((shctx->jump_offset>=shctx->max_jump_offset)||(shctx->jump_offset < 0)) {
 #ifdef DEBUG
                 LOG(POLYLOG_PRIORITY_DEBUG,
@@ -178,9 +175,10 @@ void __SABX_SigSegvHandler(int sig, siginfo_t *info, void *data) {
 	EXSG_SetJumpOffsetOnExecutableSegment(seg,shctx->jump_offset);
 
 	EXSG_ExecuteExecutableSegment(seg);
-
-        LOG(POLYLOG_PRIORITY_INFO,
+#ifdef DEBUG
+        LOG(POLYLOG_PRIORITY_DEBUG,
                "exiting segment on sandbox token(%d)jump(%d)size(%d)",shctx->magic_token,shctx->jump_offset,shctx->max_jump_offset);
+#endif
         exit(shctx->magic_token);
 }
 
@@ -231,8 +229,10 @@ void __SABX_Executor(ST_ExecutableSegment *sg) {
 	kill(getppid(), SIGUSR1);
 	while(!got_child_signal);
 
-        LOG(POLYLOG_PRIORITY_INFO,
+#ifdef DEBUG
+        LOG(POLYLOG_PRIORITY_DEBUG,
                "Executing segment on sandbox token(%d)jump(%d)",shctx->magic_token,shctx->jump_offset);
+#endif
 
         ret = __SABX_InitSandbox(shctx->magic_token);
 
@@ -242,8 +242,10 @@ void __SABX_Executor(ST_ExecutableSegment *sg) {
 
         EXSG_ExecuteExecutableSegment(sg);
 
-        LOG(POLYLOG_PRIORITY_INFO,
+#ifdef DEBUG
+        LOG(POLYLOG_PRIORITY_DEBUG,
                "Escape from sandbox token(%d)",shctx->magic_token);
+#endif
         exit(shctx->magic_token);
 }
 
@@ -281,11 +283,33 @@ int __SABX_WaitForExecution(pid_t pid) {
 			}
                         break;
         }
-        LOG(POLYLOG_PRIORITY_INFO,
+#ifdef DEBUG
+        LOG(POLYLOG_PRIORITY_DEBUG,
                 "Sandbox receives status(%d)pid(%d)code(%d)status(%d)killseccomp(%d)",
 		status,sig.si_pid,sig.si_code,sig.si_status,ret);
-
+#endif
 	return ret;
+}
+
+void __SABX_HandlerAlarm (int sig) {
+
+#ifdef DEBUG
+        LOG(POLYLOG_PRIORITY_DEBUG,
+                "Sandbox expires timer, killing process (%d)",shctx->child_pid);
+#endif
+	if(shctx->child_pid >0)
+        	kill(shctx->child_pid,SIGKILL);
+	shctx->total_expire_timers++;
+        return;
+}
+
+/* prevents zombie process of the parent */
+void __SABX_ChildSignalHandler(sig){
+	int status;
+	siginfo_t sf;
+
+	waitpid(shctx->child_pid,&status,0);
+	return;
 }
 
 
@@ -304,10 +328,16 @@ int SABX_AnalyzeSegmentMemory(ST_Sandbox *sx,char *buffer, int size, ST_TrustOff
 	register int i;
 	pid_t pid;
 	int status;
+	struct sigaction sact;
+
+        sigemptyset( &sact.sa_mask );
+        sact.sa_flags = 0;
+        sact.sa_handler = __SABX_HandlerAlarm;
+        sigaction( SIGALRM, &sact, NULL );
 	
 	got_child_signal = 0;
 	signal(SIGUSR1, __SABX_SigUsrSignalHandler);
-
+	signal(SIGCHLD, __SABX_ChildSignalHandler);
 	/* Reset shared context for this request */
 	COXT_ResetContext(sx->ctx);
 
@@ -328,6 +358,7 @@ int SABX_AnalyzeSegmentMemory(ST_Sandbox *sx,char *buffer, int size, ST_TrustOff
 		/* Generate a magic token for allow exit syscall */
 		shctx->magic_token = rand();
 
+		alarm(3); // Give 3 second of courtesy 
 		pid = fork();
 		if(pid == 0){
 			__SABX_Executor(sx->seg);
@@ -345,6 +376,7 @@ int SABX_AnalyzeSegmentMemory(ST_Sandbox *sx,char *buffer, int size, ST_TrustOff
         		EXSG_SetJumpOffsetOnExecutableSegment(sx->seg,shctx->jump_offset);	
 		}
 		/* update the magic token for allow exit syscall */
+		alarm(0);
 		shctx->magic_token = rand(); 
 	}while(shctx->jump_offset < shctx->max_jump_offset);
 

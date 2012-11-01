@@ -68,8 +68,8 @@ if __name__ == '__main__':
 	# For using multicore architecture
 	pf.POFR_AddDetectorNode("polyvaccine.detector0","/polyvaccine/detector0");
 	pf.POFR_AddDetectorNode("polyvaccine.detector1","/polyvaccine/detector1");
-	# pf.POFR_AddDetectorNode("polyvaccine.detector2","/polyvaccine/detector2");
-	# pf.POFR_AddDetectorNode("polyvaccine.detector3","/polyvaccine/detector3");
+	pf.POFR_AddDetectorNode("polyvaccine.detector2","/polyvaccine/detector2");
+	pf.POFR_AddDetectorNode("polyvaccine.detector3","/polyvaccine/detector3");
 
 	# General options
 	# POFR_SetExitOnPcap - Exists when the pcap file is process

@@ -30,33 +30,17 @@
  * @return ST_SharedContext 
  */
 ST_SharedContext *COXT_GetContext(){
-	ST_SharedContext *c = COXT_AttachContext();
-
-	bzero(c,sizeof(ST_SharedContext));
-	return c;
-}
-
-/**
- * COXT_AttachContext - Attach to a shared context between the parent and his child. 
- *
- * @return ST_SharedContext 
- */
-ST_SharedContext *COXT_AttachContext(){
-        int fd;
         caddr_t result;
+	ST_SharedContext *sc = NULL;
 
-        fd = open("/dev/zero",O_RDWR);
-        if(fd == -1){
-                perror("open");
-                return NULL;
-        }
-        result = mmap(0, sizeof(ST_SharedContext), PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+        result = mmap(0, sizeof(ST_SharedContext), PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
 	if(result == MAP_FAILED) {
 		perror("mmap");
 		return NULL;
 	}
-        close(fd);
-        return (ST_SharedContext*)result;
+	sc = (ST_SharedContext*)result;
+	bzero(sc,sizeof(ST_SharedContext));
+        return sc;
 }
 
 
@@ -94,6 +78,7 @@ void COXT_Printf(ST_SharedContext *c) {
 	printf("\tctx(0x%x)child_pid(%d)parent_pid(%d)\n",c,c->child_pid,c->parent_pid);
 	printf("\ttotal_forks(%d)total_segs_by_child(%d)\n",c->total_forks,c->total_segs_by_child);
 	printf("\tjump offset(%d)max jump offset(%d)\n",c->jump_offset,c->max_jump_offset);
+	printf("\texpire timers(%d)\n",c->total_expire_timers);
 
 	return;
 }
