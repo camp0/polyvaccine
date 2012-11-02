@@ -124,10 +124,6 @@ void PRCA_Signaling_AnalyzeSegment(DBusConnection *conn,DBusMessage *msg, void *
 
 	ret = SABX_AnalyzeSegmentMemory(p->sandbox,array,length,&t_off);
 
-	/* For some reason if the -b option is set the dbus sends a 
-           Disconect message and the pvde exists. This should be 
-	   fixed one day :D
-        */
 	PODS_SendVerifiedSegment(conn,
 		"/polyvaccine/protector","polyvaccine.protector.veredict","Veredict",
                	seq,hash,ret);

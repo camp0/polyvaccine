@@ -28,18 +28,15 @@
 #include <signal.h>
 
 static struct option long_options[] = {
-        {"execution-path",	no_argument,      	0, 'p'},
-        {"syscalls",  		no_argument,      	0, 's'},
-        {"payload",  		no_argument,      	0, 'x'},
-        {"block",  		no_argument,      	0, 'b'},
+        {"payload",  		no_argument,      	0, 'p'},
         {"interface",  		required_argument,	0, 'i'},
         {"cpu",  		required_argument,	0, 'c'},
         {"help",        	no_argument,            0, 'h'},
-        {"version",     	no_argument,            0, 'V'},
+        {"version",     	no_argument,            0, 'v'},
         {0, 0, 0, 0}
 };
 
-static char *short_options = "shVpxbi:c:";
+static char *short_options = "hvpi:c:";
 
 void sigquit(int signal) {
         PODT_Destroy();
@@ -53,9 +50,7 @@ void usage(char *prog){
         fprintf(stdout,"\t-i, --interface                      Sets the interface name on the dbus(%s).\n",
 		POLYVACCINE_DETECTION_INTERFACE);
         fprintf(stdout,"\t-c, --cpu                            Sets the process to a specific CPU.\n");
-        fprintf(stdout,"\t-p, --execution-path                 Shows the execution syscall path of the executions.\n");
-        fprintf(stdout,"\t-x, --payload                        Shows the execution payload received by the daemon.\n");
-        fprintf(stdout,"\t-b, --block                          Blocks the syscall detected and continue exexution path.\n");
+        fprintf(stdout,"\t-p, --payload                        Shows the execution payload received by the daemon.\n");
         fprintf(stdout,"\n");
         fprintf(stdout,"\t-h, --help                           Display this information.\n");
         fprintf(stdout,"\t-V, --version                        Display this program's version number.\n");
@@ -68,29 +63,18 @@ void usage(char *prog){
 void main(int argc, char **argv) {
 	int c,option_index;
 	int show_syscalls = FALSE;
-	int show_execution_path = FALSE;
 	int show_received_payload = FALSE;	
-	int block_syscalls  = FALSE;
 	char *interface = NULL;
 	int cpu = -1;
 
         while((c = getopt_long(argc,argv,short_options,
                             long_options, &option_index)) != -1) {
                 switch (c) {
-                        case 'x':
+                        case 'p':
                                	show_received_payload = TRUE; 
-                                break;
-                        case 'b':
-                               	block_syscalls = TRUE; 
-                                break;
-                        case 's':
-                               	show_syscalls = TRUE; 
                                 break;
                         case 'c':
                                	cpu = atoi(optarg); 
-                                break;
-                        case 'p':
-                               	show_execution_path = TRUE; 
                                 break;
                         case 'i':
                                	interface = optarg; 
@@ -98,7 +82,7 @@ void main(int argc, char **argv) {
                         case 'h':
                                 usage(argv[0]);
                                 exit(0);
-                        case 'V':
+                        case 'v':
                                 fprintf(stdout,"%s %s\n",POLYVACCINE_DETECTION_ENGINE_NAME,VERSION);
                                 fprintf(stdout,"%s",version_banner);
                                 exit(0);
