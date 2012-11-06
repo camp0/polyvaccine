@@ -13,10 +13,10 @@
         <category name="root" priority="notice"/>
         <!-- <category name="polyvaccine.filter.ddos" priority="debug" appender="none"/> --> 
         <!--- <category name="polyvaccine.filter.http" priority="debug" appender="none"/> --> 
-        <category name="polyvaccine.filter.tcp" priority="debug" appender="none"/>
+        <!-- <category name="polyvaccine.filter.tcp" priority="debug" appender="stdout"/> -->
         <!-- <category name="polyvaccine.filter.connection" priority="debug" appender="none"/> -->
         <!-- <category name="polyvaccine.filter" priority="debug" appender="file"/> --> 
-        <category name="polyvaccine.filter.sip" priority="debug" appender="none"/> 
+        <category name="polyvaccine.filter" priority="debug" appender="stdout"/> 
         <category name="polyvaccine.filter" priority="info" appender="stdout"/>
         <category name="polyvaccine.bus" priority="info" appender="stdout"/>
 

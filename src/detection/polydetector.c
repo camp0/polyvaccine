@@ -26,6 +26,22 @@
 
 static ST_PolyDetector *_polyDetector = NULL;
 
+void PODT_SetShowExecutableSegment(int value){
+
+	if(_polyDetector){
+		SABX_SetShowExecutableSegment(_polyDetector->sandbox,value);
+	}
+	return;
+}
+
+void PODT_SetCourtesyTime(int seconds){
+
+	if(_polyDetector) {
+		SABX_SetCourtesyTime(_polyDetector->sandbox,seconds);
+	}
+	return;
+}
+
 /**
  * PODT_SetCpu - Sets the current process of polydetector to
  *		a specific cpu(usefull for multicore systems).

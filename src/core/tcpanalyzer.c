@@ -234,6 +234,7 @@ void TCAZ_Analyze(ST_GenericFlow *f ){
 	uint16_t ack = PKCX_IsTCPAck();
 	uint16_t fin = PKCX_IsTCPFin();
 	uint16_t rst = PKCX_IsTCPRst();
+	uint16_t psh = PKCX_IsTCPPush();
 	int state = f->tcp_state_curr;
 	int flags = TCPFC_INVALID;
 
@@ -278,9 +279,9 @@ void TCAZ_Analyze(ST_GenericFlow *f ){
 
 #ifdef DEBUG
 	LOG(POLYLOG_PRIORITY_DEBUG,
-		"TCP Flow(0x%x)(%s) Flags(s(%d)a(%d)f(%d)r(%d)] state(%s) to state(%s)",
+		"TCP Flow(0x%x)(%s) Flags(s(%d)a(%d)f(%d)r(%d)p(%d)] state(%s) to state(%s)",
 		f,f->direction ? "downstream":"upstream",
-		syn,ack,fin,rst,
+		syn,ack,fin,rst,psh,
 		tcp_states[state],tcp_states[new_state]);
 #endif 
 	return ;

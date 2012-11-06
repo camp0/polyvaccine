@@ -44,10 +44,12 @@ struct ST_Sandbox {
 	/* Info shared with the child */
 	ST_ExecutableSegment *seg;	
 	ST_SharedContext *ctx;
+	int shows_executable_segment;
 	int total_executed;
 	int total_shellcodes;
 	int total_bytes_process;
 	int debug_level;
+	int child_courtesy_timer;
 };
 typedef struct ST_Sandbox ST_Sandbox;
 
@@ -60,6 +62,8 @@ enum {
 ST_Sandbox *SABX_Init(void);
 void SABX_Destroy(ST_Sandbox *sx);
 void SABX_Statistics(ST_Sandbox *sx);
+void SABX_SetCourtesyTime(ST_Sandbox *sx,int seconds);
+void SABX_SetShowExecutableSegment(ST_Sandbox *sx,int value);
 int SABX_AnalyzeSegmentMemory(ST_Sandbox *sx,char *buffer, int size, ST_TrustOffsets *t_off);
 
 #endif

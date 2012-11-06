@@ -220,8 +220,9 @@ void *HTAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 		if(g_hash_table_lookup_extended(_http.methods,(gchar*)method,NULL,&pointer) == TRUE){
 			h_field = (ST_HTTPField*)pointer;
 			h_field->matchs++;
-			if(h_field->have_data)
+			if(h_field->have_data){ 
 				have_data = TRUE;
+			}
 		}else{
 			ST_HTTPTypeHeaders[HTTP_HEADER_UNKNOWN].matchs++;
 			if(_http.show_unknown_http)
@@ -331,8 +332,7 @@ void *HTAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 				process_bytes += http_line_length+2;
 			}else{
 				if(have_data == TRUE){ // The payload of a post request
-					int len = seg->virtual_size - process_bytes;
-					if(_http.analyze_post_data) { // the data of the post should be analyzed.		
+					if(_http.analyze_post_data == TRUE) { // the data of the post should be analyzed.		
 #ifdef DEBUG	
         					LOG(POLYLOG_PRIORITY_DEBUG,
 							"Flow(0x%x) POST data forced to be suspicious",f);
@@ -345,24 +345,24 @@ void *HTAZ_AnalyzeHTTPRequest(ST_User *user,ST_GenericFlow *f , int *ret){
 							(*ret) = 1;
                                                         return ;
                                                 }	
-					}	
-					int suspicious_opcodes = COSU_CheckSuspiciousOpcodes(init,len);
-					if(suspicious_opcodes>1) {
+						
+						int len = seg->virtual_size - process_bytes;
+						int suspicious_opcodes = COSU_CheckSuspiciousOpcodes(init,len);
+						if(suspicious_opcodes>1) {
 #ifdef DEBUG
-        					LOG(POLYLOG_PRIORITY_DEBUG,
-							"Flow(0x%x) POST data have %d suspicious bytes",f,suspicious_opcodes);
+        						LOG(POLYLOG_PRIORITY_DEBUG,
+								"Flow(0x%x) POST data have %d suspicious bytes",f,suspicious_opcodes);
 #endif
-                                                _http.httpcache->parameter_suspicious_opcodes ++;
-                                                _http.suspicious_parameters++;
-                                                if(_http.on_suspicious_parameter_break == TRUE){
-							if(valid_segment)
-                                                		_http.total_suspicious_segments++;
-							(*ret) = 1;
-							return;
+							_http.httpcache->parameter_suspicious_opcodes ++;
+							_http.suspicious_parameters++;
+							if(_http.on_suspicious_parameter_break == TRUE){
+								if(valid_segment)
+									_http.total_suspicious_segments++;
+								(*ret) = 1;
+								return;
+							}
 						}
 					}	
-					//printf("post data %d\n",suspicious_opcodes);
-					//printf("%s\n",init);
 				}
 				//printf("no more parameters, process bytes %d of %d\n",process_bytes,seg->virtual_size);
 				break;
@@ -506,6 +506,7 @@ void *HTAZ_NotifyCorrect(DBusConnection *bus,ST_User *user,ST_GenericFlow *f,uns
 		POLYVACCINE_PROTECTOR_INTERFACE,
 		"Veredict",
 		seq,hash,TRUE);
+
 	return;
 }
 

@@ -30,13 +30,14 @@
 static struct option long_options[] = {
         {"payload",  		no_argument,      	0, 'p'},
         {"interface",  		required_argument,	0, 'i'},
+        {"timer",  		required_argument,	0, 't'},
         {"cpu",  		required_argument,	0, 'c'},
         {"help",        	no_argument,            0, 'h'},
         {"version",     	no_argument,            0, 'v'},
         {0, 0, 0, 0}
 };
 
-static char *short_options = "hvpi:c:";
+static char *short_options = "hvpi:c:t:";
 
 void sigquit(int signal) {
         PODT_Destroy();
@@ -51,6 +52,7 @@ void usage(char *prog){
 		POLYVACCINE_DETECTION_INTERFACE);
         fprintf(stdout,"\t-c, --cpu                            Sets the process to a specific CPU.\n");
         fprintf(stdout,"\t-p, --payload                        Shows the execution payload received by the daemon.\n");
+        fprintf(stdout,"\t-t, --timer                          Sets the courtesy child execution timer(default 3 seconds).\n");
         fprintf(stdout,"\n");
         fprintf(stdout,"\t-h, --help                           Display this information.\n");
         fprintf(stdout,"\t-V, --version                        Display this program's version number.\n");
@@ -63,7 +65,8 @@ void usage(char *prog){
 void main(int argc, char **argv) {
 	int c,option_index;
 	int show_syscalls = FALSE;
-	int show_received_payload = FALSE;	
+	int show_received_payload = FALSE;
+	int courtesy_time = 3;	
 	char *interface = NULL;
 	int cpu = -1;
 
@@ -78,6 +81,9 @@ void main(int argc, char **argv) {
                                 break;
                         case 'i':
                                	interface = optarg; 
+                                break;
+                        case 't':
+                               	courtesy_time = atoi(optarg);
                                 break;
                         case 'h':
                                 usage(argv[0]);
@@ -95,6 +101,8 @@ void main(int argc, char **argv) {
 
 	if(cpu>=0)
 		PODT_SetCpu(cpu);
+
+	PODT_SetShowExecutableSegment(show_received_payload);
 
 	signal(SIGINT,sigquit);
 

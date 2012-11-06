@@ -105,10 +105,9 @@ static ST_Interface ST_PublicInterfaces [] = {
 
 void PODT_Init(char *interface);
 void PODT_SetCpu(int cpu);
+void PODT_SetCourtesyTime(int seconds);
+void PODT_SetShowExecutableSegment(int value);
 void PODT_Run(void);
-void PODT_ShowAvailableSyscalls(void);
-void PODT_ShowExecutionPath(int value);
-void PODT_BlockDetectedSyscalls(int value);
 void PODT_Destroy(void);
 
 #endif

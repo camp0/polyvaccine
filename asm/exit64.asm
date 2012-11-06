@@ -7,10 +7,12 @@ section .text
 global _start
 _start:
     nop
-    nop
-	jmp pepe
+	nop
+	xor rbx,rbx
+pepe	xor rax,rax
+    jmp pepe
 	ret
-pepe:    mov     rbx, 0x1
+    mov     rbx, 0x1
     mov     rax, __NR_exit    ;;exit(0);
     mov     rdi,1 
     ;xor     rdi, rdi

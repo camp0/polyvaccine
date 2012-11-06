@@ -31,6 +31,17 @@ static ST_Sandbox *sandbox = NULL;
 static ST_SharedContext *shctx = NULL; 
 int got_child_signal;
 
+void SABX_SetShowExecutableSegment(ST_Sandbox *sx,int value){
+	sx->shows_executable_segment = value;
+	return;
+}
+
+void SABX_SetCourtesyTime(ST_Sandbox *sx,int seconds){
+
+	sx->child_courtesy_timer = seconds;
+	return;
+}
+
 /**
  * SABX_Init - Creates a ST_Sandox struct 
  *
@@ -42,10 +53,12 @@ ST_Sandbox *SABX_Init() {
 
 	srand(time(NULL));
 
+	sx->shows_executable_segment = FALSE;
 	sx->total_bytes_process = 0;
 	sx->total_executed = 0;
 	sx->total_shellcodes = 0;
 	sx->debug_level = 0;
+	sx->child_courtesy_timer = 3;
     
 	/* Creates a new shared context */
         shctx = COXT_GetContext();
@@ -64,6 +77,8 @@ ST_Sandbox *SABX_Init() {
  */
 void SABX_Destroy(ST_Sandbox *sx){
 
+	if(sx->ctx->child_pid > 0)
+		kill(shctx->child_pid,SIGKILL);
 	seccomp_release();
 	POLG_Destroy();
 	COXT_FreeContext(sx->ctx);
@@ -164,7 +179,7 @@ void __SABX_SigSegvHandler(int sig, siginfo_t *info, void *data) {
 #ifdef DEBUG
                 LOG(POLYLOG_PRIORITY_DEBUG,
                         "child(%d) Overflow exit on virtualeip=%d size=%d",getpid(),
-                        ctx->virtualeip ,ctx->size);
+                        shctx->jump_offset ,shctx->max_jump_offset);
 #endif
                 shctx->jump_offset = shctx->max_jump_offset;
                 exit(shctx->magic_token);
@@ -353,12 +368,16 @@ int SABX_AnalyzeSegmentMemory(ST_Sandbox *sx,char *buffer, int size, ST_TrustOff
 	sx->seg = EXSG_InitExecutableSegment();
         EXSG_PrepareExecutableSegment(sx->seg,buffer,size);
 
+	if(sx->shows_executable_segment)
+		EXSG_PrintExecutableSegment(sx->seg);
+
 	/* Check all the posible offsets of the request */
 	do {
 		/* Generate a magic token for allow exit syscall */
 		shctx->magic_token = rand();
+		shctx->max_jump_offset = size;
 
-		alarm(3); // Give 3 second of courtesy 
+		alarm(sx->child_courtesy_timer); // Give x second of courtesy 
 		pid = fork();
 		if(pid == 0){
 			__SABX_Executor(sx->seg);
@@ -370,6 +389,7 @@ int SABX_AnalyzeSegmentMemory(ST_Sandbox *sx,char *buffer, int size, ST_TrustOff
 		if(ret == SABX_SHELLCODE_DETECTED){ // The request contains a syscall 
 			LOG(POLYLOG_PRIORITY_WARN,"Shellcode detected on segment");
 			sx->total_shellcodes ++;
+			alarm(0);
 			break;
 		}else{
 			shctx->jump_offset ++;
