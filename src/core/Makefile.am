@@ -21,7 +21,7 @@ noinst_HEADERS =	httpvalues.h flowpool.h connection.h cache.h polyfilter.h forwa
 			sipanalyzer.h userpool.h user.h dosanalyzer.h pool.h usertable.h graphcache.h \
 			httpsignalbalancer.h 
 
-libpolyfilter_la_LIBADD = ../opcodes/libopcodes.la ../bus/libpolybus.la $(DEPS_LIBS) 
+libpolyfilter_la_LIBADD = $(top_builddir)/src/opcodes/libopcodes.la $(top_builddir)/src/bus/libpolybus.la $(DEPS_LIBS) 
 libpolyfilter_la_LDFLAGS = -version-info 0:0:0 $(DEPS_LIBS) `pkg-config --libs glib-2.0 dbus-1 libpcre`
 libpolyfilter_la_CPPFLAGS = -I$(PYTHON_CPPFLAGS) $(DEPS_CFLAGS)
 
@@ -29,15 +29,17 @@ PYTHON_INCLUDES = -I/usr/include -I. -I.. -I../.. "`pkg-config --cflags glib-2.0
 
 python_PYTHON = pvfe.py
 
-bin_PROGRAMS = pvfe testpools 
+bin_PROGRAMS = pvfe 
 
 pvfe_SOURCES = main.c 
 pvfe_LDFLAGS = $(DEPS_LIBS) -lpolyfilter -lpcap 
-pvfe_LDADD = -lpolyfilter $(DEPS_LIBS)
+pvfe_LDADD = $(top_builddir)/src/core/libpolyfilter.la $(DEPS_LIBS)
+
+check_PROGRAMS = testpools
 
 testpools_SOURCES = testpools.c
 testpools_LDFLAGS = $(DEPS_LIBS) -lpolyfilter -lpcap 
-testpools_LDADD = -lpolyfilter $(DEPS_LIBS)
+testpools_LDADD = $(top_builddir)/src/core/libpolyfilter.la $(DEPS_LIBS)
 
 EXTRA_DIST = polyfilter.i setup.py log4crc
 

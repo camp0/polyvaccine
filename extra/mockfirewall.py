@@ -11,7 +11,6 @@ import os
 import sys
 import dbus
 import time
-import GeoIP
 
 def inet_ntoa(number):
         l = list()

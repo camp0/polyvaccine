@@ -12,10 +12,10 @@ noinst_HEADERS =	counter.h opcodes.h
 libopcodes_la_LDFLAGS = -version-info 0:0:0 `pkg-config --libs libpcre` 
 libopcodes_la_CPPFLAGS = -I$(PYTHON_CPPFLAGS)
 
-bin_PROGRAMS = test
+check_PROGRAMS = test
 
-test_SOURCES = main.c 
-test_LDADD = -lopcodes
+test_SOURCES = main.c
+test_LDADD = $(top_builddir)/src/opcodes/libopcodes.la
 
 CLEANFILES = $(srcdir)/counter_wrap.c *.pyc counter.py _counter.so
 

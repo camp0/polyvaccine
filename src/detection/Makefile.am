@@ -8,19 +8,21 @@ noinst_HEADERS =	examples.h examples64.h polydetector.h \
 			examples64freebsd.h segment.h sandbox.h \
 			sharedcontext.h
 
-bin_PROGRAMS = pvde sendexploit test_pvde
+bin_PROGRAMS = pvde 
 
 pvde_SOURCES =  main.c polydetector.c privatecallbacks.c sharedcontext.c segment.c sandbox.c \
 		../core/system.c ../core/trustoffset.c 
 
 pvde_LDFLAGS = `pkg-config --libs libseccomp glib-2.0 dbus-1`
-pvde_LDADD = ../bus/libpolybus.la 
+pvde_LDADD = $(top_builddir)/src/bus/libpolybus.la 
+
+check_PROGRAMS = sendexploit test_pvde
 
 test_pvde_SOURCES = sharedcontext.c segment.c sandbox.c test_pvde.c
-test_pvde_LDADD = -lglib-2.0 -lseccomp
+test_pvde_LDFLAGS = `pkg-config --libs glib-2.0 libseccomp`
 
 sendexploit_SOURCES = sendexploit.c
-sendexploit_LDFLAGS = `pkg-config --libs dbus-1`
+sendexploit_LDFLAGS = $(top_builddir)/src/bus/libpolybus.la `pkg-config --libs dbus-1`
 
 BUILT_SOURCES = $(srcdir)/polydetector_wrap.c
 
