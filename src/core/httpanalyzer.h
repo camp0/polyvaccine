@@ -86,6 +86,8 @@ void HTAZ_SetForceAnalyzeHTTPPostData(int value);
 void HTAZ_ShowUnknownHTTP(int value);
 void HTAZ_SetStatisticsLevel(int level);
 
+ST_Cache *HTAZ_GetCache(void);
+
 ST_TrustOffsets *HTAZ_GetTrustOffsets(void);
 
 /* Service functions */

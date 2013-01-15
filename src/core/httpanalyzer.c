@@ -37,6 +37,16 @@
 static ST_HTTPAnalyzer _http;
 
 /**
+ * HTAZ_GetCache - Retrieves the http cache asociated to the analizer
+ *
+ * @return ST_Cache
+ */
+
+ST_Cache *HTAZ_GetCache() {
+	return _http.httpcache;
+}
+
+/**
  * HTAZ_Init - Initialize all the fields of a small http analyzer
  */
 void *HTAZ_Init() {

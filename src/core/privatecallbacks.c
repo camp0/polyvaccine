@@ -485,25 +485,27 @@ void PRCA_Method_GetHttpCacheHeaders(DBusConnection *conn,DBusMessage *msg, void
         DBusMessageIter iter;
         DBusMessage *reply = NULL;
 	int items = 0;
+	ST_Cache *cache = NULL;
 
         reply = dbus_message_new_method_return(msg);
 
         dbus_message_iter_init(reply, &iter);
         dbus_message_iter_init_append(reply, &iter);
 
-	// TODO
-	//l = g_hash_table_get_keys(p->httpcache->header_cache);
-	while(l != NULL) {
-		/** TODO 
-		 * Dbus have a bug or some limit, so only 255 items of 
-		 * the cache are send.
-		 */
-		items ++;
-		if(items >255) break;
-        	dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&(l->data));
-		l = g_list_next(l);
+	cache = HTAZ_GetCache();
+	if(cache) {
+		l = g_hash_table_get_keys(cache->header_cache);
+		while(l != NULL) {
+			/** TODO 
+			 * Dbus have a bug or some limit, so only 255 items of 
+			 * the cache are send.
+			 */
+			items ++;
+			if(items >255) break;
+			dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&(l->data));
+			l = g_list_next(l);
+		}
 	}
-
         if (!dbus_connection_send(conn, reply, NULL)) {
                 fprintf(stderr, "Out Of Memory!\n");
                 return;
@@ -520,26 +522,27 @@ void PRCA_Method_GetHttpCacheParameters(DBusConnection *conn,DBusMessage *msg, v
         dbus_int32_t param;
         DBusMessage *reply = NULL;
         int items = 0;
+	ST_Cache *cache = NULL;
 
         reply = dbus_message_new_method_return(msg);
 
         dbus_message_iter_init(reply, &iter);
         dbus_message_iter_init_append(reply, &iter);
 
-	// TODO
-        //l = g_hash_table_get_keys(p->httpcache->parameter_cache);
-
-        while(l != NULL) {
-		 /** TODO 
-                 * Dbus have a bug or some limit, so only 255 items of 
-                 * the cache are send.
-                 */
-		items++;
-		if(items>255)break;
-                dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&(l->data));
-                l = g_list_next(l);
-        }
-
+	cache = HTAZ_GetCache();
+	if(cache) {
+		l = g_hash_table_get_keys(cache->parameter_cache);
+		while(l != NULL) {
+			 /** TODO 
+			 * Dbus have a bug or some limit, so only 255 items of 
+			 * the cache are send.
+			 */
+			items++;
+			if(items>255)break;
+			dbus_message_iter_append_basic(&iter,DBUS_TYPE_STRING,&(l->data));
+			l = g_list_next(l);
+		}
+	}
         if (!dbus_connection_send(conn, reply, NULL)) {
                 fprintf(stderr, "Out Of Memory!\n");
                 return;
