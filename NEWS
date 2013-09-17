@@ -2,3 +2,7 @@ version 0.4:
 	- Support for libseccomp library. Thanks to paul moore for his support.
 	- Support for multicore systems in order to balance the suspicious segments.
 	- Add extra python scripts for integration with external systems(iptables).
+
+version 0.6:
+	- Updates libraries.
+

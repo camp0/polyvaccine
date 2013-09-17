@@ -48,7 +48,7 @@ void COSU_Init(void) {
                 j = 0;
                 while(current_opcode->opcode!= NULL){
                 	opcode_length = current_opcode->len;
-			ptr = current_opcode->opcode;
+			ptr = (unsigned char*)current_opcode->opcode;
 			bzero(&opcode,32);
 			for (ii = 0;ii<opcode_length;ii++) {
 				sprintf(opcode,"%s\\x%02x",opcode,*ptr);
@@ -58,7 +58,7 @@ void COSU_Init(void) {
 			if(current_opcode->op_table != NULL) {
                                 indirect_opcode = &(current_opcode->op_table[0]);
 				k = 0;
-				ptr = indirect_opcode->opcode;
+				ptr = (unsigned char*)indirect_opcode->opcode;
                                 while(indirect_opcode->opcode!= NULL) {
 					bzero(&opcode_aux,32);
 					for (ii = 0;ii<indirect_opcode->len;ii++) {
@@ -109,7 +109,7 @@ void COSU_Init(void) {
 
 void printfhex(char *payload,int size) {
         char buffer[10];
-        int i,fd;
+        int i;
         const u_char *ptr;
         int online = 0;
 
@@ -176,63 +176,3 @@ void COSU_Stats(){
 	return;
 }
 
-
-
-
-// TODO this function should be optimized, by a tree or any other 
-// structure. check performance with valgrind
-int COSU_CheckSuspiciousOpcodes2(char *data, int datasize) {
-	register int i,j,k;
-        int startoffset,endoffset,count,opcode_length,len;
-	ST_Opcode *current_opcode,*indirect_opcode;
-	ST_Lookup *table;
-	char *current_pointer;
-	char *aux_pointer;
-
-        startoffset = 0;
-        endoffset = datasize;
-        count = 0;
-        current_pointer = data;
-
-        while(startoffset < endoffset) {
-		current_pointer = (char*)&data[startoffset];
-		table = &ST_LookupOpcodeTable[0];
-		i = 0;
-		while(table->name!= NULL){
-			current_opcode = &table->op_table[0];
-			j = 0;
-			while(current_opcode->opcode!= NULL){	
-				opcode_length = current_opcode->len;
-				if(strncmp(current_pointer,current_opcode->opcode,opcode_length) == 0) {
-					if(current_opcode->op_table == NULL) {
-						DEBUG0("Opcode '%s' detected;offset=%d;architecture %d\n",
-							current_opcode->instruction,startoffset,table->arch);
-						return 1;
-					}else{
-						k= 0;
-						indirect_opcode = &(current_opcode->op_table[0]);
-						aux_pointer = (current_pointer + opcode_length);
-						while(indirect_opcode->opcode!= NULL) {
-							 if(strncmp(aux_pointer,indirect_opcode->opcode,
-								indirect_opcode->len) == 0) {
-								DEBUG0("Opcode '%s %s' detected;offset=%d;architecture %d\n",
-									current_opcode->instruction,
-									indirect_opcode->instruction,
-									startoffset,table->arch);
-								return 1;
-							}
-							k++;
-							indirect_opcode = &(current_opcode->op_table[k]);
-						}		
-					}
-				}
-				j++;	
-				current_opcode = &table->op_table[j];
-			}
-			i++;	
-			table = &ST_LookupOpcodeTable[i];
-		}
-		startoffset ++;
-	}			
-	return 0;
-}
