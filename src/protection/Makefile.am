@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = gnu
 
-INCLUDES =      -I../utils/ \
+AM_CPPFLAGS =      -I../utils/ \
 		-I../bus/ \
 		`pkg-config --cflags glib-2.0 dbus-1 libnetfilter_queue` 
 

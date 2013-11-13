@@ -1,5 +1,5 @@
 AC_INIT([polyvaccine],[0.6],[luis.camp0.2009@gmail.com],[],[])
-AM_INIT_AUTOMAKE(polyvaccine,0.6)
+AM_INIT_AUTOMAKE([subdir-objects])
 AM_PROG_LIBTOOL
 
 AC_CONFIG_HEADER(config.h)
@@ -17,8 +17,8 @@ AC_LANG([C])
 AC_PROG_CC
 #AC_PROG_CXX
 AC_PROG_MAKE_SET
-AC_SUBST([AM_CFLAGS], [-Wall -fPIC])
-#AC_SUBST([AM_CPPFLAGS], [-Wall -fPIC])
+#AC_SUBST([AM_CFLAGS], [-Wall -fPIC -Wunused-variable])
+#AC_SUBST([AM_CPPFLAGS], [-Wall -fPIC -Wunused-variable])
 
 dnl AC_CANONICAL_HOST
 AC_CANONICAL_HOST
@@ -53,6 +53,10 @@ dnl Checks for libraries
 AC_PYTHON_MODULE(unittest)
 
 AX_PYTHON
+
+AC_CHECK_LIB(glib-2.0, main, ,AC_MSG_ERROR("Install glib library"),)
+#AC_CHECK_HEADER([glib.h], ,[AC_MSG_ERROR("glib.h header not found.")],)
+#AC_CHECK_HEADER([glib-2.0/glib.h], ,[AC_MSG_ERROR("glib.h header not found.")],)
 
 dnl pcap 
 AC_CHECK_LIB(pcap, main, ,AC_MSG_ERROR("Install pcap library"),)
@@ -325,7 +329,6 @@ src/bus/Makefile
 src/core/Makefile
 src/detection/Makefile
 src/protection/Makefile
-pdf/Makefile
 test/Makefile
 test/pcapfiles/Makefile
 docs/Makefile

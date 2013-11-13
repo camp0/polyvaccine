@@ -50,6 +50,7 @@ struct ST_Sandbox {
 	int total_bytes_process;
 	int debug_level;
 	int child_courtesy_timer;
+	scmp_filter_ctx seccomp_ctx;
 };
 typedef struct ST_Sandbox ST_Sandbox;
 

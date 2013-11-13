@@ -59,7 +59,8 @@ ST_Sandbox *SABX_Init() {
 	sx->total_shellcodes = 0;
 	sx->debug_level = 0;
 	sx->child_courtesy_timer = 3;
-    
+  	sx->seccomp_ctx = 0; 
+	 
 	/* Creates a new shared context */
         shctx = COXT_GetContext();
 
@@ -79,7 +80,7 @@ void SABX_Destroy(ST_Sandbox *sx){
 
 	if(sx->ctx->child_pid > 0)
 		kill(shctx->child_pid,SIGKILL);
-	seccomp_release();
+	seccomp_release(sx->seccomp_ctx);
 	POLG_Destroy();
 	COXT_FreeContext(sx->ctx);
 	sx->seg = NULL;
@@ -116,40 +117,43 @@ void SABX_Statistics(ST_Sandbox *sx) {
  */
 int __SABX_InitSandbox(int magic_token) {
         int ret = 0;
+	scmp_filter_ctx ctx;
 
-        ret = seccomp_init(SCMP_ACT_KILL);
-        if(ret == -1) return -2;
+        ctx = seccomp_init(SCMP_ACT_KILL);
+        if(ctx == NULL) return -2;
 
         /* the exit syscall */
-        ret = seccomp_rule_add_exact(SCMP_ACT_ALLOW, SCMP_SYS(exit_group), 1,SCMP_A0(SCMP_CMP_EQ,magic_token));
+        ret = seccomp_rule_add_exact(ctx,SCMP_ACT_ALLOW, SCMP_SYS(exit_group), 1,SCMP_A0(SCMP_CMP_EQ,magic_token));
         if (ret != 0)return ret;
 
-        ret = seccomp_rule_add_exact(SCMP_ACT_ALLOW, SCMP_SYS(exit), 1,SCMP_A0(SCMP_CMP_EQ,magic_token));
+        ret = seccomp_rule_add_exact(ctx,SCMP_ACT_ALLOW, SCMP_SYS(exit), 1,SCMP_A0(SCMP_CMP_EQ,magic_token));
         if (ret != 0)return ret;
 
-        ret = seccomp_rule_add_exact(SCMP_ACT_ALLOW, SCMP_SYS(read), 0);
+        ret = seccomp_rule_add_exact(ctx,SCMP_ACT_ALLOW, SCMP_SYS(read), 0);
         if (ret != 0)return ret;
 
-        ret = seccomp_rule_add_exact(SCMP_ACT_ALLOW, SCMP_SYS(write), 0);
+        ret = seccomp_rule_add_exact(ctx,SCMP_ACT_ALLOW, SCMP_SYS(write), 0);
         if (ret != 0) return ret;
 
         /* Allow messages to stdout */
-        ret = seccomp_rule_add_exact(SCMP_ACT_ALLOW, SCMP_SYS(open),1 ,SCMP_A0(SCMP_CMP_EQ, STDOUT_FILENO));
+        ret = seccomp_rule_add_exact(ctx,SCMP_ACT_ALLOW, SCMP_SYS(open),1 ,SCMP_A0(SCMP_CMP_EQ, STDOUT_FILENO));
         if (ret != 0) return ret;
 
-        ret = seccomp_rule_add_exact(SCMP_ACT_ALLOW, SCMP_SYS(nanosleep), 0);
+        ret = seccomp_rule_add_exact(ctx,SCMP_ACT_ALLOW, SCMP_SYS(nanosleep), 0);
         if (ret != 0) return ret;
 
 	/* The log subsystem log4c uses this syscall */
-        ret = seccomp_rule_add_exact(SCMP_ACT_ALLOW, SCMP_SYS(gettimeofday), 0);
+        ret = seccomp_rule_add_exact(ctx,SCMP_ACT_ALLOW, SCMP_SYS(gettimeofday), 0);
         if (ret != 0) return ret;
 
         /* some libcs caches the values
-        ret = seccomp_rule_add_exact(SCMP_ACT_ALLOW, SCMP_SYS(getpid), 0);
+        ret = seccomp_rule_add_exact(ctx,SCMP_ACT_ALLOW, SCMP_SYS(getpid), 0);
         if(ret!= 0) return ret;
         */
 
-        ret = seccomp_load();
+	sandbox->seccomp_ctx = ctx;
+
+        ret = seccomp_load(ctx);
         return ret;
 }
 

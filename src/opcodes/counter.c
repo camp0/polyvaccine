@@ -29,7 +29,7 @@ ST_OpcodeCounter op_count;
 void COSU_Init(void) {
 	register int i,j,k,ii;
 	unsigned char *ptr;
-	int buffersize,erroffset;
+	int erroffset;
         ST_Opcode *current_opcode,*indirect_opcode;
         ST_Lookup *table;
 	int opcode_length,len;
@@ -149,8 +149,8 @@ int COSU_CheckSuspiciousOpcodes(char *data, int datasize) {
 	op_count.total_matchs++;
 #ifdef DEBUG
 	int offset = op_count.ovector[0];
-	int size = op_count.ovector[1]-offset;
-	char *opcode = data + offset;
+	//int size = op_count.ovector[1]-offset;
+	//char *opcode = data + offset;
 	DEBUG0("opcode detected on offset %d\n",offset);
 //	printfhex(opcode,size);
 #endif

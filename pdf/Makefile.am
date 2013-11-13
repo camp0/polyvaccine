@@ -1,3 +1,0 @@
-EXTRA_DIST = icdcs09.pdf
-
-MAINTAINERCLEANFILES = Makefile.in 

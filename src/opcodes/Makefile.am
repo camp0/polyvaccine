@@ -3,14 +3,14 @@ BUILT_SOURCES = $(srcdir)/counter_wrap.c
 
 lib_LTLIBRARIES = libopcodes.la
 
-INCLUDES =	-I../utils/ `pkg-config --cflags libpcre` 
+#AM_CPPFLAGS =	-WNunused-variable $(AM_CPPFLAGS) -I../utils/ `pkg-config --cflags libpcre` 
 
 libopcodes_la_SOURCES =	counter.c
 
 noinst_HEADERS =	counter.h opcodes.h
 
 libopcodes_la_LDFLAGS = -version-info 0:0:0 `pkg-config --libs libpcre` 
-libopcodes_la_CPPFLAGS = -I$(PYTHON_CPPFLAGS)
+libopcodes_la_CPPFLAGS = -I../utils/ -I$(PYTHON_CPPFLAGS)
 
 check_PROGRAMS = test
 

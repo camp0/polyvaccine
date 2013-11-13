@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = gnu
 
 lib_LTLIBRARIES = libpolyfilter.la
 
-INCLUDES =      -I../opcodes/ \
+AM_CPPFLAGS =      -I../opcodes/ \
 		`pkg-config --cflags dbus-1 glib-2.0 libpcre` \
                 -I../utils/ \
 		-I../bus/ 
@@ -23,7 +23,7 @@ noinst_HEADERS =	httpvalues.h flowpool.h connection.h cache.h polyfilter.h forwa
 
 libpolyfilter_la_LIBADD = $(top_builddir)/src/opcodes/libopcodes.la $(top_builddir)/src/bus/libpolybus.la $(DEPS_LIBS) 
 libpolyfilter_la_LDFLAGS = -version-info 0:0:0 $(DEPS_LIBS) `pkg-config --libs glib-2.0 dbus-1 libpcre`
-libpolyfilter_la_CPPFLAGS = -I$(PYTHON_CPPFLAGS) $(DEPS_CFLAGS)
+libpolyfilter_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(PYTHON_CPPFLAGS) $(DEPS_CFLAGS)
 
 PYTHON_INCLUDES = -I/usr/include -I. -I.. -I../.. "`pkg-config --cflags glib-2.0 dbus-1 libpcre`" 
 

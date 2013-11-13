@@ -1,8 +1,9 @@
 AUTOMAKE_OPTIONS = gnu
 
-INCLUDES =      -I../utils/ -I../opcodes/ \
-		-I../bus/ \
-		`pkg-config --cflags glib-2.0 dbus-1` 
+AM_CPPFLAGS =      -I../opcodes/ \
+		`pkg-config --cflags dbus-1 glib-2.0` \
+                -I../utils/ \
+		-I../bus/ 
 
 noinst_HEADERS =	examples.h examples64.h polydetector.h \
 			examples64freebsd.h segment.h sandbox.h \
@@ -14,7 +15,8 @@ pvde_SOURCES =  main.c polydetector.c privatecallbacks.c sharedcontext.c segment
 		../core/system.c ../core/trustoffset.c 
 
 pvde_LDFLAGS = `pkg-config --libs libseccomp glib-2.0 dbus-1`
-pvde_LDADD = $(top_builddir)/src/bus/libpolybus.la 
+pvde_LDADD = $(DBUS_LIBS) $(top_builddir)/src/bus/libpolybus.la 
+#pvde_LDFLAGS = $(AM_CPPFLAGS) 
 
 check_PROGRAMS = sendexploit test_pvde
 

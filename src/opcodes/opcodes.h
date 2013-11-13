@@ -79,7 +79,7 @@ struct ST_Lookup {
 };
 typedef struct ST_Lookup ST_Lookup;
 
-static ST_Opcode ST_Intel32_JumpOpcodes[] = {
+__attribute__((unused)) static ST_Opcode ST_Intel32_JumpOpcodes[] = {
 	{ 
 		.opcode 	=	"\xe1", 	/* LOOPE rel8, LOOPZ rel8  */
 		.len		=	1,		
@@ -735,7 +735,7 @@ static ST_Opcode ST_Intel_IndirectOpcodes[] = {
 	{}
 };
 
-static ST_Opcode ST_Intel32_OperationOpcodes[] = {
+__attribute__((unused)) static ST_Opcode ST_Intel32_OperationOpcodes[] = {
         { 
 		.opcode		=	"\x8b",
 		.len		=	1,
@@ -873,7 +873,7 @@ static ST_Opcode ST_Intel32_OperationOpcodes[] = {
 	{}
 };
 
-static ST_Opcode ST_Intel32_specialOpcodes[] = {
+__attribute__((unused)) static ST_Opcode ST_Intel32_specialOpcodes[] = {
 	{ 
 		.opcode		=	"\xcd\x80",
 		.len		=	2,
@@ -1173,7 +1173,7 @@ static ST_Opcode ST_Intel64_specialOpcodes[] = {
 };
 
 /* Final lookup table */
-static ST_Lookup ST_LookupOpcodeTable [] = {
+__attribute__((unused)) static ST_Lookup ST_LookupOpcodeTable [] = {
 #ifdef __LINUX__
 #if __WORDSIZE == 64
 	{

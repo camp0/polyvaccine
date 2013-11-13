@@ -12,7 +12,6 @@ SUBDIRS = 	asm \
 		src/utils \
 		src/detection \
 		src/protection \
-		pdf \
 		test \
 		test/pcapfiles \
 		samples/exploits \
