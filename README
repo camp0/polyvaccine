@@ -1,11 +1,28 @@
+Polyvaccine
+=======
+
+Polyvaccine is a detection software that enables protection to HTTP or SIP servers from unknown binary attacks, 
+such as polymorphic exploit attacks, and DDoS at application layer. Polyvaccine is supported on Linux x86_64 platform.
+
+Polyvaccine have the next characteristics:
+
+- Don't need signature updates.
+- The main three task(detection, protection, filtering) could be placed distributed on several nodes
+- The architecture is fully distributed (using dbus as main orb).
+- The integration with other subsystems such as logger, firewalls and so on is easy just by using simple python scripts.
+- Don't have support for Sql-injection, just any type of binary attacks.
+- Don't try to replace the functions of a NIDS.
+- The management task are negligible.
+- Libseccomp support.
+- Support for mysql and redis databases.
+
 Polyvaccine consist on 3 main process:
-	- Filter engine(pvfe).
-	- Detection engine(pvde).
-	- Protection engine(pvpe).
+- Filter engine(pvfe).
+- Detection engine(pvde).
+- Protection engine(pvpe).
 
 These engines could be placed at any part of the network, however our example puts 
 all the process on the same machine.
-
 
 --------------------------------------------------------------
 Basic test configuration
